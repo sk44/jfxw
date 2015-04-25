@@ -75,7 +75,11 @@ public class ContentRow extends FlowPane {
         mark = new Label("");
         mark.prefWidthProperty().set(5);
 
-        nameLabel = new Label(asParent ? PARENT_DIR_NAME : path.getFileName().toString());
+        String name = asParent ? PARENT_DIR_NAME : path.getFileName().toString();
+        if (asParent == false && isDirectory()) {
+            name += "/";
+        }
+        nameLabel = new Label(name);
         nameLabel.prefWidthProperty().bind(widthProperty.multiply(0.45));
 
         sizeLabel = new Label(isDirectory() ? DIR_SIZE_VALUE : formatFileSize(path));

@@ -8,6 +8,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
+import java.util.function.Consumer;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -69,6 +70,7 @@ public class FilerViewController implements Initializable {
     private TextField textField;
     private String searchText;
     private Path currentPath;
+    private Consumer<Path> changeCursorLisnener;
 
     private boolean isBottom() {
         return index + 1 == contents.size();
@@ -80,7 +82,6 @@ public class FilerViewController implements Initializable {
 
     @FXML
     protected void handleCommandKeyPressed(KeyEvent event) {
-        Message.debug(event.getCode().name());
         switch (event.getCode()) {
             case DOWN:
             case J:
@@ -125,9 +126,19 @@ public class FilerViewController implements Initializable {
                 break;
             case N:
                 if (event.isShiftDown()) {
-                    // TODO
+                    searchPrevious();
                 } else {
                     searchNext();
+                }
+                break;
+            case O:
+                if (event.isShiftDown()) {
+                    otherFilerViewController.moveTo(currentPath);
+                    otherFilerViewController.focus();
+                    clearCursor();
+                } else {
+                    moveTo(otherFilerViewController.getCurrentPath());
+                    updateCursor();
                 }
                 break;
             case Q:
@@ -154,6 +165,9 @@ public class FilerViewController implements Initializable {
         ContentRow currentContent = getCurrentContent();
         currentContent.updateSelected(true);
         ensureVisible(scrollPane, currentContent);
+        if (changeCursorLisnener != null) {
+            changeCursorLisnener.accept(getCurrentContent().getPath());
+        }
     }
 
     private ContentRow getCurrentContent() {
@@ -222,6 +236,7 @@ public class FilerViewController implements Initializable {
         if (parentPath != null) {
             rows.add(ContentRow.forParent(parentPath, scrollPane.widthProperty()));
         }
+        // TODO 権限がない場合真っ白になる
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(currentPath)) {
             for (Path entry : stream) {
                 rows.add(ContentRow.create(entry, scrollPane.widthProperty()));
@@ -267,20 +282,39 @@ public class FilerViewController implements Initializable {
         if (isBottom()) {
             return;
         }
-        System.out.println("search text: " + searchText);
+        Message.debug("search text: " + searchText);
 
         for (int i = index + 1; i < contents.size(); i++) {
             ContentRow content = contents.get(i);
-            System.out.println("content: " + content.getName());
             if (content.isNameMatch(searchText)) {
-                System.out.println("found: " + content.getName() + "index: " + i);
+                Message.debug("found: " + content.getName());
                 clearCursor();
                 updateIndex(i);
                 updateCursor();
                 return;
             }
         }
-        System.out.println("not found");
+        Message.info("not found.");
+    }
+
+    private void searchPrevious() {
+        if (index == 0) {
+            return;
+        }
+        Message.debug("search text: " + searchText);
+
+        for (int i = index - 1; i >= 0; i--) {
+            ContentRow content = contents.get(i);
+            if (content.isNameMatch(searchText)) {
+                Message.debug("found: " + content.getName());
+                clearCursor();
+                updateIndex(i);
+                updateCursor();
+                return;
+            }
+        }
+        Message.info("not found.");
+
     }
 
     private void removeTextField() {
@@ -288,4 +322,11 @@ public class FilerViewController implements Initializable {
         flowPane.requestFocus();
     }
 
+    public Path getCurrentPath() {
+        return currentPath;
+    }
+
+    public void setChangeCursorListener(Consumer<Path> changeCursorListener) {
+        this.changeCursorLisnener = changeCursorListener;
+    }
 }

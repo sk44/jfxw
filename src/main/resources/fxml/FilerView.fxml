@@ -6,9 +6,9 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane fx:id="rootPane" prefHeight="400.0" prefWidth="600.0" stylesheets="@../styles/Styles.css" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/8" fx:controller="sk44.jfxw.controller.FilerViewController">
+<AnchorPane fx:id="rootPane" prefHeight="400.0" prefWidth="600.0" stylesheets="@../styles/Styles.css" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sk44.jfxw.controller.FilerViewController">
     <children>
-        <Label id="currentPath" fx:id="currentPathLabel" maxHeight="20.0" minHeight="20.0" prefHeight="20.0" text="" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+        <Label id="currentPath" fx:id="currentPathLabel" maxHeight="20.0" minHeight="20.0" prefHeight="20.0" text="" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="0.0" />
         <ScrollPane fx:id="scrollPane" hbarPolicy="NEVER" layoutX="30.0" onKeyPressed="#handleCommandKeyPressed" prefHeight="200.0" prefWidth="200.0" stylesheets="@../styles/Styles.css" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="20">
             <content>
                 <FlowPane fx:id="flowPane" />
