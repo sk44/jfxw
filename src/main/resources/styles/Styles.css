@@ -1,0 +1,24 @@
+.root * {
+    /*-fx-background-color: rgba(255, 255, 255, 1);*/
+    /*-fx-background-color: red;*/
+    -fx-font: 12px "Menlo";
+    /*-fx-base: rgba(255, 255, 255, 1);*/
+    /*-fx-background: rgba(255, 255, 255, 1);*/
+}
+
+.mainWindow {
+    /*-fx-background-color: red;*/
+}
+
+.test {
+    /*-fx-background-image: url("https://www.google.com/images/srpr/logo3w.png");*/
+}
+
+.currentRow * {
+    -fx-background-color: #999999;
+    -fx-text-fill: #ffffff;
+}
+
+.sizeContent {
+    -fx-alignment: CENTER_RIGHT;
+}
