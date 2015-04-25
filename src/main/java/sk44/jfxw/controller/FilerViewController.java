@@ -21,6 +21,7 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.FlowPane;
 import sk44.jfxw.model.Message;
+import sk44.jfxw.model.PathHistoriesCache;
 import sk44.jfxw.view.ContentRow;
 import sk44.jfxw.view.ContentRowComparator;
 
@@ -32,6 +33,7 @@ import sk44.jfxw.view.ContentRowComparator;
 public class FilerViewController implements Initializable {
 
     private static final double CONTENT_HEIGHT = 16;
+    private static final int HISTORY_BUFFER_SIZE = 24;
 
     private static void ensureVisible(ScrollPane pane, Node node) {
         double height = pane.getContent().getBoundsInLocal().getHeight();
@@ -59,8 +61,11 @@ public class FilerViewController implements Initializable {
     private Label currentPathLabel;
 
     private FilerViewController otherFilerViewController;
+
     private int index = 0;
     private final ObservableList<ContentRow> contents = FXCollections.observableArrayList();
+    private final PathHistoriesCache historiesCache = new PathHistoriesCache(HISTORY_BUFFER_SIZE);
+
     private TextField textField;
     private String searchText;
     private Path currentPath;
@@ -178,10 +183,29 @@ public class FilerViewController implements Initializable {
     }
 
     void moveTo(Path path) {
+        if (currentPath != null) {
+            historiesCache.put(currentPath, getCurrentContent().getPath());
+        }
         Path normalizedPath = normalizePath(path);
         currentPath = normalizedPath;
         loadFiles();
-        updateIndex(0);
+        if (historiesCache.contains(currentPath)) {
+            Path focused = historiesCache.lastFocusedIn(currentPath);
+            boolean found = false;
+            for (int i = 0; i < contents.size(); i++) {
+                ContentRow content = contents.get(i);
+                if (content.getPath().equals(focused)) {
+                    updateIndex(i);
+                    found = true;
+                    break;
+                }
+            }
+            if (found == false) {
+                updateIndex(0);
+            }
+        } else {
+            updateIndex(0);
+        }
         // TODO バインド
         currentPathLabel.setText(currentPath.toString());
     }
