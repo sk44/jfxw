@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -86,32 +87,24 @@ public class FilerViewController implements Initializable {
             case DOWN:
             case J:
                 // down
-                if (isBottom() == false) {
-                    clearCursor();
-                    updateIndex(this.index + 1);
-                    updateCursor();
-                }
+                next();
                 break;
             case UP:
             case K:
                 // up
-                if (index > 0) {
-                    clearCursor();
-                    updateIndex(this.index - 1);
-                    updateCursor();
-                }
+                previous();
                 break;
             case H:
                 Path parent = currentPath.getParent();
                 if (parent != null) {
-                    moveTo(parent);
+                    changeDirectoryTo(parent);
                     updateCursor();
                 }
                 break;
             case L:
                 ContentRow currentContent = getCurrentContent();
                 if (currentContent.isDirectory()) {
-                    moveTo(currentContent.getPath());
+                    changeDirectoryTo(currentContent.getPath());
                     updateCursor();
                 }
                 break;
@@ -124,6 +117,9 @@ public class FilerViewController implements Initializable {
                 }
                 updateCursor();
                 break;
+            case M:
+                move();
+                break;
             case N:
                 if (event.isShiftDown()) {
                     searchPrevious();
@@ -133,16 +129,20 @@ public class FilerViewController implements Initializable {
                 break;
             case O:
                 if (event.isShiftDown()) {
-                    otherFilerViewController.moveTo(currentPath);
-                    otherFilerViewController.focus();
-                    clearCursor();
+                    otherFilerViewController.changeDirectoryTo(currentPath);
+//                    otherFilerViewController.focus();
+//                    clearCursor();
                 } else {
-                    moveTo(otherFilerViewController.getCurrentPath());
+                    changeDirectoryTo(otherFilerViewController.getCurrentPath());
                     updateCursor();
                 }
                 break;
             case Q:
                 Platform.exit();
+                break;
+            case SPACE:
+                getCurrentContent().toggleMark();
+                next();
                 break;
             case SLASH:
                 event.consume();
@@ -155,6 +155,63 @@ public class FilerViewController implements Initializable {
             default:
                 break;
         }
+    }
+
+    private void next() {
+        if (isBottom()) {
+            return;
+        }
+        clearCursor();
+        updateIndex(this.index + 1);
+        updateCursor();
+    }
+
+    private void previous() {
+        if (index > 0) {
+            clearCursor();
+            updateIndex(this.index - 1);
+            updateCursor();
+        }
+    }
+
+    private void move() {
+        // TODO
+        for (Path path : collectMarkedPathes()) {
+            if (Files.isDirectory(path)) {
+                Message.info("move directories is not implemented yet!");
+                continue;
+            }
+            Message.debug("move target: " + path.toString());
+            otherFilerViewController.moveFrom(path);
+        }
+        changeDirectoryTo(currentPath);
+        updateCursor();
+    }
+
+    private void moveFrom(Path sourcePath) {
+        Path newPath = resolve(sourcePath);
+        if (newPath == null) {
+            return;
+        }
+        // TODO 移動処理を実装
+        Message.info("move " + sourcePath.toString() + " to " + newPath.toString());
+    }
+
+    private Path resolve(Path sourcePath) {
+        Path newPath = currentPath.resolve(sourcePath.getFileName());
+        if (Files.exists(newPath)) {
+            Message.warn("path " + newPath.toString() + " is already exists.");
+            return null;
+        }
+        return newPath;
+    }
+
+    private List<Path> collectMarkedPathes() {
+        return contents
+            .stream()
+            .filter(content -> content.isMarked())
+            .map(content -> content.getPath())
+            .collect(Collectors.toList());
     }
 
     private void clearCursor() {
@@ -196,12 +253,11 @@ public class FilerViewController implements Initializable {
         this.otherFilerViewController = otherFilerViewController;
     }
 
-    void moveTo(Path path) {
+    void changeDirectoryTo(Path path) {
         if (currentPath != null) {
             historiesCache.put(currentPath, getCurrentContent().getPath());
         }
-        Path normalizedPath = normalizePath(path);
-        currentPath = normalizedPath;
+        currentPath = normalizePath(path);
         loadFiles();
         if (historiesCache.contains(currentPath)) {
             Path focused = historiesCache.lastFocusedIn(currentPath);

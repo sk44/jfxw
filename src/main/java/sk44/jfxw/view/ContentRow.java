@@ -7,14 +7,14 @@ import java.text.NumberFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ReadOnlyDoubleProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
-import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.paint.Color;
+import javafx.util.converter.BooleanStringConverter;
 import sk44.jfxw.model.Message;
 
 /**
@@ -24,8 +24,11 @@ import sk44.jfxw.model.Message;
 public class ContentRow extends FlowPane {
 
     private static final String CURRENT_ROW_CLASS_NAME = "currentRow";
+    private static final String MARKED_ROW_CLASS_NAME = "markedRow";
     private static final String PARENT_DIR_NAME = "..";
+    private static final String DIR_NAME_SUFFIX = "/";
     private static final String DIR_SIZE_VALUE = "<DIR>";
+    private static final String MARK_VALUE = "*";
     private static final String LAST_MODIFIED_DATE_FORMAT = "yyyy/MM/dd HH:mm:ss";
     private static final Color CURSOR_COLOR = Color.LIGHTGREY;
 
@@ -57,27 +60,32 @@ public class ContentRow extends FlowPane {
         return contentRow;
     }
 
-    public static ContentRow forParent(Path path, ReadOnlyDoubleProperty wiDoubleProperty) {
-        return new ContentRow(path, wiDoubleProperty, true);
-    }
-
-    // TODO css class でいいのでは
-    private static Background createBackground(Color color) {
-        return new Background(new BackgroundFill(color, CornerRadii.EMPTY, Insets.EMPTY));
+    public static ContentRow forParent(Path path, ReadOnlyDoubleProperty widthProperty) {
+        return new ContentRow(path, widthProperty, true);
     }
 
     private ContentRow(Path path, ReadOnlyDoubleProperty widthProperty, boolean asParent) {
 
         this.path = path;
         prefWidthProperty().bind(widthProperty);
+        this.asParent = asParent;
 
-        // TODO いらないかも？
-        mark = new Label("");
-        mark.prefWidthProperty().set(5);
+        markLabel = new Label();
+        markLabel.prefWidthProperty().set(15);
+        markLabel.getStyleClass().add("markContent");
+        markLabel.textProperty().bindBidirectional(markedProperty, new BooleanStringConverter() {
+            @Override
+            public String toString(Boolean value) {
+                if (value == null) {
+                    return "";
+                }
+                return value ? MARK_VALUE : "";
+            }
+        });
 
         String name = asParent ? PARENT_DIR_NAME : path.getFileName().toString();
         if (asParent == false && isDirectory()) {
-            name += "/";
+            name += DIR_NAME_SUFFIX;
         }
         nameLabel = new Label(name);
         nameLabel.prefWidthProperty().bind(widthProperty.multiply(0.45));
@@ -95,14 +103,17 @@ public class ContentRow extends FlowPane {
 //        lastModifiedLabel.prefWidthProperty().bind(widthProperty.multiply(0.35));
         lastModifiedLabel.maxWidthProperty().set(150);
 
-        getChildren().add(mark);
+        getChildren().add(markLabel);
         getChildren().add(nameLabel);
         getChildren().add(sizeLabel);
         getChildren().add(lastModifiedLabel);
     }
 
     private final Path path;
-    private final Label mark;
+    private final boolean asParent;
+    private final BooleanProperty markedProperty = new SimpleBooleanProperty(false);
+
+    private final Label markLabel;
     private final Label nameLabel;
     private final Label sizeLabel;
     private final Label lastModifiedLabel;
@@ -130,6 +141,23 @@ public class ContentRow extends FlowPane {
         } else {
             getStyleClass().remove(CURRENT_ROW_CLASS_NAME);
         }
+    }
+
+    public void toggleMark() {
+        if (asParent) {
+            return;
+        }
+        // TODO 見せ方が微妙
+        markedProperty.set(markedProperty.get() == false);
+        if (markedProperty.get()) {
+            getStyleClass().add(MARKED_ROW_CLASS_NAME);
+        } else {
+            getStyleClass().remove(MARKED_ROW_CLASS_NAME);
+        }
+    }
+
+    public boolean isMarked() {
+        return markedProperty.get();
     }
 
 }

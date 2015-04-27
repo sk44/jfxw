@@ -18,6 +18,13 @@
     -fx-background-color: #999999;
     -fx-text-fill: #ffffff;
 }
+.markedRow * {
+    -fx-text-fill: #3333ff;
+}
+
+.markContent {
+    -fx-alignment: CENTER_RIGHT;
+}
 
 .sizeContent {
     -fx-alignment: CENTER_RIGHT;

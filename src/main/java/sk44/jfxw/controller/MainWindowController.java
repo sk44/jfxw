@@ -27,8 +27,8 @@ public class MainWindowController implements Initializable {
     public void initialize(URL url, ResourceBundle rb) {
 
         Path initialPath = getInitialPath();
-        leftFilerViewController.moveTo(initialPath);
-        rightFilerViewController.moveTo(initialPath);
+        leftFilerViewController.changeDirectoryTo(initialPath);
+        rightFilerViewController.changeDirectoryTo(initialPath);
 
         leftFilerViewController.withOtherFileViewController(rightFilerViewController);
         rightFilerViewController.withOtherFileViewController(leftFilerViewController);
@@ -49,7 +49,6 @@ public class MainWindowController implements Initializable {
     }
 
     private void updateStatus(Path path) {
-        Message.debug("cursor: " + path.toString());
         if (Files.isDirectory(path)) {
             statusLabel.setText("");
         } else {
