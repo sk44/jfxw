@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -72,6 +73,8 @@ public class FilerViewController implements Initializable {
     private String searchText;
     private Path currentPath;
     private Consumer<Path> changeCursorLisnener;
+    // TODO Predicate だと意図があれ
+    private Predicate<Path> executionHandler;
 
     private boolean isBottom() {
         return index + 1 == contents.size();
@@ -84,6 +87,9 @@ public class FilerViewController implements Initializable {
     @FXML
     protected void handleCommandKeyPressed(KeyEvent event) {
         switch (event.getCode()) {
+            case E:
+                execute();
+                break;
             case DOWN:
             case J:
                 // down
@@ -116,6 +122,12 @@ public class FilerViewController implements Initializable {
                     updateIndex(0);
                 }
                 updateCursor();
+                break;
+            case C:
+                copy();
+                break;
+            case D:
+                delete();
                 break;
             case M:
                 move();
@@ -157,6 +169,15 @@ public class FilerViewController implements Initializable {
         }
     }
 
+    private void execute() {
+        Path onCursor = getCurrentContent().getPath();
+        if (executionHandler != null) {
+            if (executionHandler.test(onCursor) == false) {
+                // TODO たらい回しにするかんじで
+            }
+        }
+    }
+
     private void next() {
         if (isBottom()) {
             return;
@@ -174,6 +195,56 @@ public class FilerViewController implements Initializable {
         }
     }
 
+    private void copy() {
+        for (Path path : collectMarkedPathes()) {
+            if (Files.isDirectory(path)) {
+                Message.info("copy directories is not implemented yet!");
+                continue;
+            }
+            if (otherFilerViewController.copyFrom(path) == false) {
+                return;
+            }
+        }
+        reload();
+        otherFilerViewController.reload();
+        updateCursor();
+    }
+
+    private boolean copyFrom(Path sourcePath) {
+        Path newPath = resolve(sourcePath);
+        // TODO null?
+        if (newPath == null) {
+            return true;
+        }
+        Message.info("copy " + sourcePath.toString() + " to " + newPath.toString());
+        try {
+            Files.copy(sourcePath, newPath);
+        } catch (IOException ex) {
+            Message.error(ex);
+            return false;
+        }
+        return true;
+    }
+
+    private void delete() {
+        for (Path path : collectMarkedPathes()) {
+            // TODO
+            if (Files.isDirectory(path)) {
+                Message.info("delete directories is not implemented yet!");
+                continue;
+            }
+            try {
+                Files.delete(path);
+                Message.info("deleted: " + path.toString());
+            } catch (IOException ex) {
+                Message.error(ex);
+                return;
+            }
+        }
+        reload();
+        updateCursor();
+    }
+
     private void move() {
         // TODO
         for (Path path : collectMarkedPathes()) {
@@ -184,7 +255,8 @@ public class FilerViewController implements Initializable {
             Message.debug("move target: " + path.toString());
             otherFilerViewController.moveFrom(path);
         }
-        changeDirectoryTo(currentPath);
+        reload();
+        otherFilerViewController.reload();
         updateCursor();
     }
 
@@ -251,6 +323,10 @@ public class FilerViewController implements Initializable {
 
     public void withOtherFileViewController(FilerViewController otherFilerViewController) {
         this.otherFilerViewController = otherFilerViewController;
+    }
+
+    void reload() {
+        changeDirectoryTo(currentPath);
     }
 
     void changeDirectoryTo(Path path) {
@@ -384,5 +460,9 @@ public class FilerViewController implements Initializable {
 
     public void setChangeCursorListener(Consumer<Path> changeCursorListener) {
         this.changeCursorLisnener = changeCursorListener;
+    }
+
+    public void setExecutionHandler(Predicate<Path> executionHandler) {
+        this.executionHandler = executionHandler;
     }
 }

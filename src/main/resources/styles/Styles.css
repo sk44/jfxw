@@ -18,8 +18,13 @@
     -fx-background-color: #999999;
     -fx-text-fill: #ffffff;
 }
-.markedRow * {
+
+.dirRow * {
     -fx-text-fill: #3333ff;
+}
+
+.markedRow * {
+    -fx-text-fill: #ff0066;
 }
 
 .markContent {

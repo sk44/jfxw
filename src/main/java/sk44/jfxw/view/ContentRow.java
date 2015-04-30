@@ -24,6 +24,7 @@ import sk44.jfxw.model.Message;
 public class ContentRow extends FlowPane {
 
     private static final String CURRENT_ROW_CLASS_NAME = "currentRow";
+    private static final String DIRECTORY_ROW_CLASS_NAME = "dirRow";
     private static final String MARKED_ROW_CLASS_NAME = "markedRow";
     private static final String PARENT_DIR_NAME = "..";
     private static final String DIR_NAME_SUFFIX = "/";
@@ -107,6 +108,10 @@ public class ContentRow extends FlowPane {
         getChildren().add(nameLabel);
         getChildren().add(sizeLabel);
         getChildren().add(lastModifiedLabel);
+
+        if (isDirectory()) {
+            getStyleClass().add(DIRECTORY_ROW_CLASS_NAME);
+        }
     }
 
     private final Path path;
@@ -131,7 +136,10 @@ public class ContentRow extends FlowPane {
     }
 
     public boolean isNameMatch(String text) {
-        return getName().contains(text);
+        if (text == null) {
+            return false;
+        }
+        return getName().toLowerCase().contains(text.toLowerCase());
     }
 
     public void updateSelected(boolean selected) {
