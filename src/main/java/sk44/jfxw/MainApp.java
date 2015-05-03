@@ -1,11 +1,13 @@
 package sk44.jfxw;
 
+import java.io.File;
 import javafx.application.Application;
 import static javafx.application.Application.launch;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import sk44.jfxw.model.Configuration;
 
 public class MainApp extends Application {
 
@@ -19,8 +21,16 @@ public class MainApp extends Application {
         // http://www.torutk.com/projects/swe/wiki/JavaFXとアナログ時計
 //        stage.initStyle(StageStyle.TRANSPARENT);
         stage.setTitle("JFXW");
+
+        Configuration.initialize(new File("."));
         stage.setScene(scene);
         stage.show();
+    }
+
+    @Override
+    public void stop() throws Exception {
+        Configuration.save();
+        super.stop();
     }
 
     /**
