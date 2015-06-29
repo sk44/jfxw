@@ -87,10 +87,11 @@ public class MainWindowController implements Initializable {
     }
 
     private void updateStatus(Path path) {
+        String value = path.getFileName().toString();
         if (Files.isDirectory(path)) {
-            statusLabel.setText("");
+            statusLabel.setText(value + "/");
         } else {
-            statusLabel.setText(path.getFileName().toString());
+            statusLabel.setText(value);
         }
     }
 }

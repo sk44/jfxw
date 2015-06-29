@@ -300,8 +300,8 @@ public class FilerViewController implements Initializable {
         ContentRow currentContent = getCurrentContent();
         currentContent.updateSelected(true);
         ensureVisible(scrollPane, currentContent);
-        if (changeCursorLisnener != null) {
-            changeCursorLisnener.accept(getCurrentContent().getPath());
+        if (changeCursorLisnener != null && currentContent.isParent() == false) {
+            changeCursorLisnener.accept(currentContent.getPath());
         }
     }
 

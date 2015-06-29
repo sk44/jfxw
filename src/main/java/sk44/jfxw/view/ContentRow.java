@@ -127,6 +127,10 @@ public class ContentRow extends FlowPane {
         return Files.isDirectory(path);
     }
 
+    public boolean isParent() {
+        return asParent;
+    }
+
     public Path getPath() {
         return path;
     }
