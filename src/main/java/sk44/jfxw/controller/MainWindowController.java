@@ -1,11 +1,13 @@
 package sk44.jfxw.controller;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ResourceBundle;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
@@ -42,6 +44,9 @@ public class MainWindowController implements Initializable {
         // TODO くどいのでどうにか
         leftFilerViewController.setChangeCursorListener(this::updateStatus);
         rightFilerViewController.setChangeCursorListener(this::updateStatus);
+
+        leftFilerViewController.setOpenConfigureHandler(this::handleOpenConfigureWindow);
+        rightFilerViewController.setOpenConfigureHandler(this::handleOpenConfigureWindow);
 
         leftFilerViewController.setExecutionHandler(this::handleExecute);
         rightFilerViewController.setExecutionHandler(this::handleExecute);
@@ -84,6 +89,18 @@ public class MainWindowController implements Initializable {
             return true;
         }
         return false;
+    }
+
+    private void handleOpenConfigureWindow() {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/ConfigureWindow.fxml"));
+        try {
+            loader.load();
+        } catch (IOException ex) {
+            Message.error(ex);
+            return;
+        }
+        ConfigureWindowController controller = loader.getController();
+        controller.showOn(rootPane);
     }
 
     private void updateStatus(Path path) {

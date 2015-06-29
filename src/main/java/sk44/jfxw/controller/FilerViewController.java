@@ -24,6 +24,7 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.FlowPane;
 import lombok.Getter;
+import lombok.Setter;
 import sk44.jfxw.model.Configuration;
 import sk44.jfxw.model.Message;
 import sk44.jfxw.model.PathHistoriesCache;
@@ -75,9 +76,13 @@ public class FilerViewController implements Initializable {
     private String searchText;
     @Getter
     private Path currentPath;
-    private Consumer<Path> changeCursorLisnener;
+    @Setter
+    private Consumer<Path> changeCursorListener;
+    @Setter
     // TODO Predicate だと意図があれ
     private Predicate<Path> executionHandler;
+    @Setter
+    private Runnable openConfigureHandler;
 
     private boolean isBottom() {
         return index + 1 == contents.size();
@@ -95,6 +100,9 @@ public class FilerViewController implements Initializable {
                 break;
             case X:
                 openByAssociated();
+                break;
+            case Z:
+                openConfigure();
                 break;
             case DOWN:
             case J:
@@ -252,27 +260,40 @@ public class FilerViewController implements Initializable {
     }
 
     private void move() {
-        // TODO
         for (Path path : collectMarkedPathes()) {
+            // TODO ディレクトリの移動処理実装
             if (Files.isDirectory(path)) {
                 Message.info("move directories is not implemented yet!");
                 continue;
             }
             Message.debug("move target: " + path.toString());
-            otherFilerViewController.moveFrom(path);
+            if (otherFilerViewController.moveFrom(path)) {
+                break;
+            }
         }
         reload();
         otherFilerViewController.reload();
         updateCursor();
     }
 
-    private void moveFrom(Path sourcePath) {
+    private boolean moveFrom(Path sourcePath) {
         Path newPath = resolve(sourcePath);
         if (newPath == null) {
-            return;
+            return true;
         }
-        // TODO 移動処理を実装
+        if (Files.exists(newPath)) {
+            // TODO confirm
+            Message.info("destination path " + newPath.toString() + " is already exists.");
+            return true;
+        }
         Message.info("move " + sourcePath.toString() + " to " + newPath.toString());
+        try {
+            Files.move(sourcePath, newPath);
+            return true;
+        } catch (IOException ex) {
+            Message.error(ex);
+            return false;
+        }
     }
 
     private Path resolve(Path sourcePath) {
@@ -300,8 +321,16 @@ public class FilerViewController implements Initializable {
         ContentRow currentContent = getCurrentContent();
         currentContent.updateSelected(true);
         ensureVisible(scrollPane, currentContent);
-        if (changeCursorLisnener != null && currentContent.isParent() == false) {
-            changeCursorLisnener.accept(currentContent.getPath());
+        if (changeCursorListener != null && currentContent.isParent() == false) {
+            changeCursorListener.accept(currentContent.getPath());
+        }
+    }
+
+    private void openConfigure() {
+        if (openConfigureHandler != null) {
+            openConfigureHandler.run();
+        } else {
+            Message.warn("open configuration handler not set.");
         }
     }
 
@@ -458,14 +487,6 @@ public class FilerViewController implements Initializable {
     private void removeTextField() {
         rootPane.getChildren().remove(textField);
         flowPane.requestFocus();
-    }
-
-    public void setChangeCursorListener(Consumer<Path> changeCursorListener) {
-        this.changeCursorLisnener = changeCursorListener;
-    }
-
-    public void setExecutionHandler(Predicate<Path> executionHandler) {
-        this.executionHandler = executionHandler;
     }
 
     private void openByAssociated() {
