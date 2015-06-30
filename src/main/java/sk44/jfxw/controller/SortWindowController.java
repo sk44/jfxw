@@ -7,17 +7,18 @@ package sk44.jfxw.controller;
 
 import java.net.URL;
 import java.util.ResourceBundle;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Pane;
+import sk44.jfxw.model.Message;
 
 /**
- * 設定画面ウィンドウコントローラー。
+ * ソート種別選択ウィンドウコントローラー。
  *
  * @author sk
  */
-public class ConfigureWindowController implements Initializable {
+public class SortWindowController implements Initializable {
 
     @FXML
     private Pane rootPane;
@@ -29,13 +30,14 @@ public class ConfigureWindowController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         // TODO
+        this.rootPane.requestFocus();
     }
 
     void showOn(Pane parentPane) {
+        // TODO: 同じコード
         this.parentPane = parentPane;
         rootPane.prefHeightProperty().bind(parentPane.heightProperty());
         rootPane.prefWidthProperty().bind(parentPane.widthProperty());
-
         parentPane.getChildren().add(rootPane);
     }
 
@@ -44,13 +46,8 @@ public class ConfigureWindowController implements Initializable {
     }
 
     @FXML
-    private void handleCancelButton(ActionEvent event) {
-        close();
+    protected void handleCommandKeyPressed(KeyEvent event) {
+        Message.debug(event.getCode().toString());
     }
 
-    @FXML
-    private void handleSaveButton(ActionEvent event) {
-        // TODO 保存処理
-        close();
-    }
 }

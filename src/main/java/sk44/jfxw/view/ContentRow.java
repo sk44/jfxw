@@ -15,6 +15,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.paint.Color;
 import javafx.util.converter.BooleanStringConverter;
+import lombok.Getter;
 import sk44.jfxw.model.Message;
 
 /**
@@ -97,7 +98,7 @@ public class ContentRow extends FlowPane {
         sizeLabel.prefWidthProperty().bind(widthProperty.multiply(0.2));
         sizeLabel.setPadding(new Insets(0, 5, 0, 5));
 
-        LocalDateTime lastModified = getLastModified(path);
+        lastModified = getLastModified(path);
         lastModifiedLabel = new Label(lastModified == null
             ? ""
             : lastModified.format(DateTimeFormatter.ofPattern(LAST_MODIFIED_DATE_FORMAT)));
@@ -117,6 +118,8 @@ public class ContentRow extends FlowPane {
     private final Path path;
     private final boolean asParent;
     private final BooleanProperty markedProperty = new SimpleBooleanProperty(false);
+    @Getter
+    private final LocalDateTime lastModified;
 
     private final Label markLabel;
     private final Label nameLabel;

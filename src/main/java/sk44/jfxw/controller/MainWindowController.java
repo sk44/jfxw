@@ -48,6 +48,9 @@ public class MainWindowController implements Initializable {
         leftFilerViewController.setOpenConfigureHandler(this::handleOpenConfigureWindow);
         rightFilerViewController.setOpenConfigureHandler(this::handleOpenConfigureWindow);
 
+        leftFilerViewController.setOpenSortHandler(this::handleOpenSortWindow);
+        rightFilerViewController.setOpenSortHandler(this::handleOpenSortWindow);
+
         leftFilerViewController.setExecutionHandler(this::handleExecute);
         rightFilerViewController.setExecutionHandler(this::handleExecute);
 
@@ -100,6 +103,19 @@ public class MainWindowController implements Initializable {
             return;
         }
         ConfigureWindowController controller = loader.getController();
+        controller.showOn(rootPane);
+    }
+
+    private void handleOpenSortWindow() {
+        // handleOpenConfigureWindow とほとんど同じなのでどうにか
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/SortWindow.fxml"));
+        try {
+            loader.load();
+        } catch (IOException ex) {
+            Message.error(ex);
+            return;
+        }
+        SortWindowController controller = loader.getController();
         controller.showOn(rootPane);
     }
 

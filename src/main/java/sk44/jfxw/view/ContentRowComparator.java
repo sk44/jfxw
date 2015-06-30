@@ -13,7 +13,10 @@ import java.util.Comparator;
  */
 public enum ContentRowComparator implements Comparator<ContentRow> {
 
-    BY_DEFAULT {
+    /**
+     * ファイル名でソート。
+     */
+    FILE_NAME {
 
             @Override
             public int compare(ContentRow o1, ContentRow o2) {
@@ -24,6 +27,17 @@ public enum ContentRowComparator implements Comparator<ContentRow> {
                     return 1;
                 }
                 return o1.getName().toLowerCase().compareTo(o2.getName().toLowerCase());
+            }
+
+        },
+    /**
+     * 更新日時でソート。
+     */
+    LAST_MODIFIED {
+
+            @Override
+            public int compare(ContentRow o1, ContentRow o2) {
+                return o1.getLastModified().compareTo(o2.getLastModified());
             }
 
         }

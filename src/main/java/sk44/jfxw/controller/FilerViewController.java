@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.function.Consumer;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -17,6 +16,8 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
@@ -30,6 +31,7 @@ import sk44.jfxw.model.Message;
 import sk44.jfxw.model.PathHistoriesCache;
 import sk44.jfxw.view.ContentRow;
 import sk44.jfxw.view.ContentRowComparator;
+import sk44.jfxw.view.PathExecutor;
 
 /**
  * FXML Controller class
@@ -79,10 +81,11 @@ public class FilerViewController implements Initializable {
     @Setter
     private Consumer<Path> changeCursorListener;
     @Setter
-    // TODO Predicate だと意図があれ
-    private Predicate<Path> executionHandler;
+    private PathExecutor executionHandler;
     @Setter
     private Runnable openConfigureHandler;
+    @Setter
+    private Runnable openSortHandler;
 
     private boolean isBottom() {
         return index + 1 == contents.size();
@@ -103,6 +106,9 @@ public class FilerViewController implements Initializable {
                 break;
             case Z:
                 openConfigure();
+                break;
+            case S:
+                openSort();
                 break;
             case DOWN:
             case J:
@@ -184,9 +190,9 @@ public class FilerViewController implements Initializable {
     }
 
     private void execute() {
-        Path onCursor = getCurrentContent().getPath();
+        Path pathOnCursor = getCurrentContent().getPath();
         if (executionHandler != null) {
-            if (executionHandler.test(onCursor) == false) {
+            if (executionHandler.tryExecute(pathOnCursor) == false) {
                 // TODO たらい回しにするかんじで
             }
         }
@@ -241,22 +247,29 @@ public class FilerViewController implements Initializable {
     }
 
     private void delete() {
-        for (Path path : collectMarkedPathes()) {
-            // TODO
-            if (Files.isDirectory(path)) {
-                Message.info("delete directories is not implemented yet!");
-                continue;
-            }
-            try {
-                Files.delete(path);
-                Message.info("deleted: " + path.toString());
-            } catch (IOException ex) {
-                Message.error(ex);
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.getDialogPane().setContentText("Are you sure?");
+        alert.showAndWait().ifPresent(type -> {
+            if (type == ButtonType.CANCEL) {
                 return;
             }
-        }
-        reload();
-        updateCursor();
+            for (Path path : collectMarkedPathes()) {
+                // TODO
+                if (Files.isDirectory(path)) {
+                    Message.info("delete directories is not implemented yet!");
+                    continue;
+                }
+                try {
+                    Files.delete(path);
+                    Message.info("deleted: " + path.toString());
+                } catch (IOException ex) {
+                    Message.error(ex);
+                    return;
+                }
+            }
+            reload();
+            updateCursor();
+        });
     }
 
     private void move() {
@@ -331,6 +344,14 @@ public class FilerViewController implements Initializable {
             openConfigureHandler.run();
         } else {
             Message.warn("open configuration handler not set.");
+        }
+    }
+
+    private void openSort() {
+        if (openSortHandler != null) {
+            openSortHandler.run();
+        } else {
+            Message.warn("open sort handler not set.");
         }
     }
 
@@ -412,7 +433,7 @@ public class FilerViewController implements Initializable {
             Message.error(ex);
             return;
         }
-        rows.stream().sorted(ContentRowComparator.BY_DEFAULT).forEach(row -> addContent(row));
+        rows.stream().sorted(ContentRowComparator.FILE_NAME).forEach(row -> addContent(row));
     }
 
     private void initTextField() {

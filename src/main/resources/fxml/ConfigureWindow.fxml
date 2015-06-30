@@ -12,16 +12,16 @@
     <stylesheets>
         <URL value="@/styles/Styles.css" />
     </stylesheets>
-   <children>
-      <AnchorPane prefHeight="200.0" prefWidth="200.0" styleClass="configureForeground" AnchorPane.bottomAnchor="30.0" AnchorPane.leftAnchor="30.0" AnchorPane.rightAnchor="30.0" AnchorPane.topAnchor="30.0">
-         <children>
-            <Button layoutX="471.0" layoutY="293.0" mnemonicParsing="false" onAction="#handleSaveButton" text="Save" AnchorPane.bottomAnchor="30.0" AnchorPane.rightAnchor="30.0" />
-            <Button layoutX="394.0" layoutY="293.0" mnemonicParsing="false" onAction="#handleCancelButton" text="Cancel" AnchorPane.bottomAnchor="30.0" AnchorPane.rightAnchor="100.0" />
-         </children>
-      </AnchorPane>
-   </children>
-   <styleClass>
-      <String fx:value="mainFxmlClass" />
-      <String fx:value="configureBackground" />
-   </styleClass>
+    <children>
+        <AnchorPane prefHeight="200.0" prefWidth="200.0" styleClass="dialogForeground" AnchorPane.bottomAnchor="30.0" AnchorPane.leftAnchor="30.0" AnchorPane.rightAnchor="30.0" AnchorPane.topAnchor="30.0">
+            <children>
+                <Button layoutX="471.0" layoutY="293.0" mnemonicParsing="false" onAction="#handleSaveButton" text="Save" AnchorPane.bottomAnchor="30.0" AnchorPane.rightAnchor="30.0" />
+                <Button layoutX="394.0" layoutY="293.0" mnemonicParsing="false" onAction="#handleCancelButton" text="Cancel" AnchorPane.bottomAnchor="30.0" AnchorPane.rightAnchor="100.0" />
+            </children>
+        </AnchorPane>
+    </children>
+    <styleClass>
+        <String fx:value="mainFxmlClass" />
+        <String fx:value="dialogBackground" />
+    </styleClass>
 </AnchorPane>
