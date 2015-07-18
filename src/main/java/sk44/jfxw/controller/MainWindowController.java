@@ -1,6 +1,5 @@
 package sk44.jfxw.controller;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
@@ -12,11 +11,12 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.Pane;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
 import sk44.jfxw.model.Message;
-import sk44.jfxw.model.MessageLevel;
+import sk44.jfxw.model.ModelLocator;
 
 public class MainWindowController implements Initializable {
 
@@ -34,14 +34,17 @@ public class MainWindowController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle rb) {
 
-        Path initialPath = getInitialPath();
-        leftFilerViewController.changeDirectoryTo(initialPath);
-        rightFilerViewController.changeDirectoryTo(initialPath);
+        // TODO メインスレッドの考慮が必要っぽい
+        Message.addObserver(message -> messageArea.appendText("\n" + message));
+        Message.addObserver(System.out::println);
 
-        leftFilerViewController.withOtherFileViewController(rightFilerViewController);
-        rightFilerViewController.withOtherFileViewController(leftFilerViewController);
+        leftFilerViewController.withFiler(ModelLocator.INSTANCE.getLeftFiler());
+        rightFilerViewController.withFiler(ModelLocator.INSTANCE.getRightFiler());
 
         // TODO くどいのでどうにか
+        leftFilerViewController.setChangeFocusListener(rightFilerViewController::focus);
+        rightFilerViewController.setChangeFocusListener(leftFilerViewController::focus);
+
         leftFilerViewController.setChangeCursorListener(this::updateStatus);
         rightFilerViewController.setChangeCursorListener(this::updateStatus);
 
@@ -54,16 +57,10 @@ public class MainWindowController implements Initializable {
         leftFilerViewController.setExecutionHandler(this::handleExecute);
         rightFilerViewController.setExecutionHandler(this::handleExecute);
 
+        ModelLocator.INSTANCE.getLeftFiler().moveToInitPath();
+        ModelLocator.INSTANCE.getRightFiler().moveToInitPath();
         leftFilerViewController.focus();
-
         messageArea.appendText("Ready.");
-        Message.minLevel(MessageLevel.TRACE);
-        Message.addObserver(message -> messageArea.appendText("\n" + message));
-    }
-
-    private Path getInitialPath() {
-        // TODO どこかに設定
-        return new File(".").toPath();
     }
 
     private boolean handleExecute(Path file) {
@@ -107,10 +104,11 @@ public class MainWindowController implements Initializable {
     }
 
     private void handleOpenSortWindow() {
+
         // handleOpenConfigureWindow とほとんど同じなのでどうにか
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/SortWindow.fxml"));
         try {
-            loader.load();
+            Pane pane = loader.load();
         } catch (IOException ex) {
             Message.error(ex);
             return;

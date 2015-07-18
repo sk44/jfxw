@@ -1,4 +1,4 @@
-package sk44.jfxw.model;
+package sk44.jfxw.controller;
 
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
@@ -8,7 +8,7 @@ import java.util.Map;
  *
  * @author sk
  */
-public class PathHistoriesCache {
+class PathHistoriesCache {
 
     private static final float LOAD_FACTOR = 0.75f;
     private final LinkedHashMap<String, Path> cache;

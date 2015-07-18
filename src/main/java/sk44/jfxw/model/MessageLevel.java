@@ -5,6 +5,8 @@
  */
 package sk44.jfxw.model;
 
+import java.util.Arrays;
+
 /**
  *
  * @author sk
@@ -17,19 +19,27 @@ public enum MessageLevel {
     WARN(4, "WARN"),
     ERROR(5, "ERROR");
 
-    private final int level;
-    private final String prefix;
+    public static MessageLevel ofName(String name) {
+        return Arrays
+            .stream(MessageLevel.values())
+            .filter(level -> level.name.equalsIgnoreCase(name))
+            .findFirst()
+            .orElse(DEBUG);
+    }
 
-    private MessageLevel(int level, String prefix) {
+    private final int level;
+    private final String name;
+
+    private MessageLevel(int level, String name) {
         this.level = level;
-        this.prefix = prefix;
+        this.name = name;
     }
 
     String formatMessage(String message, MessageLevel minLevel) {
         if (level < minLevel.level) {
             return null;
         }
-        return "[" + prefix + "] " + message;
+        return "[" + name + "] " + message;
     }
 
 }

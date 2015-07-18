@@ -152,7 +152,11 @@ public class ContentRow extends FlowPane {
     public void updateSelected(boolean selected) {
 
         if (selected) {
-            getStyleClass().add(CURRENT_ROW_CLASS_NAME);
+            // TODO 二重に add すると remove しても消えない（二回 remove すればいい？）
+            // そもそも二重に add するのがアレではる
+            if (getStyleClass().contains(CURRENT_ROW_CLASS_NAME) == false) {
+                getStyleClass().add(CURRENT_ROW_CLASS_NAME);
+            }
         } else {
             getStyleClass().remove(CURRENT_ROW_CLASS_NAME);
         }

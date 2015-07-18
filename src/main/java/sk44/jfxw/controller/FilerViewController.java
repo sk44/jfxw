@@ -2,8 +2,6 @@ package sk44.jfxw.controller;
 
 import java.io.IOException;
 import java.net.URL;
-import java.nio.file.DirectoryStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,11 +25,9 @@ import javafx.scene.layout.FlowPane;
 import lombok.Getter;
 import lombok.Setter;
 import sk44.jfxw.model.Configuration;
+import sk44.jfxw.model.Filer;
 import sk44.jfxw.model.Message;
-import sk44.jfxw.model.PathHistoriesCache;
 import sk44.jfxw.view.ContentRow;
-import sk44.jfxw.view.ContentRowComparator;
-import sk44.jfxw.view.PathExecutor;
 
 /**
  * FXML Controller class
@@ -55,10 +51,6 @@ public class FilerViewController implements Initializable {
         pane.setVvalue(y / height);
     }
 
-    private static Path normalizePath(Path path) {
-        return path.toAbsolutePath().normalize();
-    }
-
     @FXML
     private AnchorPane rootPane;
     @FXML
@@ -68,8 +60,6 @@ public class FilerViewController implements Initializable {
     @FXML
     private Label currentPathLabel;
 
-    private FilerViewController otherFilerViewController;
-
     private int index = 0;
     private final ObservableList<ContentRow> contents = FXCollections.observableArrayList();
     private final PathHistoriesCache historiesCache = new PathHistoriesCache(HISTORY_BUFFER_SIZE);
@@ -77,9 +67,11 @@ public class FilerViewController implements Initializable {
     private TextField textField;
     private String searchText;
     @Getter
-    private Path currentPath;
+    private Filer filer;
     @Setter
     private Consumer<Path> changeCursorListener;
+    @Setter
+    private Runnable changeFocusListener;
     @Setter
     private PathExecutor executionHandler;
     @Setter
@@ -92,6 +84,7 @@ public class FilerViewController implements Initializable {
     }
 
     private void updateIndex(int index) {
+        Message.debug("index update: " + this.index + " to " + index);
         this.index = index;
     }
 
@@ -121,17 +114,12 @@ public class FilerViewController implements Initializable {
                 previous();
                 break;
             case H:
-                Path parent = currentPath.getParent();
-                if (parent != null) {
-                    changeDirectoryTo(parent);
-                    updateCursor();
-                }
+                this.filer.moveToParentDir();
                 break;
             case L:
                 ContentRow currentContent = getCurrentContent();
                 if (currentContent.isDirectory()) {
-                    changeDirectoryTo(currentContent.getPath());
-                    updateCursor();
+                    this.filer.moveTo(currentContent.getPath());
                 }
                 break;
             case G:
@@ -150,7 +138,11 @@ public class FilerViewController implements Initializable {
                 delete();
                 break;
             case M:
-                move();
+                if (event.isShiftDown()) {
+                    // TODO mkdir
+                } else {
+                    move();
+                }
                 break;
             case N:
                 if (event.isShiftDown()) {
@@ -161,12 +153,9 @@ public class FilerViewController implements Initializable {
                 break;
             case O:
                 if (event.isShiftDown()) {
-                    otherFilerViewController.changeDirectoryTo(currentPath);
-//                    otherFilerViewController.focus();
-//                    clearCursor();
+                    this.filer.syncCurrentDirectoryToOther();
                 } else {
-                    changeDirectoryTo(otherFilerViewController.getCurrentPath());
-                    updateCursor();
+                    this.filer.syncCurrentDirectoryFromOther();
                 }
                 break;
             case Q:
@@ -181,8 +170,11 @@ public class FilerViewController implements Initializable {
                 initTextField();
                 break;
             case TAB:
-                otherFilerViewController.focus();
-                clearCursor();
+                if (changeFocusListener != null) {
+                    changeFocusListener.run();
+                }
+                // TODO どっちにフォーカスがあるかわからなくなるので見た目をどうにかしたい
+//                clearCursor();
                 break;
             default:
                 break;
@@ -216,106 +208,24 @@ public class FilerViewController implements Initializable {
     }
 
     private void copy() {
-        for (Path path : collectMarkedPathes()) {
-            if (Files.isDirectory(path)) {
-                Message.info("copy directories is not implemented yet!");
-                continue;
-            }
-            if (otherFilerViewController.copyFrom(path) == false) {
-                return;
-            }
-        }
-        reload();
-        otherFilerViewController.reload();
+        filer.copy(collectMarkedPathes());
         updateCursor();
-    }
-
-    private boolean copyFrom(Path sourcePath) {
-        Path newPath = resolve(sourcePath);
-        // TODO null?
-        if (newPath == null) {
-            return true;
-        }
-        Message.info("copy " + sourcePath.toString() + " to " + newPath.toString());
-        try {
-            Files.copy(sourcePath, newPath);
-        } catch (IOException ex) {
-            Message.error(ex);
-            return false;
-        }
-        return true;
     }
 
     private void delete() {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.getDialogPane().setContentText("Are you sure?");
-        alert.showAndWait().ifPresent(type -> {
-            if (type == ButtonType.CANCEL) {
-                return;
-            }
-            for (Path path : collectMarkedPathes()) {
-                // TODO
-                if (Files.isDirectory(path)) {
-                    Message.info("delete directories is not implemented yet!");
-                    continue;
-                }
-                try {
-                    Files.delete(path);
-                    Message.info("deleted: " + path.toString());
-                } catch (IOException ex) {
-                    Message.error(ex);
-                    return;
-                }
-            }
-            reload();
-            updateCursor();
-        });
+        alert.showAndWait()
+            .filter(response -> response == ButtonType.OK)
+            .ifPresent(response -> {
+                filer.delete(collectMarkedPathes());
+                updateCursor();
+            });
     }
 
     private void move() {
-        for (Path path : collectMarkedPathes()) {
-            // TODO ディレクトリの移動処理実装
-            if (Files.isDirectory(path)) {
-                Message.info("move directories is not implemented yet!");
-                continue;
-            }
-            Message.debug("move target: " + path.toString());
-            if (otherFilerViewController.moveFrom(path)) {
-                break;
-            }
-        }
-        reload();
-        otherFilerViewController.reload();
+        filer.move(collectMarkedPathes());
         updateCursor();
-    }
-
-    private boolean moveFrom(Path sourcePath) {
-        Path newPath = resolve(sourcePath);
-        if (newPath == null) {
-            return true;
-        }
-        if (Files.exists(newPath)) {
-            // TODO confirm
-            Message.info("destination path " + newPath.toString() + " is already exists.");
-            return true;
-        }
-        Message.info("move " + sourcePath.toString() + " to " + newPath.toString());
-        try {
-            Files.move(sourcePath, newPath);
-            return true;
-        } catch (IOException ex) {
-            Message.error(ex);
-            return false;
-        }
-    }
-
-    private Path resolve(Path sourcePath) {
-        Path newPath = currentPath.resolve(sourcePath.getFileName());
-        if (Files.exists(newPath)) {
-            Message.warn("path " + newPath.toString() + " is already exists.");
-            return null;
-        }
-        return newPath;
     }
 
     private List<Path> collectMarkedPathes() {
@@ -328,6 +238,7 @@ public class FilerViewController implements Initializable {
 
     private void clearCursor() {
         getCurrentContent().updateSelected(false);
+        Message.debug("cursor clear at index: " + index);
     }
 
     private void updateCursor() {
@@ -337,6 +248,7 @@ public class FilerViewController implements Initializable {
         if (changeCursorListener != null && currentContent.isParent() == false) {
             changeCursorListener.accept(currentContent.getPath());
         }
+        Message.debug("cursor updated at index: " + index);
     }
 
     private void openConfigure() {
@@ -377,22 +289,25 @@ public class FilerViewController implements Initializable {
         flowPane.getChildren().clear();
     }
 
-    public void withOtherFileViewController(FilerViewController otherFilerViewController) {
-        this.otherFilerViewController = otherFilerViewController;
+    public void withFiler(Filer filer) {
+        this.filer = filer;
+        this.filer.addPreChangeDirectoryObserver(this::preChangeDirectory);
+        this.filer.addPostChangeDirectoryObserver(this::postChangeDirectoryTo);
+        this.filer.addPostEntryLoadedObserver(this::postEntryLoaded);
     }
 
-    void reload() {
-        changeDirectoryTo(currentPath);
-    }
-
-    void changeDirectoryTo(Path path) {
-        if (currentPath != null) {
-            historiesCache.put(currentPath, getCurrentContent().getPath());
+    private void preChangeDirectory(Path previousPath) {
+        if (contents.isEmpty()) {
+            return;
         }
-        currentPath = normalizePath(path);
-        loadFiles();
-        if (historiesCache.contains(currentPath)) {
-            Path focused = historiesCache.lastFocusedIn(currentPath);
+        historiesCache.put(previousPath, getCurrentContent().getPath());
+        clearContents();
+    }
+
+    // TODO notification
+    private void postChangeDirectoryTo(Path path) {
+        if (historiesCache.contains(path)) {
+            Path focused = historiesCache.lastFocusedIn(path);
             boolean found = false;
             for (int i = 0; i < contents.size(); i++) {
                 ContentRow content = contents.get(i);
@@ -409,7 +324,8 @@ public class FilerViewController implements Initializable {
             updateIndex(0);
         }
         // TODO バインド
-        currentPathLabel.setText(currentPath.toString());
+        currentPathLabel.setText(path.toString());
+        updateCursor();
     }
 
     void focus() {
@@ -417,23 +333,12 @@ public class FilerViewController implements Initializable {
         updateCursor();
     }
 
-    private void loadFiles() {
-        clearContents();
-        List<ContentRow> rows = new ArrayList<>();
-        Path parentPath = currentPath.getParent();
-        if (parentPath != null) {
-            rows.add(ContentRow.forParent(parentPath, scrollPane.widthProperty()));
-        }
-        // TODO 権限がない場合真っ白になる
-        try (DirectoryStream<Path> stream = Files.newDirectoryStream(currentPath)) {
-            for (Path entry : stream) {
-                rows.add(ContentRow.create(entry, scrollPane.widthProperty()));
-            }
-        } catch (IOException ex) {
-            Message.error(ex);
+    private void postEntryLoaded(Path entry, boolean parent) {
+        if (parent) {
+            addContent(ContentRow.forParent(entry, scrollPane.widthProperty()));
             return;
         }
-        rows.stream().sorted(ContentRowComparator.FILE_NAME).forEach(row -> addContent(row));
+        addContent(ContentRow.create(entry, scrollPane.widthProperty()));
     }
 
     private void initTextField() {

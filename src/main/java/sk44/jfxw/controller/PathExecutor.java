@@ -3,7 +3,7 @@
  *
  *
  */
-package sk44.jfxw.view;
+package sk44.jfxw.controller;
 
 import java.nio.file.Path;
 
@@ -12,7 +12,7 @@ import java.nio.file.Path;
  * @author sk
  */
 @FunctionalInterface
-public interface PathExecutor {
+interface PathExecutor {
 
     boolean tryExecute(Path path);
 }

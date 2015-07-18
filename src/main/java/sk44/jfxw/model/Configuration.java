@@ -57,6 +57,9 @@ public class Configuration {
     @Getter
     @Setter
     private Map<String, String> fileAssociations = new HashMap<>();
+    @Getter
+    @Setter
+    private String logLevel;
 
     public Optional<String> getAssociatedCommandFor(Path file) {
         String fileName = file.getFileName().toString();
