@@ -208,8 +208,14 @@ public class FilerViewController implements Initializable {
     }
 
     private void copy() {
-        filer.copy(collectMarkedPathes());
+        filer.copy(collectMarkedPathes(), this::showConfirmDialog);
         updateCursor();
+    }
+
+    private boolean showConfirmDialog(String message) {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.getDialogPane().setContentText(message);
+        return alert.showAndWait().filter(response -> response == ButtonType.OK).isPresent();
     }
 
     private void delete() {

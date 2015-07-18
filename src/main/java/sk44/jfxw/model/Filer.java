@@ -14,6 +14,8 @@ import java.util.List;
 import java.util.stream.StreamSupport;
 import lombok.Getter;
 import lombok.Setter;
+import sk44.jfxw.model.fs.CopyDirectoryVisitor;
+import sk44.jfxw.model.fs.DeleteDirectoryVisitor;
 
 /**
  *
@@ -105,11 +107,20 @@ public class Filer {
         otherFiler.moveTo(getCurrentDir());
     }
 
-    public void copy(List<Path> entries) {
+    public void copy(List<Path> entries, CopyDirectoryVisitor.OverwriteConfirmer confirmer) {
 
         for (Path entry : entries) {
+            // TODO バックグラウンド実行を検討
             if (Files.isDirectory(entry)) {
-                Message.info("copy directories is not implemented yet!");
+                CopyDirectoryVisitor copyDirectoryVisitor = new CopyDirectoryVisitor(entry,
+                    otherFiler.getCurrentDir(), confirmer);
+                try {
+                    Files.walkFileTree(entry, copyDirectoryVisitor);
+                } catch (IOException ex) {
+                    Message.error(ex);
+                    return;
+                }
+//                Message.info("copy directories is not implemented yet!");
                 continue;
             }
             if (otherFiler.copyFrom(entry) == false) {
@@ -158,9 +169,14 @@ public class Filer {
 
     public void delete(List<Path> entries) {
         for (Path entry : entries) {
-            // TODO
+            // TODO バックグラウンド実行を検討
             if (Files.isDirectory(entry)) {
-                Message.info("delete directories is not implemented yet!");
+                try {
+                    Files.walkFileTree(entry, new DeleteDirectoryVisitor());
+                } catch (IOException ex) {
+                    Message.error(ex);
+                    return;
+                }
                 continue;
             }
             try {

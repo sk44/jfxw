@@ -5,6 +5,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ResourceBundle;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
@@ -34,9 +35,7 @@ public class MainWindowController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle rb) {
 
-        // TODO メインスレッドの考慮が必要っぽい
-        Message.addObserver(message -> messageArea.appendText("\n" + message));
-        Message.addObserver(System.out::println);
+        Message.addObserver(this::appendMessage);
 
         leftFilerViewController.withFiler(ModelLocator.INSTANCE.getLeftFiler());
         rightFilerViewController.withFiler(ModelLocator.INSTANCE.getRightFiler());
@@ -61,6 +60,12 @@ public class MainWindowController implements Initializable {
         ModelLocator.INSTANCE.getRightFiler().moveToInitPath();
         leftFilerViewController.focus();
         messageArea.appendText("Ready.");
+    }
+
+    private void appendMessage(String message) {
+        Platform.runLater(() -> {
+            messageArea.appendText("\n" + message);
+        });
     }
 
     private boolean handleExecute(Path file) {
