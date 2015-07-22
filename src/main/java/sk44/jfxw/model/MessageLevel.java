@@ -24,7 +24,11 @@ public enum MessageLevel {
             .stream(MessageLevel.values())
             .filter(level -> level.name.equalsIgnoreCase(name))
             .findFirst()
-            .orElse(DEBUG);
+            .orElse(defaultLevel());
+    }
+
+    public static MessageLevel defaultLevel() {
+        return DEBUG;
     }
 
     private final int level;

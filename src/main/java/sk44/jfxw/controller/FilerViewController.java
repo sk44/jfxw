@@ -24,9 +24,9 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.FlowPane;
 import lombok.Getter;
 import lombok.Setter;
-import sk44.jfxw.model.Configuration;
 import sk44.jfxw.model.Filer;
 import sk44.jfxw.model.Message;
+import sk44.jfxw.model.ModelLocator;
 import sk44.jfxw.view.ContentRow;
 
 /**
@@ -423,23 +423,26 @@ public class FilerViewController implements Initializable {
 
     private void openByAssociated() {
         Path onCursor = getCurrentContent().getPath();
-        Configuration.get().getAssociatedCommandFor(onCursor).ifPresent(command -> {
-            List<String> args = new ArrayList<>();
-            // TODO スペースが入る場合どうするか
-            for (String param : command.split(" ")) {
-                // TODO
-                if ("{0}".equals(param)) {
-                    args.add(onCursor.toString());
-                } else {
-                    args.add(param);
+        ModelLocator.INSTANCE
+            .getConfigurationStore()
+            .getConfiguration()
+            .getAssociatedCommandFor(onCursor).ifPresent(command -> {
+                List<String> args = new ArrayList<>();
+                // TODO スペースが入る場合どうするか
+                for (String param : command.split(" ")) {
+                    // TODO
+                    if ("{0}".equals(param)) {
+                        args.add(onCursor.toString());
+                    } else {
+                        args.add(param);
+                    }
                 }
-            }
-            try {
-                Message.info("exec: " + String.join(" ", args));
-                new ProcessBuilder(args).start();
-            } catch (IOException ex) {
-                Message.error(ex);
-            }
-        });
+                try {
+                    Message.info("exec: " + String.join(" ", args));
+                    new ProcessBuilder(args).start();
+                } catch (IOException ex) {
+                    Message.error(ex);
+                }
+            });
     }
 }

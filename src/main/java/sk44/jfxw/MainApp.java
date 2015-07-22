@@ -2,7 +2,6 @@ package sk44.jfxw;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
 import javafx.application.Application;
 import static javafx.application.Application.launch;
 import javafx.fxml.FXMLLoader;
@@ -13,9 +12,9 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import sk44.jfxw.controller.SortWindowController;
 import sk44.jfxw.model.Configuration;
+import sk44.jfxw.model.ConfigurationStore;
 import sk44.jfxw.model.Filer;
 import sk44.jfxw.model.Message;
-import sk44.jfxw.model.MessageLevel;
 import sk44.jfxw.model.ModelLocator;
 
 public class MainApp extends Application {
@@ -38,18 +37,8 @@ public class MainApp extends Application {
 //        stage.initStyle(StageStyle.TRANSPARENT);
         stage.setTitle("JFXW");
 
-        initailizeConfig();
-
         stage.setScene(scene);
         stage.show();
-    }
-
-    private void initailizeConfig() throws IOException {
-
-        Configuration.initialize(new File("."));
-        Configuration conf = Configuration.get();
-        Message.minLevel(MessageLevel.ofName(conf.getLogLevel()));
-
     }
 
     private void openSortWindow() {
@@ -71,26 +60,27 @@ public class MainApp extends Application {
         SortWindowController controller = loader.getController();
     }
 
-    private void initializeModelLocator() {
+    private void initializeModelLocator() throws IOException {
 
-        Path initialPath = getInitialPath();
-        Filer rightFiler = new Filer(initialPath);
-        Filer leftFiler = new Filer(initialPath);
+        ConfigurationStore configurationStore = new ConfigurationStore();
+        configurationStore.init(new File("."));
+        Configuration configuration = configurationStore.getConfiguration();
+
+        Message.minLevel(configuration.getMessageLevel());
+
+        Filer rightFiler = new Filer(configuration.getRightDir());
+        Filer leftFiler = new Filer(configuration.getLeftDir());
         rightFiler.setOtherFiler(leftFiler);
         leftFiler.setOtherFiler(rightFiler);
 
+        ModelLocator.INSTANCE.setConfigurationStore(configurationStore);
         ModelLocator.INSTANCE.setLeftFiler(leftFiler);
         ModelLocator.INSTANCE.setRightFiler(rightFiler);
     }
 
-    private Path getInitialPath() {
-        // TODO どこかに設定
-        return new File(".").toPath();
-    }
-
     @Override
     public void stop() throws Exception {
-        Configuration.save();
+        ModelLocator.INSTANCE.getConfigurationStore().save();
         super.stop();
     }
 

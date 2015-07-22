@@ -1,66 +1,65 @@
 package sk44.jfxw.model;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
  *
  * @author sk
  */
+@NoArgsConstructor
 public class Configuration {
 
-    private static final String CONFIG_FILE_NAME = "jfxw.json";
-    private static final ObjectMapper mapper;
+    static Configuration defaultValue() {
+        Configuration configuration = new Configuration();
+        configuration.logLevel = MessageLevel.defaultLevel().name();
+        String defaultPath = new File(".").toPath().normalize().toString();
+        configuration.leftPath = defaultPath;
+        configuration.rightPath = defaultPath;
 
-    static {
-        mapper = new ObjectMapper();
-        mapper.enable(SerializationFeature.INDENT_OUTPUT);
-    }
-    private static Configuration instance;
-    private static File configFile;
-
-    public static void initialize(File configFileDir) throws IOException {
-        configFile = new File(configFileDir, CONFIG_FILE_NAME);
-        instance = read(configFile);
-    }
-
-    public static Configuration get() {
-        Objects.requireNonNull(instance);
-        return instance;
-    }
-
-    public static void save() throws IOException {
-        mapper.writeValue(configFile, instance);
-    }
-
-    private static Configuration read(File sourceFile) throws IOException {
-        if (sourceFile.exists() == false) {
-            // TODO  デフォルト値
-            return new Configuration();
-        }
-
-        return mapper.readValue(sourceFile, Configuration.class);
-    }
-
-    public Configuration() {
+        return configuration;
     }
 
     @Getter
     @Setter
     private Map<String, String> fileAssociations = new HashMap<>();
+
     @Getter
     @Setter
     private String logLevel;
 
+    @Getter
+    @Setter
+    private String leftPath;
+
+    @Getter
+    @Setter
+    private String rightPath;
+
+    @JsonIgnore
+    public Path getLeftDir() {
+        return Paths.get(leftPath).normalize();
+    }
+
+    @JsonIgnore
+    public Path getRightDir() {
+        return Paths.get(rightPath).normalize();
+    }
+
+    @JsonIgnore
+    public MessageLevel getMessageLevel() {
+        return MessageLevel.ofName(getLogLevel());
+    }
+
+    @JsonIgnore
     public Optional<String> getAssociatedCommandFor(Path file) {
         String fileName = file.getFileName().toString();
         int i = fileName.lastIndexOf('.');

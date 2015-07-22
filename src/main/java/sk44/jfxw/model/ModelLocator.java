@@ -18,6 +18,10 @@ public enum ModelLocator {
 
     @Getter
     @Setter
+    private ConfigurationStore configurationStore;
+
+    @Getter
+    @Setter
     private Filer rightFiler;
 
     @Getter
