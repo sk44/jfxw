@@ -3,7 +3,6 @@ package sk44.jfxw.controller;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.function.Consumer;
@@ -454,20 +453,11 @@ public class FilerViewController implements Initializable {
         ModelLocator.INSTANCE
             .getConfigurationStore()
             .getConfiguration()
-            .getAssociatedCommandFor(onCursor).ifPresent(command -> {
-                List<String> args = new ArrayList<>();
-                // TODO スペースが入る場合どうするか
-                for (String param : command.split(" ")) {
-                    // TODO
-                    if ("{0}".equals(param)) {
-                        args.add(onCursor.toString());
-                    } else {
-                        args.add(param);
-                    }
-                }
+            .getAssociatedCommandFor(onCursor)
+            .ifPresent(command -> {
                 try {
-                    Message.info("exec: " + String.join(" ", args));
-                    new ProcessBuilder(args).start();
+                    Message.info("exec: " + command);
+                    new ProcessBuilder(command).start();
                 } catch (IOException ex) {
                     Message.error(ex);
                 }

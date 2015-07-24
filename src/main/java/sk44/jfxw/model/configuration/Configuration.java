@@ -5,8 +5,10 @@ import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -20,6 +22,8 @@ import sk44.jfxw.model.message.MessageLevel;
 @NoArgsConstructor
 public class Configuration {
 
+    private static final String ARGUMENT_PLACEHOLDER = "$arg";
+
     static Configuration defaultValue() {
         Configuration configuration = new Configuration();
         configuration.logLevel = MessageLevel.defaultLevel().name();
@@ -32,7 +36,11 @@ public class Configuration {
 
     @Getter
     @Setter
-    private Map<String, String> fileAssociations = new HashMap<>();
+    private Map<String, List<String>> fileAssociations = new HashMap<>();
+
+    @Getter
+    @Setter
+    private List<String> previewCommand;
 
     @Getter
     @Setter
@@ -61,17 +69,26 @@ public class Configuration {
         return MessageLevel.ofName(getLogLevel());
     }
 
-//    @JsonIgnore
-    public Optional<String> getAssociatedCommandFor(Path file) {
+    public Optional<List<String>> getAssociatedCommandFor(Path file) {
         String fileName = file.getFileName().toString();
         int i = fileName.lastIndexOf('.');
         if (i > 0) {
             String extension = fileName.substring(i + 1);
             if (fileAssociations.containsKey(extension)) {
-                return Optional.of(fileAssociations.get(extension));
+                return Optional.of(parseCommand(fileAssociations.get(extension), file));
             }
+        }
+        if (previewCommand != null && previewCommand.isEmpty() == false) {
+            return Optional.of(parseCommand(previewCommand, file));
         }
         Message.info("No commands associated.");
         return Optional.empty();
+    }
+
+    private List<String> parseCommand(List<String> commands, Path file) {
+        return commands
+            .stream()
+            .map(param -> ARGUMENT_PLACEHOLDER.equals(param) ? file.toString() : param)
+            .collect(Collectors.toList());
     }
 }
