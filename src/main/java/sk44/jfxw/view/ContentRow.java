@@ -16,7 +16,7 @@ import javafx.scene.layout.FlowPane;
 import javafx.scene.paint.Color;
 import javafx.util.converter.BooleanStringConverter;
 import lombok.Getter;
-import sk44.jfxw.model.Message;
+import sk44.jfxw.model.message.Message;
 
 /**
  *

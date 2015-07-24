@@ -16,7 +16,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
-import sk44.jfxw.model.Message;
+import sk44.jfxw.model.message.Message;
 import sk44.jfxw.model.ModelLocator;
 
 public class MainWindowController implements Initializable {
@@ -56,8 +56,8 @@ public class MainWindowController implements Initializable {
         leftFilerViewController.setExecutionHandler(this::handleExecute);
         rightFilerViewController.setExecutionHandler(this::handleExecute);
 
-        ModelLocator.INSTANCE.getLeftFiler().moveToInitPath();
-        ModelLocator.INSTANCE.getRightFiler().moveToInitPath();
+        ModelLocator.INSTANCE.getLeftFiler().changeDirectoryToInitPath();
+        ModelLocator.INSTANCE.getRightFiler().changeDirectoryToInitPath();
         leftFilerViewController.focus();
         messageArea.appendText("Ready.");
     }

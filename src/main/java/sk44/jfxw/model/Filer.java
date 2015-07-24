@@ -16,6 +16,7 @@ import lombok.Getter;
 import lombok.Setter;
 import sk44.jfxw.model.fs.CopyDirectoryVisitor;
 import sk44.jfxw.model.fs.DeleteDirectoryVisitor;
+import sk44.jfxw.model.message.Message;
 
 /**
  *
@@ -73,21 +74,21 @@ public class Filer {
     }
 
     private void reload() {
-        moveTo(currentDir);
+        changeDirectoryTo(currentDir);
     }
 
-    public void moveToInitPath() {
-        moveTo(currentDir);
+    public void changeDirectoryToInitPath() {
+        changeDirectoryTo(currentDir);
     }
 
-    public void moveToParentDir() {
+    public void changeDirectoryToParentDir() {
         Path parent = currentDir.getParent();
         if (parent != null) {
-            moveTo(parent);
+            changeDirectoryTo(parent);
         }
     }
 
-    public void moveTo(Path dir) {
+    public void changeDirectoryTo(Path dir) {
         if (Files.isDirectory(dir) == false) {
             // TODO assert?
             return;
@@ -99,12 +100,28 @@ public class Filer {
         Message.debug("moved to: " + dir.toString());
     }
 
+    public void createDirectory(String newDirectoryName) {
+        // TODO
+        Path newDir = currentDir.resolve(newDirectoryName);
+        if (Files.exists(newDir) && Files.isDirectory(newDir)) {
+            Message.info(newDir + " is already exists.");
+            return;
+        }
+        try {
+            Files.createDirectory(newDir);
+        } catch (IOException ex) {
+            Message.error(ex);
+        }
+        Message.info(newDir + " created.");
+        changeDirectoryTo(newDir);
+    }
+
     public void syncCurrentDirectoryFromOther() {
-        moveTo(otherFiler.getCurrentDir());
+        changeDirectoryTo(otherFiler.getCurrentDir());
     }
 
     public void syncCurrentDirectoryToOther() {
-        otherFiler.moveTo(getCurrentDir());
+        otherFiler.changeDirectoryTo(getCurrentDir());
     }
 
     public void copy(List<Path> entries, CopyDirectoryVisitor.OverwriteConfirmer confirmer) {

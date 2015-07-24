@@ -13,7 +13,7 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import lombok.AllArgsConstructor;
-import sk44.jfxw.model.Message;
+import sk44.jfxw.model.message.Message;
 
 /**
  *
@@ -36,7 +36,7 @@ public class CopyDirectoryVisitor extends SimpleFileVisitor<Path> {
     public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
         Path targetDir = destDir.resolve(sourceDir.relativize(dir));
         // TODO 循環すると死ぬ
-        if (Files.exists(targetDir) == false) {
+        if (Files.exists(targetDir) == false || Files.isDirectory(targetDir) == false) {
             Files.createDirectory(targetDir);
             Message.info(targetDir.toString() + " created.");
         }

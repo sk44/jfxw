@@ -11,7 +11,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
-import sk44.jfxw.model.Message;
+import sk44.jfxw.model.message.Message;
 
 /**
  *

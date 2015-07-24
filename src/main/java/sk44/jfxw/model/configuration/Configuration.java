@@ -1,4 +1,4 @@
-package sk44.jfxw.model;
+package sk44.jfxw.model.configuration;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.io.File;
@@ -10,6 +10,8 @@ import java.util.Optional;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import sk44.jfxw.model.message.Message;
+import sk44.jfxw.model.message.MessageLevel;
 
 /**
  *
@@ -59,7 +61,7 @@ public class Configuration {
         return MessageLevel.ofName(getLogLevel());
     }
 
-    @JsonIgnore
+//    @JsonIgnore
     public Optional<String> getAssociatedCommandFor(Path file) {
         String fileName = file.getFileName().toString();
         int i = fileName.lastIndexOf('.');

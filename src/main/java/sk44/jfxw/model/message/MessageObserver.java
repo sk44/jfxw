@@ -1,6 +1,6 @@
 /*
  */
-package sk44.jfxw.model;
+package sk44.jfxw.model.message;
 
 /**
  *

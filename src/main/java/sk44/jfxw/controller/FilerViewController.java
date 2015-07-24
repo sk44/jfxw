@@ -25,8 +25,8 @@ import javafx.scene.layout.FlowPane;
 import lombok.Getter;
 import lombok.Setter;
 import sk44.jfxw.model.Filer;
-import sk44.jfxw.model.Message;
 import sk44.jfxw.model.ModelLocator;
+import sk44.jfxw.model.message.Message;
 import sk44.jfxw.view.ContentRow;
 
 /**
@@ -35,6 +35,28 @@ import sk44.jfxw.view.ContentRow;
  * @author sk
  */
 public class FilerViewController implements Initializable {
+
+    private enum TextFieldType {
+
+        SEARCH {
+
+                @Override
+                public void handleEnter(FilerViewController controller, String text) {
+                    controller.searchText = text;
+                    controller.searchNext();
+                }
+
+            }, CREATE_DIR {
+
+                @Override
+                public void handleEnter(FilerViewController controller, String text) {
+                    controller.filer.createDirectory(text);
+                }
+
+            };
+
+        public abstract void handleEnter(FilerViewController controller, String text);
+    }
 
     private static final double CONTENT_HEIGHT = 16;
     private static final int HISTORY_BUFFER_SIZE = 24;
@@ -114,12 +136,12 @@ public class FilerViewController implements Initializable {
                 previous();
                 break;
             case H:
-                this.filer.moveToParentDir();
+                this.filer.changeDirectoryToParentDir();
                 break;
             case L:
                 ContentRow currentContent = getCurrentContent();
                 if (currentContent.isDirectory()) {
-                    this.filer.moveTo(currentContent.getPath());
+                    this.filer.changeDirectoryTo(currentContent.getPath());
                 }
                 break;
             case G:
@@ -139,7 +161,7 @@ public class FilerViewController implements Initializable {
                 break;
             case M:
                 if (event.isShiftDown()) {
-                    // TODO mkdir
+                    openTextField(TextFieldType.CREATE_DIR);
                 } else {
                     move();
                 }
@@ -166,8 +188,7 @@ public class FilerViewController implements Initializable {
                 next();
                 break;
             case SLASH:
-                event.consume();
-                initTextField();
+                openTextField(TextFieldType.SEARCH);
                 break;
             case TAB:
                 if (changeFocusListener != null) {
@@ -347,9 +368,9 @@ public class FilerViewController implements Initializable {
         addContent(ContentRow.create(entry, scrollPane.widthProperty()));
     }
 
-    private void initTextField() {
+    private void openTextField(TextFieldType type) {
+
         // 残っているものがあると永久に消えないのでクリアしておく
-        // TODO フォーカスが外れた時点で消すなどする
         if (textField != null) {
             removeTextField();
         }
@@ -361,13 +382,20 @@ public class FilerViewController implements Initializable {
                     removeTextField();
                     break;
                 case ENTER:
-                    searchText = textField.getText();
-                    removeTextField();
-//                    index = 0;
-                    searchNext();
+                    String text = textField.getText();
+                    if (text != null && text.length() > 0) {
+                        type.handleEnter(this, text);
+                        removeTextField();
+                    }
                     break;
                 default:
                     break;
+            }
+        });
+        // フォーカスアウトで消す
+        textField.focusedProperty().addListener((value, oldValue, newValue) -> {
+            if (newValue == false) {
+                removeTextField();
             }
         });
         textField.prefWidthProperty().bind(rootPane.widthProperty());

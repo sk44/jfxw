@@ -11,7 +11,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Pane;
-import sk44.jfxw.model.Message;
+import sk44.jfxw.model.message.Message;
 
 /**
  * ソート種別選択ウィンドウコントローラー。

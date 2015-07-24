@@ -11,11 +11,11 @@ import javafx.scene.layout.Pane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import sk44.jfxw.controller.SortWindowController;
-import sk44.jfxw.model.Configuration;
-import sk44.jfxw.model.ConfigurationStore;
 import sk44.jfxw.model.Filer;
-import sk44.jfxw.model.Message;
 import sk44.jfxw.model.ModelLocator;
+import sk44.jfxw.model.configuration.Configuration;
+import sk44.jfxw.model.configuration.ConfigurationStore;
+import sk44.jfxw.model.message.Message;
 
 public class MainApp extends Application {
 
@@ -80,8 +80,21 @@ public class MainApp extends Application {
 
     @Override
     public void stop() throws Exception {
-        ModelLocator.INSTANCE.getConfigurationStore().save();
+        saveConfiguration();
         super.stop();
+    }
+
+    private void saveConfiguration() throws IOException {
+        ConfigurationStore configurationStore = ModelLocator.INSTANCE.getConfigurationStore();
+        Configuration configuration = configurationStore.getConfiguration();
+
+        Filer leftFiler = ModelLocator.INSTANCE.getLeftFiler();
+        Filer rightFiler = ModelLocator.INSTANCE.getRightFiler();
+
+        configuration.setLeftPath(leftFiler.getCurrentDir().toString());
+        configuration.setRightPath(rightFiler.getCurrentDir().toString());
+
+        configurationStore.save();
     }
 
     /**

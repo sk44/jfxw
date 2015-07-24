@@ -3,7 +3,7 @@
  *
  *
  */
-package sk44.jfxw.model;
+package sk44.jfxw.model.message;
 
 import java.io.IOException;
 import java.io.PrintWriter;
