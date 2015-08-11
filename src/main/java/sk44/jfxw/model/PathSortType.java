@@ -5,23 +5,24 @@
  */
 package sk44.jfxw.model;
 
-import sk44.jfxw.model.message.Message;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
+import lombok.Getter;
+import sk44.jfxw.model.message.Message;
 
 /**
- * Path のソート用 Comparator 実装。
+ * Path のソート種別定義。
  *
  * @author sk
  */
-public enum PathComparator implements Comparator<Path> {
+public enum PathSortType implements Comparator<Path> {
 
     /**
      * ファイル名でソート。
      */
-    FILE_NAME {
+    FILE_NAME(1, "File Name") {
 
             @Override
             public int compare(Path o1, Path o2) {
@@ -35,10 +36,27 @@ public enum PathComparator implements Comparator<Path> {
             }
 
         },
+    FILE_SIZE(2, "File Size") {
+
+            @Override
+            public int compare(Path o1, Path o2) {
+                if (Files.isDirectory(o1) || Files.isDirectory(o2)) {
+                    return FILE_NAME.compare(o1, o2);
+                }
+                try {
+                    long size1 = Files.size(o1);
+                    long size2 = Files.size(o2);
+                    return Long.compare(size1, size2);
+                } catch (IOException ex) {
+                    Message.error(ex);
+                    return -1;
+                }
+            }
+        },
     /**
      * 更新日時でソート。
      */
-    LAST_MODIFIED {
+    LAST_MODIFIED(3, "Last Modified") {
 
             @Override
             public int compare(Path o1, Path o2) {
@@ -50,5 +68,15 @@ public enum PathComparator implements Comparator<Path> {
                 }
             }
 
-        }
+        };
+
+    @Getter
+    private final int id;
+    @Getter
+    private final String displayName;
+
+    private PathSortType(int id, String displayName) {
+        this.id = id;
+        this.displayName = displayName;
+    }
 }

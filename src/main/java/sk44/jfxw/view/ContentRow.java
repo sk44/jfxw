@@ -24,6 +24,7 @@ import sk44.jfxw.model.message.Message;
  */
 public class ContentRow extends FlowPane {
 
+    private static final String MARK_CONTENT_CLASS_NAME = "markContent";
     private static final String CURRENT_ROW_CLASS_NAME = "currentRow";
     private static final String DIRECTORY_ROW_CLASS_NAME = "dirRow";
     private static final String MARKED_ROW_CLASS_NAME = "markedRow";
@@ -74,7 +75,7 @@ public class ContentRow extends FlowPane {
 
         markLabel = new Label();
         markLabel.prefWidthProperty().set(15);
-        markLabel.getStyleClass().add("markContent");
+        markLabel.getStyleClass().add(MARK_CONTENT_CLASS_NAME);
         markLabel.textProperty().bindBidirectional(markedProperty, new BooleanStringConverter() {
             @Override
             public String toString(Boolean value) {

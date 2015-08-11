@@ -27,6 +27,7 @@ import sk44.jfxw.model.Filer;
 import sk44.jfxw.model.ModelLocator;
 import sk44.jfxw.model.message.Message;
 import sk44.jfxw.view.ContentRow;
+import sk44.jfxw.view.SortOptionPane;
 
 /**
  * FXML Controller class
@@ -85,6 +86,7 @@ public class FilerViewController implements Initializable {
     private final ObservableList<ContentRow> contents = FXCollections.observableArrayList();
     private final PathHistoriesCache historiesCache = new PathHistoriesCache(HISTORY_BUFFER_SIZE);
 
+    private SortOptionPane sortOptionPane;
     private TextField textField;
     private String searchText;
     @Getter
@@ -98,6 +100,7 @@ public class FilerViewController implements Initializable {
     @Setter
     private Runnable openConfigureHandler;
     @Setter
+    @Deprecated
     private Runnable openSortHandler;
 
     private boolean isBottom() {
@@ -122,7 +125,7 @@ public class FilerViewController implements Initializable {
                 openConfigure();
                 break;
             case S:
-                openSort();
+                openSortOption();
                 break;
             case DOWN:
             case J:
@@ -285,12 +288,73 @@ public class FilerViewController implements Initializable {
         }
     }
 
-    private void openSort() {
-        if (openSortHandler != null) {
-            openSortHandler.run();
-        } else {
-            Message.warn("open sort handler not set.");
+    private void openSortOption() {
+        if (sortOptionPane != null) {
+            removeSortOptionPane();
         }
+        sortOptionPane = new SortOptionPane((filer.getSortType()));
+        sortOptionPane.addEventFilter(KeyEvent.KEY_PRESSED, e -> {
+            // TODO view 内に移動？
+            switch (e.getCode()) {
+                case ESCAPE:
+                    removeSortOptionPane();
+                    break;
+                case ENTER:
+                    filer.updateSortType(sortOptionPane.getSelectedSortType());
+                    removeSortOptionPane();
+                    break;
+                default:
+                    sortOptionPane.handleKeyEvent(e);
+                    break;
+            }
+        });
+        sortOptionPane.focusedProperty().addListener((value, oldValue, newValue) -> {
+            if (newValue == false) {
+                removeSortOptionPane();
+            }
+        });
+        sortOptionPane.prefWidthProperty().bind(rootPane.widthProperty().multiply(0.6));
+        // TODO bottom がきかない？
+        AnchorPane.setBottomAnchor(sortOptionPane, 30.0);
+//        AnchorPane.setLeftAnchor(sortOptionPane, 30.0);
+        rootPane.getChildren().add(sortOptionPane);
+        sortOptionPane.requestFocus();
+    }
+
+    private void openTextField(TextFieldType type) {
+
+        // 残っているものがあると永久に消えないのでクリアしておく
+        if (textField != null) {
+            removeTextField();
+        }
+        // スラッシュが入力されてしまうので都度 new する
+        textField = new TextField();
+        textField.addEventFilter(KeyEvent.KEY_PRESSED, e -> {
+            switch (e.getCode()) {
+                case ESCAPE:
+                    removeTextField();
+                    break;
+                case ENTER:
+                    String text = textField.getText();
+                    if (text != null && text.length() > 0) {
+                        type.handleEnter(this, text);
+                        removeTextField();
+                    }
+                    break;
+                default:
+                    break;
+            }
+        });
+        // フォーカスアウトで消す
+        textField.focusedProperty().addListener((value, oldValue, newValue) -> {
+            if (newValue == false) {
+                removeTextField();
+            }
+        });
+        textField.prefWidthProperty().bind(rootPane.widthProperty());
+        AnchorPane.setBottomAnchor(textField, 0.0);
+        rootPane.getChildren().add(textField);
+        textField.requestFocus();
     }
 
     private ContentRow getCurrentContent() {
@@ -367,42 +431,6 @@ public class FilerViewController implements Initializable {
         addContent(ContentRow.create(entry, scrollPane.widthProperty()));
     }
 
-    private void openTextField(TextFieldType type) {
-
-        // 残っているものがあると永久に消えないのでクリアしておく
-        if (textField != null) {
-            removeTextField();
-        }
-        // スラッシュが入力されてしまうので都度 new する
-        textField = new TextField();
-        textField.addEventFilter(KeyEvent.KEY_PRESSED, e -> {
-            switch (e.getCode()) {
-                case ESCAPE:
-                    removeTextField();
-                    break;
-                case ENTER:
-                    String text = textField.getText();
-                    if (text != null && text.length() > 0) {
-                        type.handleEnter(this, text);
-                        removeTextField();
-                    }
-                    break;
-                default:
-                    break;
-            }
-        });
-        // フォーカスアウトで消す
-        textField.focusedProperty().addListener((value, oldValue, newValue) -> {
-            if (newValue == false) {
-                removeTextField();
-            }
-        });
-        textField.prefWidthProperty().bind(rootPane.widthProperty());
-        AnchorPane.setBottomAnchor(textField, 0.0);
-        rootPane.getChildren().add(textField);
-        textField.requestFocus();
-    }
-
     private void searchNext() {
 
         if (isBottom()) {
@@ -441,6 +469,11 @@ public class FilerViewController implements Initializable {
         }
         Message.info("not found.");
 
+    }
+
+    private void removeSortOptionPane() {
+        rootPane.getChildren().remove(sortOptionPane);
+        flowPane.requestFocus();
     }
 
     private void removeTextField() {

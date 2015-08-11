@@ -48,11 +48,15 @@ public class Filer {
 
     public Filer(Path initialPath) {
         this.currentDir = normalizePath(initialPath);
+        this.sortType = PathSortType.FILE_NAME;
     }
 
     private final List<PreChangeDirectoryObserver> preChangeDirectoryObservers = new ArrayList<>();
     private final List<PostChangeDirectoryObserver> postChangeDirectoryObservers = new ArrayList<>();
     private final List<PathEntryLoadedObserver> postEntryLoadedObservers = new ArrayList<>();
+
+    @Getter
+    private PathSortType sortType;
 
     @Getter
     private Path currentDir;
@@ -122,6 +126,12 @@ public class Filer {
 
     public void syncCurrentDirectoryToOther() {
         otherFiler.changeDirectoryTo(getCurrentDir());
+    }
+
+    public void updateSortType(PathSortType sortType) {
+        this.sortType = sortType;
+        reload();
+        Message.info("sorted by: " + this.sortType.getDisplayName());
     }
 
     public void copy(List<Path> entries, CopyDirectoryVisitor.OverwriteConfirmer confirmer) {
@@ -239,9 +249,10 @@ public class Filer {
             this.postEntryLoadedObservers.forEach(observer -> observer.postLoad(normalizePath, true));
         }
         // TODO 権限がない場合真っ白になる
+        // TODO sort desc
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(currentDir)) {
             StreamSupport.stream(stream.spliterator(), false)
-                .sorted(PathComparator.FILE_NAME)
+                .sorted(sortType)
                 .forEach(entry -> {
                     this.postEntryLoadedObservers.forEach(observer -> observer.postLoad(entry, false));
                 });
