@@ -11,8 +11,11 @@ import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
@@ -21,6 +24,9 @@ import javafx.scene.control.TextField;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.FlowPane;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import lombok.Getter;
 import lombok.Setter;
 import sk44.jfxw.model.Filer;
@@ -86,6 +92,7 @@ public class FilerViewController implements Initializable {
     private final ObservableList<ContentRow> contents = FXCollections.observableArrayList();
     private final PathHistoriesCache historiesCache = new PathHistoriesCache(HISTORY_BUFFER_SIZE);
 
+    private Stage sortWindowStage;
     private SortOptionPane sortOptionPane;
     private TextField textField;
     private String searchText;
@@ -289,6 +296,37 @@ public class FilerViewController implements Initializable {
     }
 
     private void openSortOption() {
+
+        // http://stackoverflow.com/questions/10486731/how-to-create-a-modal-window-in-javafx-2-1
+        // http://nodamushi.hatenablog.com/entry/20130910/1378784711
+        try {
+            sortWindowStage = new Stage();
+            // TODO 表示位置を調整. モニターの絶対座標になるもよう
+//            sortWindowStage.setX(rootPane.getScaleX() + 10);
+//            sortWindowStage.setY(20);
+            sortWindowStage.initStyle(StageStyle.UTILITY);
+
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/SortWindow.fxml"));
+            // 先にロードしないと controller が取れない
+            Parent root = loader.load();
+            SortWindowController controller = loader.getController();
+            controller.setCurrentSortType(this.filer.getSortType());
+            controller.setCloseAction(this.sortWindowStage::close);
+            controller.setUpdateAction(this.filer::updateSortType);
+
+            sortWindowStage.setScene(new Scene(root));
+            sortWindowStage.initModality(Modality.WINDOW_MODAL);
+//            sortWindowStage.initModality(Modality.APPLICATION_MODAL);
+            sortWindowStage.initOwner(rootPane.getScene().getWindow());
+//            sortWindowStage.show();
+            sortWindowStage.showAndWait();
+        } catch (IOException ex) {
+            Message.error(ex);
+        }
+    }
+
+    @Deprecated
+    private void openSortOption2() {
         if (sortOptionPane != null) {
             removeSortOptionPane();
         }
@@ -316,9 +354,10 @@ public class FilerViewController implements Initializable {
         sortOptionPane.prefWidthProperty().bind(rootPane.widthProperty().multiply(0.6));
         // TODO bottom がきかない？
         AnchorPane.setBottomAnchor(sortOptionPane, 30.0);
-//        AnchorPane.setLeftAnchor(sortOptionPane, 30.0);
+        AnchorPane.setLeftAnchor(sortOptionPane, 30.0);
         rootPane.getChildren().add(sortOptionPane);
-        sortOptionPane.requestFocus();
+        Platform.runLater(sortOptionPane::requestFocus);
+//        sortOptionPane.requestFocus();
     }
 
     private void openTextField(TextFieldType type) {

@@ -16,8 +16,8 @@ import javafx.scene.layout.Pane;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
-import sk44.jfxw.model.message.Message;
 import sk44.jfxw.model.ModelLocator;
+import sk44.jfxw.model.message.Message;
 
 public class MainWindowController implements Initializable {
 
@@ -50,9 +50,8 @@ public class MainWindowController implements Initializable {
         leftFilerViewController.setOpenConfigureHandler(this::handleOpenConfigureWindow);
         rightFilerViewController.setOpenConfigureHandler(this::handleOpenConfigureWindow);
 
-        leftFilerViewController.setOpenSortHandler(this::handleOpenSortWindow);
-        rightFilerViewController.setOpenSortHandler(this::handleOpenSortWindow);
-
+//        leftFilerViewController.setOpenSortHandler(this::handleOpenSortWindow);
+//        rightFilerViewController.setOpenSortHandler(this::handleOpenSortWindow);
         leftFilerViewController.setExecutionHandler(this::handleExecute);
         rightFilerViewController.setExecutionHandler(this::handleExecute);
 

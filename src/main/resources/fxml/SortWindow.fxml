@@ -7,12 +7,14 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane id="AnchorPane" fx:id="rootPane" onKeyPressed="#handleCommandKeyPressed" prefHeight="400.0" prefWidth="600.0" styleClass="mainFxmlClass" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sk44.jfxw.controller.SortWindowController">
+<AnchorPane id="AnchorPane" fx:id="rootPane" prefHeight="154.0" prefWidth="186.0" styleClass="mainFxmlClass" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sk44.jfxw.controller.SortWindowController">
     <stylesheets>
         <URL value="@/styles/Styles.css" />
     </stylesheets>
-    <styleClass>
-        <String fx:value="mainFxmlClass" />
-        <String fx:value="dialogBackground" />
-    </styleClass>
+   <children>
+      <CheckBox layoutX="23.0" layoutY="113.0" mnemonicParsing="false" text="exclude directory" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" />
+      <Label fx:id="lastModifiedLabel" layoutX="23.0" layoutY="67.0" text="M: Last Modified" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" />
+      <Label fx:id="fileNameLabel" layoutX="23.0" layoutY="14.0" text="N: File Name" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" />
+      <Label fx:id="fileSizeLabel" layoutX="23.0" layoutY="40.0" text="S: File Size" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" />
+   </children>
 </AnchorPane>
