@@ -7,15 +7,15 @@ package sk44.jfxw.controller;
 
 import java.net.URL;
 import java.util.ResourceBundle;
-import java.util.function.Consumer;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Pane;
 import lombok.Setter;
 import sk44.jfxw.model.PathSortType;
-import sk44.jfxw.model.message.Message;
+import sk44.jfxw.view.Nodes;
 
 /**
  * ソート種別選択ウィンドウコントローラー。
@@ -25,6 +25,13 @@ import sk44.jfxw.model.message.Message;
 public class SortWindowController implements Initializable {
 
     private static final String CURRENT_SORT_TYPE_CLASS_NAME = "currentSortType";
+    private static final String CURRENT_ORDER_TYPE_CLASS_NAME = "currentOrderType";
+
+    @FunctionalInterface
+    public interface UpdateAction {
+
+        void update(PathSortType sortType, boolean asc, boolean sortDir);
+    }
 
     @FXML
     private Pane rootPane;
@@ -37,16 +44,21 @@ public class SortWindowController implements Initializable {
     private Label fileSizeLabel;
     @FXML
     private Label lastModifiedLabel;
+    @FXML
+    private Label ascLabel;
+    @FXML
+    private Label descLabel;
+    @FXML
+    private CheckBox sortDirectoriesCheckBox;
 
     private PathSortType currentSortType;
+    private boolean asc;
+
     @Setter
     private Runnable closeAction;
     @Setter
-    private Consumer<PathSortType> updateAction;
+    private UpdateAction updateAction;
 
-    /**
-     * Initializes the controller class.
-     */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         // TODO
@@ -70,22 +82,32 @@ public class SortWindowController implements Initializable {
 
     @FXML
     protected void handleCommandKeyPressed(KeyEvent event) {
-        Message.debug("sort window: " + event.getCode().toString());
+
         switch (event.getCode()) {
             case M:
-                setCurrentSortType(PathSortType.LAST_MODIFIED);
+                updateCurrentSortType(PathSortType.LAST_MODIFIED, this.asc);
                 break;
             case N:
-                setCurrentSortType(PathSortType.FILE_NAME);
+                updateCurrentSortType(PathSortType.FILE_NAME, this.asc);
                 break;
             case S:
-                setCurrentSortType(PathSortType.FILE_SIZE);
+                updateCurrentSortType(PathSortType.FILE_SIZE, this.asc);
+                break;
+            case D:
+            case RIGHT:
+                // desc
+                updateCurrentSortType(this.currentSortType, false);
+                break;
+            case A:
+            case LEFT:
+                // asc
+                updateCurrentSortType(this.currentSortType, true);
                 break;
             case ESCAPE:
                 closeAction.run();
                 break;
             case ENTER:
-                updateAction.accept(this.currentSortType);
+                updateAction.update(this.currentSortType, this.asc, this.sortDirectoriesCheckBox.isSelected());
                 closeAction.run();
                 break;
             default:
@@ -93,12 +115,25 @@ public class SortWindowController implements Initializable {
         }
     }
 
-    public void setCurrentSortType(PathSortType currentSortType) {
+    public void updateSortOptions(PathSortType sortType, boolean asc, boolean sortDirectories) {
+        this.sortDirectoriesCheckBox.setSelected(sortDirectories);
+        this.updateCurrentSortType(sortType, asc);
+    }
+
+    private void updateCurrentSortType(PathSortType currentSortType, boolean asc) {
         if (this.currentSortType != null) {
             labelOfSortType(this.currentSortType).getStyleClass().remove(CURRENT_SORT_TYPE_CLASS_NAME);
         }
         labelOfSortType(currentSortType).getStyleClass().add(CURRENT_SORT_TYPE_CLASS_NAME);
         this.currentSortType = currentSortType;
+        this.asc = asc;
+        if (asc) {
+            Nodes.addStyleClassTo(this.ascLabel, CURRENT_ORDER_TYPE_CLASS_NAME);
+            this.descLabel.getStyleClass().remove(CURRENT_ORDER_TYPE_CLASS_NAME);
+        } else {
+            this.ascLabel.getStyleClass().remove(CURRENT_ORDER_TYPE_CLASS_NAME);
+            Nodes.addStyleClassTo(this.descLabel, CURRENT_ORDER_TYPE_CLASS_NAME);
+        }
     }
 
     private Label labelOfSortType(PathSortType sortType) {

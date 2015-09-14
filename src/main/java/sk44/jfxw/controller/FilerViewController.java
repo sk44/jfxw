@@ -24,6 +24,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.FlowPane;
+import javafx.scene.paint.Color;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
@@ -33,7 +34,6 @@ import sk44.jfxw.model.Filer;
 import sk44.jfxw.model.ModelLocator;
 import sk44.jfxw.model.message.Message;
 import sk44.jfxw.view.ContentRow;
-import sk44.jfxw.view.SortOptionPane;
 
 /**
  * FXML Controller class
@@ -93,7 +93,6 @@ public class FilerViewController implements Initializable {
     private final PathHistoriesCache historiesCache = new PathHistoriesCache(HISTORY_BUFFER_SIZE);
 
     private Stage sortWindowStage;
-    private SortOptionPane sortOptionPane;
     private TextField textField;
     private String searchText;
     @Getter
@@ -124,12 +123,6 @@ public class FilerViewController implements Initializable {
         switch (event.getCode()) {
             case E:
                 execute();
-                break;
-            case X:
-                openByAssociated();
-                break;
-            case Z:
-                openConfigure();
                 break;
             case S:
                 openSortOption();
@@ -191,6 +184,12 @@ public class FilerViewController implements Initializable {
                 break;
             case Q:
                 Platform.exit();
+                break;
+            case X:
+                openByAssociated();
+                break;
+            case Z:
+                openConfigure();
                 break;
             case SPACE:
                 getCurrentContent().toggleMark();
@@ -304,17 +303,17 @@ public class FilerViewController implements Initializable {
             // TODO 表示位置を調整. モニターの絶対座標になるもよう
 //            sortWindowStage.setX(rootPane.getScaleX() + 10);
 //            sortWindowStage.setY(20);
-            sortWindowStage.initStyle(StageStyle.UTILITY);
+            sortWindowStage.initStyle(StageStyle.TRANSPARENT);
 
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/SortWindow.fxml"));
             // 先にロードしないと controller が取れない
             Parent root = loader.load();
             SortWindowController controller = loader.getController();
-            controller.setCurrentSortType(this.filer.getSortType());
+            controller.updateSortOptions(this.filer.getSortType(), this.filer.isAsc(), this.filer.isSortDirectories());
             controller.setCloseAction(this.sortWindowStage::close);
             controller.setUpdateAction(this.filer::updateSortType);
 
-            sortWindowStage.setScene(new Scene(root));
+            sortWindowStage.setScene(new Scene(root, Color.TRANSPARENT));
             sortWindowStage.initModality(Modality.WINDOW_MODAL);
 //            sortWindowStage.initModality(Modality.APPLICATION_MODAL);
             sortWindowStage.initOwner(rootPane.getScene().getWindow());
@@ -323,41 +322,6 @@ public class FilerViewController implements Initializable {
         } catch (IOException ex) {
             Message.error(ex);
         }
-    }
-
-    @Deprecated
-    private void openSortOption2() {
-        if (sortOptionPane != null) {
-            removeSortOptionPane();
-        }
-        sortOptionPane = new SortOptionPane((filer.getSortType()));
-        sortOptionPane.addEventFilter(KeyEvent.KEY_PRESSED, e -> {
-            // TODO view 内に移動？
-            switch (e.getCode()) {
-                case ESCAPE:
-                    removeSortOptionPane();
-                    break;
-                case ENTER:
-                    filer.updateSortType(sortOptionPane.getSelectedSortType());
-                    removeSortOptionPane();
-                    break;
-                default:
-                    sortOptionPane.handleKeyEvent(e);
-                    break;
-            }
-        });
-        sortOptionPane.focusedProperty().addListener((value, oldValue, newValue) -> {
-            if (newValue == false) {
-                removeSortOptionPane();
-            }
-        });
-        sortOptionPane.prefWidthProperty().bind(rootPane.widthProperty().multiply(0.6));
-        // TODO bottom がきかない？
-        AnchorPane.setBottomAnchor(sortOptionPane, 30.0);
-        AnchorPane.setLeftAnchor(sortOptionPane, 30.0);
-        rootPane.getChildren().add(sortOptionPane);
-        Platform.runLater(sortOptionPane::requestFocus);
-//        sortOptionPane.requestFocus();
     }
 
     private void openTextField(TextFieldType type) {
@@ -508,11 +472,6 @@ public class FilerViewController implements Initializable {
         }
         Message.info("not found.");
 
-    }
-
-    private void removeSortOptionPane() {
-        rootPane.getChildren().remove(sortOptionPane);
-        flowPane.requestFocus();
     }
 
     private void removeTextField() {

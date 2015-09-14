@@ -19,6 +19,7 @@ import sk44.jfxw.model.message.Message;
  */
 public enum PathSortType implements Comparator<Path> {
 
+    // TODO asc などに対応するため、 Comparator を別途定義する
     /**
      * ファイル名でソート。
      */

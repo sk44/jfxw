@@ -49,6 +49,7 @@ public class Filer {
     public Filer(Path initialPath) {
         this.currentDir = normalizePath(initialPath);
         this.sortType = PathSortType.FILE_NAME;
+        this.asc = true;
     }
 
     private final List<PreChangeDirectoryObserver> preChangeDirectoryObservers = new ArrayList<>();
@@ -57,6 +58,10 @@ public class Filer {
 
     @Getter
     private PathSortType sortType;
+    @Getter
+    private boolean asc;
+    @Getter
+    private boolean sortDirectories;
 
     @Getter
     private Path currentDir;
@@ -128,10 +133,12 @@ public class Filer {
         otherFiler.changeDirectoryTo(getCurrentDir());
     }
 
-    public void updateSortType(PathSortType sortType) {
+    public void updateSortType(PathSortType sortType, boolean asc, boolean sortDirectories) {
         this.sortType = sortType;
+        this.asc = asc;
+        this.sortDirectories = sortDirectories;
         reload();
-        Message.info("sorted by: " + this.sortType.getDisplayName());
+        Message.info("sorted by: " + this.sortType.getDisplayName() + ", asc: " + asc + "sortDir: " + sortDirectories);
     }
 
     public void copy(List<Path> entries, CopyDirectoryVisitor.OverwriteConfirmer confirmer) {

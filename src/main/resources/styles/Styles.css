@@ -36,6 +36,23 @@
     -fx-alignment: CENTER_RIGHT;
 }
 
+/* sort window */
+.windowContainer {
+    -fx-background-color: rgba(0, 0, 0, 0.7);
+    -fx-border-radius: 5px;
+}
+.windowContainer * {
+    -fx-text-fill: #ffffff;
+}
+
+.orderType {
+    -fx-alignment: CENTER;
+}
+
+.currentOrderType {
+    -fx-background-color: #999999;
+}
+
 /* configure window */
 
 .dialogBackground {
