@@ -1,17 +1,18 @@
 package sk44.jfxw.model.configuration;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.io.File;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
+import sk44.jfxw.model.Filer;
 import sk44.jfxw.model.message.Message;
 import sk44.jfxw.model.message.MessageLevel;
 
@@ -20,18 +21,22 @@ import sk44.jfxw.model.message.MessageLevel;
  * @author sk
  */
 @NoArgsConstructor
+@EqualsAndHashCode
+@ToString
 public class Configuration {
 
     private static final String ARGUMENT_PLACEHOLDER = "$arg";
 
     static Configuration defaultValue() {
+
         Configuration configuration = new Configuration();
-        configuration.logLevel = MessageLevel.defaultLevel().name();
-        String defaultPath = new File(".").toPath().normalize().toString();
-        configuration.leftPath = defaultPath;
-        configuration.rightPath = defaultPath;
+        configuration.logLevel = MessageLevel.defaultLevel();
 
         return configuration;
+    }
+
+    private static String createDefaultPath() {
+        return new File(".").toPath().normalize().toString();
     }
 
     @Getter
@@ -44,29 +49,34 @@ public class Configuration {
 
     @Getter
     @Setter
-    private String logLevel;
+    private MessageLevel logLevel;
 
-    @Getter
     @Setter
-    private String leftPath;
+    private FilerConfig leftFilerConfig;
 
-    @Getter
     @Setter
-    private String rightPath;
+    private FilerConfig rightFilerConfig;
 
-    @JsonIgnore
-    public Path getLeftDir() {
-        return Paths.get(leftPath).normalize();
+    public FilerConfig getLeftFilerConfig() {
+        if (leftFilerConfig == null) {
+            leftFilerConfig = FilerConfig.defaultConfig(createDefaultPath());
+        }
+        return leftFilerConfig;
     }
 
-    @JsonIgnore
-    public Path getRightDir() {
-        return Paths.get(rightPath).normalize();
+    public FilerConfig getRightFilerConfig() {
+        if (rightFilerConfig == null) {
+            rightFilerConfig = FilerConfig.defaultConfig(createDefaultPath());
+        }
+        return rightFilerConfig;
     }
 
-    @JsonIgnore
-    public MessageLevel getMessageLevel() {
-        return MessageLevel.ofName(getLogLevel());
+    public void updateLeftFilerConfig(Filer leftFiler) {
+        getLeftFilerConfig().update(leftFiler);
+    }
+
+    public void updateRightFilerConfig(Filer rightFiler) {
+        getRightFilerConfig().update(rightFiler);
     }
 
     public Optional<List<String>> getAssociatedCommandFor(Path file) {

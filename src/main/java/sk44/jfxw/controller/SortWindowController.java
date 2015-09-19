@@ -14,6 +14,7 @@ import javafx.scene.control.Label;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Pane;
 import lombok.Setter;
+import sk44.jfxw.model.PathSortOrder;
 import sk44.jfxw.model.PathSortType;
 import sk44.jfxw.view.Nodes;
 
@@ -30,7 +31,7 @@ public class SortWindowController implements Initializable {
     @FunctionalInterface
     public interface UpdateAction {
 
-        void update(PathSortType sortType, boolean asc, boolean sortDir);
+        void update(PathSortType sortType, PathSortOrder sortOrder, boolean sortDir);
     }
 
     @FXML
@@ -52,7 +53,7 @@ public class SortWindowController implements Initializable {
     private CheckBox sortDirectoriesCheckBox;
 
     private PathSortType currentSortType;
-    private boolean asc;
+    private PathSortOrder sortOrder;
 
     @Setter
     private Runnable closeAction;
@@ -66,48 +67,34 @@ public class SortWindowController implements Initializable {
         this.rootPane.addEventFilter(KeyEvent.KEY_PRESSED, this::handleCommandKeyPressed);
     }
 
-    @Deprecated
-    void showOn(Pane parentPane) {
-        // TODO: 同じコード
-        this.parentPane = parentPane;
-        rootPane.prefHeightProperty().bind(parentPane.heightProperty());
-        rootPane.prefWidthProperty().bind(parentPane.widthProperty());
-        parentPane.getChildren().add(rootPane);
-    }
-
-    @Deprecated
-    private void close() {
-        parentPane.getChildren().remove(rootPane);
-    }
-
     @FXML
     protected void handleCommandKeyPressed(KeyEvent event) {
 
         switch (event.getCode()) {
             case M:
-                updateCurrentSortType(PathSortType.LAST_MODIFIED, this.asc);
+                updateCurrentSortType(PathSortType.LAST_MODIFIED, this.sortOrder);
                 break;
             case N:
-                updateCurrentSortType(PathSortType.FILE_NAME, this.asc);
+                updateCurrentSortType(PathSortType.FILE_NAME, this.sortOrder);
                 break;
             case S:
-                updateCurrentSortType(PathSortType.FILE_SIZE, this.asc);
+                updateCurrentSortType(PathSortType.FILE_SIZE, this.sortOrder);
                 break;
             case D:
             case RIGHT:
                 // desc
-                updateCurrentSortType(this.currentSortType, false);
+                updateCurrentSortType(this.currentSortType, PathSortOrder.DESC);
                 break;
             case A:
             case LEFT:
                 // asc
-                updateCurrentSortType(this.currentSortType, true);
+                updateCurrentSortType(this.currentSortType, PathSortOrder.ASC);
                 break;
             case ESCAPE:
                 closeAction.run();
                 break;
             case ENTER:
-                updateAction.update(this.currentSortType, this.asc, this.sortDirectoriesCheckBox.isSelected());
+                updateAction.update(this.currentSortType, this.sortOrder, this.sortDirectoriesCheckBox.isSelected());
                 closeAction.run();
                 break;
             default:
@@ -115,19 +102,19 @@ public class SortWindowController implements Initializable {
         }
     }
 
-    public void updateSortOptions(PathSortType sortType, boolean asc, boolean sortDirectories) {
+    public void updateSortOptions(PathSortType sortType, PathSortOrder sortOrder, boolean sortDirectories) {
         this.sortDirectoriesCheckBox.setSelected(sortDirectories);
-        this.updateCurrentSortType(sortType, asc);
+        this.updateCurrentSortType(sortType, sortOrder);
     }
 
-    private void updateCurrentSortType(PathSortType currentSortType, boolean asc) {
+    private void updateCurrentSortType(PathSortType currentSortType, PathSortOrder sortOrder) {
         if (this.currentSortType != null) {
             labelOfSortType(this.currentSortType).getStyleClass().remove(CURRENT_SORT_TYPE_CLASS_NAME);
         }
         labelOfSortType(currentSortType).getStyleClass().add(CURRENT_SORT_TYPE_CLASS_NAME);
         this.currentSortType = currentSortType;
-        this.asc = asc;
-        if (asc) {
+        this.sortOrder = sortOrder;
+        if (this.sortOrder == PathSortOrder.ASC) {
             Nodes.addStyleClassTo(this.ascLabel, CURRENT_ORDER_TYPE_CLASS_NAME);
             this.descLabel.getStyleClass().remove(CURRENT_ORDER_TYPE_CLASS_NAME);
         } else {

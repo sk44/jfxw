@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.StreamSupport;
@@ -46,10 +47,11 @@ public class Filer {
         return path.toAbsolutePath().normalize();
     }
 
-    public Filer(Path initialPath) {
-        this.currentDir = normalizePath(initialPath);
-        this.sortType = PathSortType.FILE_NAME;
-        this.asc = true;
+    public Filer(String initialPath, PathSortType sortType, PathSortOrder sortOrder, boolean sortDirectories) {
+        this.currentDir = normalizePath(Paths.get(initialPath));
+        this.sortType = sortType;
+        this.sortOrder = sortOrder;
+        this.sortDirectories = sortDirectories;
     }
 
     private final List<PreChangeDirectoryObserver> preChangeDirectoryObservers = new ArrayList<>();
@@ -59,7 +61,7 @@ public class Filer {
     @Getter
     private PathSortType sortType;
     @Getter
-    private boolean asc;
+    private PathSortOrder sortOrder;
     @Getter
     private boolean sortDirectories;
 
@@ -133,12 +135,13 @@ public class Filer {
         otherFiler.changeDirectoryTo(getCurrentDir());
     }
 
-    public void updateSortType(PathSortType sortType, boolean asc, boolean sortDirectories) {
+    public void updateSortType(PathSortType sortType, PathSortOrder sortOrder, boolean sortDirectories) {
         this.sortType = sortType;
-        this.asc = asc;
+        this.sortOrder = sortOrder;
         this.sortDirectories = sortDirectories;
         reload();
-        Message.info("sorted by: " + this.sortType.getDisplayName() + ", asc: " + asc + "sortDir: " + sortDirectories);
+        Message.info("sorted by: " + this.sortType.getDisplayName()
+            + ", order: " + this.sortOrder + "sortDir: " + this.sortDirectories);
     }
 
     public void copy(List<Path> entries, CopyDirectoryVisitor.OverwriteConfirmer confirmer) {
@@ -256,10 +259,9 @@ public class Filer {
             this.postEntryLoadedObservers.forEach(observer -> observer.postLoad(normalizePath, true));
         }
         // TODO 権限がない場合真っ白になる
-        // TODO sort desc
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(currentDir)) {
             StreamSupport.stream(stream.spliterator(), false)
-                .sorted(sortType)
+                .sorted(new PathComparator(sortType, sortOrder, sortDirectories))
                 .forEach(entry -> {
                     this.postEntryLoadedObservers.forEach(observer -> observer.postLoad(entry, false));
                 });

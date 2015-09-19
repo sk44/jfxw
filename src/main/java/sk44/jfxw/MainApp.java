@@ -15,6 +15,7 @@ import sk44.jfxw.model.Filer;
 import sk44.jfxw.model.ModelLocator;
 import sk44.jfxw.model.configuration.Configuration;
 import sk44.jfxw.model.configuration.ConfigurationStore;
+import sk44.jfxw.model.configuration.FilerConfig;
 import sk44.jfxw.model.message.Message;
 
 public class MainApp extends Application {
@@ -66,10 +67,15 @@ public class MainApp extends Application {
         configurationStore.init(new File("."));
         Configuration configuration = configurationStore.getConfiguration();
 
-        Message.minLevel(configuration.getMessageLevel());
+        Message.minLevel(configuration.getLogLevel());
 
-        Filer rightFiler = new Filer(configuration.getRightDir());
-        Filer leftFiler = new Filer(configuration.getLeftDir());
+        FilerConfig rightFilerConfig = configuration.getRightFilerConfig();
+        FilerConfig leftFilerConfig = configuration.getLeftFilerConfig();
+
+        Filer rightFiler = new Filer(rightFilerConfig.getPath(), rightFilerConfig.getSortType(),
+            rightFilerConfig.getSortOrder(), rightFilerConfig.isSortDirectories());
+        Filer leftFiler = new Filer(leftFilerConfig.getPath(), leftFilerConfig.getSortType(),
+            leftFilerConfig.getSortOrder(), leftFilerConfig.isSortDirectories());
         rightFiler.setOtherFiler(leftFiler);
         leftFiler.setOtherFiler(rightFiler);
 
@@ -91,8 +97,10 @@ public class MainApp extends Application {
         Filer leftFiler = ModelLocator.INSTANCE.getLeftFiler();
         Filer rightFiler = ModelLocator.INSTANCE.getRightFiler();
 
-        configuration.setLeftPath(leftFiler.getCurrentDir().toString());
-        configuration.setRightPath(rightFiler.getCurrentDir().toString());
+        configuration.updateLeftFilerConfig(leftFiler);
+        configuration.updateRightFilerConfig(rightFiler);
+//        configuration.setLeftPath(leftFiler.getCurrentDir().toString());
+//        configuration.setRightPath(rightFiler.getCurrentDir().toString());
 
         configurationStore.save();
     }

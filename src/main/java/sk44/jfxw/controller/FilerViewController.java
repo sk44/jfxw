@@ -114,7 +114,6 @@ public class FilerViewController implements Initializable {
     }
 
     private void updateIndex(int index) {
-        Message.debug("index update: " + this.index + " to " + index);
         this.index = index;
     }
 
@@ -273,7 +272,6 @@ public class FilerViewController implements Initializable {
 
     private void clearCursor() {
         getCurrentContent().updateSelected(false);
-        Message.debug("cursor clear at index: " + index);
     }
 
     private void updateCursor() {
@@ -283,7 +281,6 @@ public class FilerViewController implements Initializable {
         if (changeCursorListener != null && currentContent.isParent() == false) {
             changeCursorListener.accept(currentContent.getPath());
         }
-        Message.debug("cursor updated at index: " + index);
     }
 
     private void openConfigure() {
@@ -309,7 +306,8 @@ public class FilerViewController implements Initializable {
             // 先にロードしないと controller が取れない
             Parent root = loader.load();
             SortWindowController controller = loader.getController();
-            controller.updateSortOptions(this.filer.getSortType(), this.filer.isAsc(), this.filer.isSortDirectories());
+            controller.updateSortOptions(this.filer.getSortType(),
+                this.filer.getSortOrder(), this.filer.isSortDirectories());
             controller.setCloseAction(this.sortWindowStage::close);
             controller.setUpdateAction(this.filer::updateSortType);
 

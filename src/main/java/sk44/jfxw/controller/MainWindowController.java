@@ -12,7 +12,6 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.Pane;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
@@ -104,20 +103,6 @@ public class MainWindowController implements Initializable {
             return;
         }
         ConfigureWindowController controller = loader.getController();
-        controller.showOn(rootPane);
-    }
-
-    private void handleOpenSortWindow() {
-
-        // handleOpenConfigureWindow とほとんど同じなのでどうにか
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/SortWindow.fxml"));
-        try {
-            Pane pane = loader.load();
-        } catch (IOException ex) {
-            Message.error(ex);
-            return;
-        }
-        SortWindowController controller = loader.getController();
         controller.showOn(rootPane);
     }
 
