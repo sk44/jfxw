@@ -13,7 +13,6 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
-import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
@@ -67,16 +66,13 @@ public class FilerViewController implements Initializable {
     private static final double CONTENT_HEIGHT = 16;
     private static final int HISTORY_BUFFER_SIZE = 24;
 
-    private static void ensureVisible(ScrollPane pane, Node node) {
-        double height = pane.getContent().getBoundsInLocal().getHeight();
+    private void ensureVisible(ScrollPane pane, ContentRow node) {
 
-        double y = node.getBoundsInParent().getMaxY();
-        // content の高さ分、移動量を調節
-        double range = y / height;
-        y = y - CONTENT_HEIGHT * (1 - range);
-
-        // scrolling values range from 0 to 1
-        pane.setVvalue(y / height);
+        // http://stackoverflow.com/questions/15840513/javafx-scrollpane-programmatically-moving-the-viewport-centering-content
+        double h = pane.getContent().getBoundsInLocal().getHeight();
+        double y = (node.getBoundsInParent().getMaxY() + node.getBoundsInParent().getMinY()) / 2.0;
+        double v = pane.getViewportBounds().getHeight();
+        pane.setVvalue(pane.getVmax() * ((y - 0.5 * v) / (h - v)));
     }
 
     @FXML

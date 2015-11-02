@@ -176,7 +176,7 @@ public class Filer {
                 continue;
             }
             Message.debug("move target: " + entry.toString());
-            if (otherFiler.moveFrom(entry)) {
+            if (otherFiler.moveFrom(entry) == false) {
                 break;
             }
         }
@@ -194,7 +194,7 @@ public class Filer {
             Message.info("destination path " + newPath.toString() + " is already exists.");
             return true;
         }
-        Message.info("move " + sourcePath.toString() + " to " + newPath.toString());
+        Message.info("move:\n\t" + sourcePath.toString() + "\n\tto\n\t" + newPath.toString());
         try {
             Files.move(sourcePath, newPath);
             return true;
