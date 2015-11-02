@@ -101,16 +101,18 @@ public class FilerViewController implements Initializable {
     private PathExecutor executionHandler;
     @Setter
     private Runnable openConfigureHandler;
-    @Setter
-    @Deprecated
-    private Runnable openSortHandler;
 
     private boolean isBottom() {
         return index + 1 == contents.size();
     }
 
     private void updateIndex(int index) {
-        this.index = index;
+        int size = this.contents.size();
+        if (size <= index) {
+            this.index = size - 1;
+        } else {
+            this.index = index;
+        }
     }
 
     @FXML
@@ -379,7 +381,7 @@ public class FilerViewController implements Initializable {
     public void withFiler(Filer filer) {
         this.filer = filer;
         this.filer.addPreChangeDirectoryObserver(this::preChangeDirectory);
-        this.filer.addPostChangeDirectoryObserver(this::postChangeDirectoryTo);
+        this.filer.addPostChangeDirectoryObserver(this::directoryChanged);
         this.filer.addPostEntryLoadedObserver(this::postEntryLoaded);
     }
 
@@ -392,9 +394,13 @@ public class FilerViewController implements Initializable {
     }
 
     // TODO notification
-    private void postChangeDirectoryTo(Path path) {
-        if (historiesCache.contains(path)) {
-            Path focused = historiesCache.lastFocusedIn(path);
+    private void directoryChanged(Path fromDir, Path toDir) {
+
+        if (fromDir != null && fromDir.toString().equals(toDir.toString())) {
+            // リロード時に上に戻らないように
+            updateIndex(this.index);
+        } else if (historiesCache.contains(toDir)) {
+            Path focused = historiesCache.lastFocusedIn(toDir);
             boolean found = false;
             for (int i = 0; i < contents.size(); i++) {
                 ContentRow content = contents.get(i);
@@ -411,7 +417,7 @@ public class FilerViewController implements Initializable {
             updateIndex(0);
         }
         // TODO バインド
-        currentPathLabel.setText(path.toString());
+        currentPathLabel.setText(toDir.toString());
         updateCursor();
     }
 

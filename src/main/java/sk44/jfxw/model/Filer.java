@@ -34,7 +34,7 @@ public class Filer {
     @FunctionalInterface
     public interface PostChangeDirectoryObserver {
 
-        void changedDirectoryTo(Path dir);
+        void directoryChanged(Path fromDir, Path toDir);
     }
 
     @FunctionalInterface
@@ -104,10 +104,11 @@ public class Filer {
             // TODO assert?
             return;
         }
-        this.preChangeDirectoryObservers.forEach(observer -> observer.changeDirectoryFrom(this.currentDir));
+        Path fromDir = this.currentDir;
+        this.preChangeDirectoryObservers.forEach(observer -> observer.changeDirectoryFrom(fromDir));
         this.currentDir = normalizePath(dir);
         collectEntries();
-        this.postChangeDirectoryObservers.forEach(observer -> observer.changedDirectoryTo(dir));
+        this.postChangeDirectoryObservers.forEach(observer -> observer.directoryChanged(fromDir, this.currentDir));
         Message.debug("moved to: " + dir.toString());
     }
 
