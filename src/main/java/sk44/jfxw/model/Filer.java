@@ -12,6 +12,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 import lombok.Getter;
 import lombok.Setter;
@@ -40,7 +41,7 @@ public class Filer {
     @FunctionalInterface
     public interface PathEntryLoadedObserver {
 
-        void postLoad(Path entry, boolean parent);
+        void postLoad(Path entry, boolean parent, int index);
     }
 
     private static Path normalizePath(Path path) {
@@ -255,17 +256,25 @@ public class Filer {
 
     private void collectEntries() {
         Path parent = currentDir.getParent();
+        int index = 0;
         if (parent != null) {
             Path normalizePath = normalizePath(parent);
-            this.postEntryLoadedObservers.forEach(observer -> observer.postLoad(normalizePath, true));
+            for (PathEntryLoadedObserver observer : this.postEntryLoadedObservers) {
+                observer.postLoad(normalizePath, true, index);
+            }
+            index++;
         }
         // TODO 権限がない場合真っ白になる
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(currentDir)) {
-            StreamSupport.stream(stream.spliterator(), false)
+            List<Path> entries = StreamSupport.stream(stream.spliterator(), false)
                 .sorted(new PathComparator(sortType, sortOrder, sortDirectories))
-                .forEach(entry -> {
-                    this.postEntryLoadedObservers.forEach(observer -> observer.postLoad(entry, false));
-                });
+                .collect(Collectors.toList());
+            for (Path entry : entries) {
+                for (PathEntryLoadedObserver observer : this.postEntryLoadedObservers) {
+                    observer.postLoad(entry, false, index);
+                }
+                index++;
+            }
         } catch (IOException ex) {
             Message.error(ex);
         }

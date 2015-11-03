@@ -28,6 +28,7 @@ public class ContentRow extends FlowPane {
     private static final String CURRENT_ROW_CLASS_NAME = "currentRow";
     private static final String DIRECTORY_ROW_CLASS_NAME = "dirRow";
     private static final String MARKED_ROW_CLASS_NAME = "markedRow";
+    private static final String ODD_ROW_CLASS_NAME = "oddRow";
     private static final String PARENT_DIR_NAME = "..";
     private static final String DIR_NAME_SUFFIX = "/";
     private static final String DIR_SIZE_VALUE = "<DIR>";
@@ -57,17 +58,17 @@ public class ContentRow extends FlowPane {
         }
     }
 
-    public static ContentRow create(Path path, ReadOnlyDoubleProperty widthProperty) {
+    public static ContentRow create(Path path, ReadOnlyDoubleProperty widthProperty, boolean odd) {
 
-        ContentRow contentRow = new ContentRow(path, widthProperty, false);
+        ContentRow contentRow = new ContentRow(path, widthProperty, false, odd);
         return contentRow;
     }
 
-    public static ContentRow forParent(Path path, ReadOnlyDoubleProperty widthProperty) {
-        return new ContentRow(path, widthProperty, true);
+    public static ContentRow forParent(Path path, ReadOnlyDoubleProperty widthProperty, boolean odd) {
+        return new ContentRow(path, widthProperty, true, odd);
     }
 
-    private ContentRow(Path path, ReadOnlyDoubleProperty widthProperty, boolean asParent) {
+    private ContentRow(Path path, ReadOnlyDoubleProperty widthProperty, boolean asParent, boolean odd) {
 
         this.path = path;
         prefWidthProperty().bind(widthProperty);
@@ -113,6 +114,9 @@ public class ContentRow extends FlowPane {
 
         if (isDirectory()) {
             getStyleClass().add(DIRECTORY_ROW_CLASS_NAME);
+        }
+        if (odd) {
+            getStyleClass().add(ODD_ROW_CLASS_NAME);
         }
     }
 

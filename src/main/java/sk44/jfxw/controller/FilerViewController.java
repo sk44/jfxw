@@ -107,6 +107,10 @@ public class FilerViewController implements Initializable {
     }
 
     private void updateIndex(int index) {
+        if (index < 0) {
+            this.index = 0;
+            return;
+        }
         int size = this.contents.size();
         if (size <= index) {
             this.index = size - 1;
@@ -398,7 +402,7 @@ public class FilerViewController implements Initializable {
 
         if (fromDir != null && fromDir.toString().equals(toDir.toString())) {
             // リロード時に上に戻らないように
-            updateIndex(this.index);
+            updateIndex(this.index - 1);
         } else if (historiesCache.contains(toDir)) {
             Path focused = historiesCache.lastFocusedIn(toDir);
             boolean found = false;
@@ -422,16 +426,19 @@ public class FilerViewController implements Initializable {
     }
 
     void focus() {
+        // runLater でないと効かない
         Platform.runLater(flowPane::requestFocus);
+//        flowPane.requestFocus();
         updateCursor();
     }
 
-    private void postEntryLoaded(Path entry, boolean parent) {
+    private void postEntryLoaded(Path entry, boolean parent, int index) {
+        final boolean odd = index % 2 != 0;
         if (parent) {
-            addContent(ContentRow.forParent(entry, scrollPane.widthProperty()));
+            addContent(ContentRow.forParent(entry, scrollPane.widthProperty(), odd));
             return;
         }
-        addContent(ContentRow.create(entry, scrollPane.widthProperty()));
+        addContent(ContentRow.create(entry, scrollPane.widthProperty(), odd));
     }
 
     private void searchNext() {
