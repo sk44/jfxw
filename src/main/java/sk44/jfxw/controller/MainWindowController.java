@@ -39,16 +39,14 @@ public class MainWindowController implements Initializable {
     private void loadBackgroundImage(Path imagePath) {
         try {
 
-            Image image = new Image(Files.newInputStream(imagePath));
-//            backgroundImageView.setFitWidth(image.getWidth());
-//            backgroundImageView.setFitHeight(image.getHeight());
+            Image image = new Image(Files.newInputStream(imagePath), rootPane.getPrefWidth(), rootPane.getPrefHeight(), true, true);
             backgroundImageView.setSmooth(true);
             backgroundImageView.setCache(true);
-            // TODO 画像が大きいとウィンドウサイズまで大きくなってしまう
             backgroundImageView.setPreserveRatio(true);
 //            backgroundImageView.fitHeightProperty().bind(rootPane.heightProperty());
             backgroundImageView.fitWidthProperty().bind(rootPane.widthProperty());
             backgroundImageView.setImage(image);
+            Message.debug("background image loaded: " + imagePath + ", " + rootPane.getPrefWidth() + "x" + rootPane.getPrefHeight());
         } catch (IOException ex) {
             throw new UncheckedIOException(ex);
         }

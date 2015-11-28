@@ -68,6 +68,7 @@ public class FilerViewController implements Initializable {
 
     private static final double CONTENT_HEIGHT = 16;
     private static final int HISTORY_BUFFER_SIZE = 24;
+    private static final String CLASS_NAME_TEXT_INPUT = "filerTextInput";
 
     private void ensureVisible(ScrollPane pane, ContentRow node) {
 
@@ -338,6 +339,7 @@ public class FilerViewController implements Initializable {
         }
         // スラッシュが入力されてしまうので都度 new する
         textField = new TextField();
+        textField.getStyleClass().add(CLASS_NAME_TEXT_INPUT);
         textField.addEventFilter(KeyEvent.KEY_PRESSED, e -> {
             switch (e.getCode()) {
                 case ESCAPE:
