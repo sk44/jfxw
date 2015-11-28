@@ -7,24 +7,40 @@
 }
 
 .mainWindow {
-    /*-fx-background-color: red;*/
+    -fx-background-color: #000000;
 }
 
 .test {
-    -fx-background-color: #999999;
+    /*-fx-background-color: #999999;*/
     /*-fx-background-image: url("https://www.google.com/images/srpr/logo3w.png");*/
 }
 
+.mainWindow * {
+    -fx-background-color: transparent;
+    -fx-text-fill: #cccccc;
+}
+
+.container {
+    -fx-background-color: rgba(0,0,0,0.5);
+}
+
 .oddRow * {
-    -fx-background-color: #ebebeb;
+    /*-fx-background-color: #ebebeb;*/
 }
 
 .dirRow * {
-    -fx-text-fill: #3333ff;
+    /*-fx-text-fill: #3333ff;*/
+    -fx-text-fill: #66ccff;
 }
 
-.currentSortType, .currentRow * {
+.currentSortType {
     -fx-background-color: #999999;
+    -fx-text-fill: #ffffff;
+}
+
+.currentRow * {
+    /*-fx-background-color: #999999;*/
+    -fx-background-color: rgba(153, 153, 153, 0.7);
     -fx-text-fill: #ffffff;
 }
 
@@ -128,13 +144,13 @@ https://farrukhobaid.wordpress.com/2013/01/16/dark-scrollbar-skin-for-javafx/
     -fx-rotate: 0;
 }
 .scroll-bar:horizontal .decrement-arrow {
-    -fx-background-color: rgb(211,211,211);
+    -fx-background-color: rgba(211,211,211, 0.5);
     -fx-shape: "M 0 0 L 4 8 L 8 0 Z";
     -fx-padding: 0.25em;
     -fx-rotate: 90;
 }
 .scroll-bar:vertical .decrement-arrow {
-    -fx-background-color: rgb(211,211,211);
+    -fx-background-color: rgba(211,211,211, 0.5);
     -fx-shape: "M 0 0 L 4 8 L 8 0 Z";
     -fx-padding: 0.25em;
     -fx-rotate: -180;

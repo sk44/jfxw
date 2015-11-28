@@ -8,6 +8,7 @@ import java.util.ResourceBundle;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -20,6 +21,8 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.FlowPane;
@@ -45,20 +48,20 @@ public class FilerViewController implements Initializable {
 
         SEARCH {
 
-                @Override
-                public void handleEnter(FilerViewController controller, String text) {
-                    controller.searchText = text;
-                    controller.searchNext();
-                }
+            @Override
+            public void handleEnter(FilerViewController controller, String text) {
+                controller.searchText = text;
+                controller.searchNext();
+            }
 
-            }, CREATE_DIR {
+        }, CREATE_DIR {
 
-                @Override
-                public void handleEnter(FilerViewController controller, String text) {
-                    controller.filer.createDirectory(text);
-                }
+            @Override
+            public void handleEnter(FilerViewController controller, String text) {
+                controller.filer.createDirectory(text);
+            }
 
-            };
+        };
 
         public abstract void handleEnter(FilerViewController controller, String text);
     }
@@ -188,6 +191,9 @@ public class FilerViewController implements Initializable {
                 break;
             case X:
                 openByAssociated();
+                break;
+            case Y:
+                yank();
                 break;
             case Z:
                 openConfigure();
@@ -370,16 +376,17 @@ public class FilerViewController implements Initializable {
 //        scrollPane.setFitToWidth(true);
         scrollPane.setFitToHeight(true);
         flowPane.prefWidthProperty().bind(scrollPane.widthProperty());
+        Bindings.bindContent(flowPane.getChildren(), contents);
     }
 
     private void addContent(ContentRow content) {
         contents.add(content);
-        flowPane.getChildren().add(content);
+//        flowPane.getChildren().add(content);
     }
 
     private void clearContents() {
         contents.clear();
-        flowPane.getChildren().clear();
+//        flowPane.getChildren().clear();
     }
 
     public void withFiler(Filer filer) {
@@ -501,4 +508,14 @@ public class FilerViewController implements Initializable {
                 }
             });
     }
+
+    private void yank() {
+        String path = getCurrentContent().getPath().toString();
+        final Clipboard clipboard = Clipboard.getSystemClipboard();
+        final ClipboardContent content = new ClipboardContent();
+        content.putString(path);
+        clipboard.setContent(content);
+        Message.info("yank: " + path);
+    }
+
 }

@@ -2,6 +2,7 @@ package sk44.jfxw.model.configuration;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -51,11 +52,22 @@ public class Configuration {
     @Setter
     private MessageLevel logLevel;
 
+    @Getter
+    @Setter
+    private String backgroundImagePath;
+
     @Setter
     private FilerConfig leftFilerConfig;
 
     @Setter
     private FilerConfig rightFilerConfig;
+
+    public Optional<Path> backgroundImagePath() {
+        if (backgroundImagePath == null || backgroundImagePath.isEmpty()) {
+            return Optional.empty();
+        }
+        return Optional.of(Paths.get(backgroundImagePath));
+    }
 
     public FilerConfig getLeftFilerConfig() {
         if (leftFilerConfig == null) {

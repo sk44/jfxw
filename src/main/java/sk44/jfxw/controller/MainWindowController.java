@@ -1,6 +1,7 @@
 package sk44.jfxw.controller;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -11,6 +12,8 @@ import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
@@ -23,6 +26,8 @@ public class MainWindowController implements Initializable {
     @FXML
     private AnchorPane rootPane;
     @FXML
+    private ImageView backgroundImageView;
+    @FXML
     private FilerViewController leftFilerViewController;
     @FXML
     private FilerViewController rightFilerViewController;
@@ -31,10 +36,32 @@ public class MainWindowController implements Initializable {
     @FXML
     private Label statusLabel;
 
+    private void loadBackgroundImage(Path imagePath) {
+        try {
+
+            Image image = new Image(Files.newInputStream(imagePath));
+//            backgroundImageView.setFitWidth(image.getWidth());
+//            backgroundImageView.setFitHeight(image.getHeight());
+            backgroundImageView.setSmooth(true);
+            backgroundImageView.setCache(true);
+            // TODO 画像が大きいとウィンドウサイズまで大きくなってしまう
+            backgroundImageView.setPreserveRatio(true);
+//            backgroundImageView.fitHeightProperty().bind(rootPane.heightProperty());
+            backgroundImageView.fitWidthProperty().bind(rootPane.widthProperty());
+            backgroundImageView.setImage(image);
+        } catch (IOException ex) {
+            throw new UncheckedIOException(ex);
+        }
+    }
+
     @Override
     public void initialize(URL url, ResourceBundle rb) {
 
         Message.addObserver(this::appendMessage);
+
+//        rootPane.setPrefSize(800, 600);
+        ModelLocator.INSTANCE.getConfigurationStore().getConfiguration().backgroundImagePath()
+            .ifPresent(this::loadBackgroundImage);
 
         leftFilerViewController.withFiler(ModelLocator.INSTANCE.getLeftFiler());
         rightFilerViewController.withFiler(ModelLocator.INSTANCE.getRightFiler());
