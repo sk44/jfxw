@@ -5,6 +5,7 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.ResourceBundle;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javafx.application.Platform;
@@ -105,6 +106,8 @@ public class FilerViewController implements Initializable {
     private PathExecutor executionHandler;
     @Setter
     private Runnable openConfigureHandler;
+    @Setter
+    private BiConsumer<Path, FilerViewController> previewImageHandler;
 
     private boolean isBottom() {
         return index + 1 == contents.size();
@@ -197,7 +200,8 @@ public class FilerViewController implements Initializable {
                 yank();
                 break;
             case Z:
-                openConfigure();
+                // TODO 設定
+//                openConfigure();
                 break;
             case SPACE:
                 getCurrentContent().toggleMark();
@@ -212,6 +216,9 @@ public class FilerViewController implements Initializable {
                 }
                 // TODO どっちにフォーカスがあるかわからなくなるので見た目をどうにかしたい
 //                clearCursor();
+                break;
+            case ENTER:
+                preview();
                 break;
             default:
                 break;
@@ -518,6 +525,18 @@ public class FilerViewController implements Initializable {
         content.putString(path);
         clipboard.setContent(content);
         Message.info("yank: " + path);
+    }
+
+    private void preview() {
+        if (previewImageHandler == null) {
+            return;
+        }
+        Path path = getCurrentContent().getPath();
+        Filer.extensionOf(path)
+            .filter(ext -> ext.equals("jpg") || ext.equals("jpeg") || ext.equals("png"))
+            .ifPresent(ext -> {
+                previewImageHandler.accept(path, this);
+            });
     }
 
 }

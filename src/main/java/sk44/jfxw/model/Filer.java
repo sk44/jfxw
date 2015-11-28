@@ -12,6 +12,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 import lombok.Getter;
@@ -46,6 +47,16 @@ public class Filer {
 
     private static Path normalizePath(Path path) {
         return path.toAbsolutePath().normalize();
+    }
+
+    public static Optional<String> extensionOf(Path path) {
+
+        String fileName = path.getFileName().toString();
+        int i = fileName.lastIndexOf('.');
+        if (i > 0) {
+            return Optional.of(fileName.substring(i + 1));
+        }
+        return Optional.empty();
     }
 
     public Filer(String initialPath, PathSortType sortType, PathSortOrder sortOrder, boolean sortDirectories) {

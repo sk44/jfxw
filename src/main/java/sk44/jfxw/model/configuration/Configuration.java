@@ -92,14 +92,14 @@ public class Configuration {
     }
 
     public Optional<List<String>> getAssociatedCommandFor(Path file) {
-        String fileName = file.getFileName().toString();
-        int i = fileName.lastIndexOf('.');
-        if (i > 0) {
-            String extension = fileName.substring(i + 1);
-            if (fileAssociations.containsKey(extension)) {
-                return Optional.of(parseCommand(fileAssociations.get(extension), file));
+        Optional<String> extension = Filer.extensionOf(file);
+        // TODO isPresent 使わずにかけないかね
+        if (extension.isPresent()) {
+            if (fileAssociations.containsKey(extension.get())) {
+                return Optional.of(parseCommand(fileAssociations.get(extension.get()), file));
             }
         }
+        // 拡張子が定義されてなければデフォルトプレビュー実行
         if (previewCommand != null && previewCommand.isEmpty() == false) {
             return Optional.of(parseCommand(previewCommand, file));
         }

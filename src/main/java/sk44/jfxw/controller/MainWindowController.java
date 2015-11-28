@@ -10,11 +10,14 @@ import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
@@ -35,18 +38,21 @@ public class MainWindowController implements Initializable {
     private TextArea messageArea;
     @FXML
     private Label statusLabel;
+    private HBox previewImageContainer;
+    private ImageView previewImageView;
 
     private void loadBackgroundImage(Path imagePath) {
         try {
-
-            Image image = new Image(Files.newInputStream(imagePath), rootPane.getPrefWidth(), rootPane.getPrefHeight(), true, true);
+            double width = rootPane.getPrefWidth();
+            double height = rootPane.getPrefHeight();
+            Image image = new Image(Files.newInputStream(imagePath), width, height, true, true);
             backgroundImageView.setSmooth(true);
             backgroundImageView.setCache(true);
             backgroundImageView.setPreserveRatio(true);
 //            backgroundImageView.fitHeightProperty().bind(rootPane.heightProperty());
             backgroundImageView.fitWidthProperty().bind(rootPane.widthProperty());
             backgroundImageView.setImage(image);
-            Message.debug("background image loaded: " + imagePath + ", " + rootPane.getPrefWidth() + "x" + rootPane.getPrefHeight());
+            Message.debug("background image loaded: " + imagePath + ", " + width + "x" + height);
         } catch (IOException ex) {
             throw new UncheckedIOException(ex);
         }
@@ -73,6 +79,9 @@ public class MainWindowController implements Initializable {
 
         leftFilerViewController.setOpenConfigureHandler(this::handleOpenConfigureWindow);
         rightFilerViewController.setOpenConfigureHandler(this::handleOpenConfigureWindow);
+
+        rightFilerViewController.setPreviewImageHandler(this::handleOpenImagePreview);
+        // TODO 左
 
 //        leftFilerViewController.setOpenSortHandler(this::handleOpenSortWindow);
 //        rightFilerViewController.setOpenSortHandler(this::handleOpenSortWindow);
@@ -118,6 +127,61 @@ public class MainWindowController implements Initializable {
             return true;
         }
         return false;
+    }
+
+    private void handleOpenImagePreview(Path imagePath, FilerViewController filerViewController) {
+        if (previewImageContainer == null) {
+            initImagePreview(filerViewController);
+        }
+        loadPreviewImage(imagePath);
+    }
+
+    private void initImagePreview(FilerViewController filerViewController) {
+        // 中央寄せするために HBox をかます
+        previewImageContainer = new HBox();
+        previewImageContainer.setAlignment(Pos.CENTER);
+        previewImageContainer.prefWidthProperty().bind(rootPane.widthProperty());
+        previewImageContainer.prefHeightProperty().bind(rootPane.heightProperty());
+        previewImageContainer.getStyleClass().add("imagePreviewBackground");
+
+        previewImageView = new ImageView();
+        previewImageView.setPreserveRatio(true);
+        previewImageView.setSmooth(true);
+        previewImageView.fitWidthProperty().bind(previewImageContainer.widthProperty());
+        previewImageView.fitHeightProperty().bind(previewImageContainer.heightProperty());
+        previewImageView.addEventFilter(KeyEvent.KEY_PRESSED, e -> {
+            switch (e.getCode()) {
+                case J:
+                    // TODO 次イメージの表示
+                    break;
+                case K:
+                    // TODO 前イメージの表示
+                    break;
+                case ESCAPE:
+                case ENTER:
+                    previewImageView.setImage(null);
+                    rootPane.getChildren().remove(previewImageContainer);
+                    filerViewController.focus();
+                    break;
+                default:
+                    break;
+            }
+        });
+        previewImageContainer.getChildren().add(previewImageView);
+    }
+
+    private void loadPreviewImage(Path imagePath) {
+        double width = rootPane.getPrefWidth();
+        double height = rootPane.getPrefHeight();
+        try {
+            // TODO 画像が左よりになる
+            Image image = new Image(Files.newInputStream(imagePath), width, height, true, true);
+            previewImageView.setImage(image);
+            rootPane.getChildren().add(previewImageContainer);
+            previewImageView.requestFocus();
+        } catch (IOException ex) {
+            Message.error(ex);
+        }
     }
 
     private void handleOpenConfigureWindow() {

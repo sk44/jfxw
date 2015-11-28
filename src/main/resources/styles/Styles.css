@@ -24,6 +24,10 @@
     -fx-background-color: rgba(0,0,0,0.5);
 }
 
+.imagePreviewBackground {
+    -fx-background-color: rgba(0, 0, 0, 0.7);
+}
+
 .oddRow * {
     /*-fx-background-color: #ebebeb;*/
 }
