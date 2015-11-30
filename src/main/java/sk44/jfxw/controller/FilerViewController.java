@@ -5,7 +5,6 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.ResourceBundle;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javafx.application.Platform;
@@ -81,6 +80,7 @@ public class FilerViewController implements Initializable {
     }
 
     @FXML
+    @Getter
     private AnchorPane rootPane;
     @FXML
     private ScrollPane scrollPane;
@@ -107,7 +107,7 @@ public class FilerViewController implements Initializable {
     @Setter
     private Runnable openConfigureHandler;
     @Setter
-    private BiConsumer<Path, FilerViewController> previewImageHandler;
+    private Consumer<Path> previewImageHandler;
 
     private boolean isBottom() {
         return index + 1 == contents.size();
@@ -441,7 +441,7 @@ public class FilerViewController implements Initializable {
         updateCursor();
     }
 
-    void focus() {
+    public void focus() {
         // runLater でないと効かない
         Platform.runLater(flowPane::requestFocus);
 //        flowPane.requestFocus();
@@ -535,7 +535,7 @@ public class FilerViewController implements Initializable {
         Filer.extensionOf(path)
             .filter(ext -> ext.equals("jpg") || ext.equals("jpeg") || ext.equals("png"))
             .ifPresent(ext -> {
-                previewImageHandler.accept(path, this);
+                previewImageHandler.accept(path);
             });
     }
 

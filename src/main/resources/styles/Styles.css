@@ -42,7 +42,7 @@
     -fx-text-fill: #ffffff;
 }
 
-.currentRow *, .filerTextInput {
+:focused .currentRow *, .filerTextInput {
     /*-fx-background-color: #999999;*/
     -fx-background-color: rgba(153, 153, 153, 0.7);
     -fx-text-fill: #ffffff;
