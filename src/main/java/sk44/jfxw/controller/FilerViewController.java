@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -36,6 +37,7 @@ import sk44.jfxw.model.Filer;
 import sk44.jfxw.model.ModelLocator;
 import sk44.jfxw.model.message.Message;
 import sk44.jfxw.view.ContentRow;
+import sk44.jfxw.view.Nodes;
 
 /**
  * FXML Controller class
@@ -69,6 +71,7 @@ public class FilerViewController implements Initializable {
     private static final double CONTENT_HEIGHT = 16;
     private static final int HISTORY_BUFFER_SIZE = 24;
     private static final String CLASS_NAME_TEXT_INPUT = "filerTextInput";
+    private static final String CLASS_NAME_PREVIEW_FILER = "previewFiler";
 
     private void ensureVisible(ScrollPane pane, ContentRow node) {
 
@@ -441,7 +444,7 @@ public class FilerViewController implements Initializable {
         updateCursor();
     }
 
-    public void focus() {
+    void focus() {
         // runLater でないと効かない
         Platform.runLater(flowPane::requestFocus);
 //        flowPane.requestFocus();
@@ -531,12 +534,34 @@ public class FilerViewController implements Initializable {
         if (previewImageHandler == null) {
             return;
         }
-        Path path = getCurrentContent().getPath();
-        Filer.extensionOf(path)
-            .filter(ext -> ext.equals("jpg") || ext.equals("jpeg") || ext.equals("png"))
-            .ifPresent(ext -> {
-                previewImageHandler.accept(path);
-            });
+        currentImage().ifPresent(image -> {
+            previewImageHandler.accept(image);
+            Nodes.addStyleClassTo(flowPane, CLASS_NAME_PREVIEW_FILER);
+        });
     }
 
+    private Optional<Path> currentImage() {
+        Path path = getCurrentContent().getPath();
+        return Filer.extensionOf(path)
+            .filter(ext -> ext.equalsIgnoreCase("jpg")
+                || ext.equalsIgnoreCase("jpeg")
+                || ext.equalsIgnoreCase("png")
+                || ext.equalsIgnoreCase("gif"))
+            .map(ext -> path);
+    }
+
+    public Optional<Path> nextImage() {
+        next();
+        return currentImage();
+    }
+
+    public Optional<Path> previousImage() {
+        previous();
+        return currentImage();
+    }
+
+    public void endPreviewImage() {
+        Nodes.removeStyleClassFrom(flowPane, CLASS_NAME_PREVIEW_FILER);
+        focus();
+    }
 }

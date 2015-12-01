@@ -36,21 +36,27 @@ public class MainWindowController implements Initializable {
     @FXML
     private Label statusLabel;
 
-    private final ImageViewer imageViewerInWindow = new ImageViewer();
-    private final ImageViewer imageViewerInFiler = new ImageViewer();
+    private final ImageViewer imageViewerInWindow = new ImageViewer(this::loadBackgroundImage);
+    private final ImageViewer imageViewerInFiler = new ImageViewer(this::loadBackgroundImage);
+
+    private void initBackgroundImageView() {
+        backgroundImageView.setSmooth(true);
+        backgroundImageView.setCache(true);
+        backgroundImageView.setPreserveRatio(true);
+        // 横幅が足りないことが多いので横幅だけにバインドする
+//        backgroundImageView.fitHeightProperty().bind(rootPane.heightProperty());
+        backgroundImageView.fitWidthProperty().bind(rootPane.widthProperty());
+    }
 
     private void loadBackgroundImage(Path imagePath) {
         try {
             double width = rootPane.getPrefWidth();
             double height = rootPane.getPrefHeight();
             Image image = new Image(Files.newInputStream(imagePath), width, height, true, true);
-            backgroundImageView.setSmooth(true);
-            backgroundImageView.setCache(true);
-            backgroundImageView.setPreserveRatio(true);
-//            backgroundImageView.fitHeightProperty().bind(rootPane.heightProperty());
-            backgroundImageView.fitWidthProperty().bind(rootPane.widthProperty());
             backgroundImageView.setImage(image);
             Message.debug("background image loaded: " + imagePath + ", " + width + "x" + height);
+            ModelLocator.INSTANCE.getConfigurationStore().getConfiguration()
+                .setBackgroundImagePath(imagePath.normalize().toString());
         } catch (IOException ex) {
             Message.error(ex);
         }
@@ -61,6 +67,7 @@ public class MainWindowController implements Initializable {
 
         Message.addObserver(this::appendMessage);
 
+        initBackgroundImageView();
         ModelLocator.INSTANCE.getConfigurationStore().getConfiguration().backgroundImagePath()
             .ifPresent(this::loadBackgroundImage);
 

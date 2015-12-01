@@ -22,4 +22,11 @@ public class Nodes {
         }
         node.getStyleClass().add(className);
     }
+
+    public static void removeStyleClassFrom(Node node, String className) {
+        if (node.getStyleClass().contains(className) == false) {
+            return;
+        }
+        node.getStyleClass().remove(className);
+    }
 }

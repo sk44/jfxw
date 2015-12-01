@@ -8,6 +8,7 @@ package sk44.jfxw.view;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.function.Consumer;
 import javafx.geometry.Pos;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -24,23 +25,44 @@ import sk44.jfxw.model.message.Message;
  */
 public class ImageViewer {
 
+    private final Consumer<Path> saveHandler;
     private HBox previewImageContainer;
     private ImageView previewImageView;
+    private Path imagePath;
 
-    public void open(Path imagePath, FilerViewController filerViewController, Pane basePane) {
-        if (previewImageContainer == null) {
-            initImagePreview(filerViewController, basePane);
-        }
-        loadPreviewImage(imagePath, basePane);
+    public ImageViewer(Consumer<Path> saveHandler) {
+        this.saveHandler = saveHandler;
     }
 
-    private void initImagePreview(FilerViewController filerViewController, Pane basePane) {
+    public void open(Path imagePath, FilerViewController launcherController, Pane basePane) {
+        if (previewImageContainer == null) {
+            initImagePreview(launcherController, basePane);
+        }
+        loadPreviewImage(imagePath);
+        basePane.getChildren().add(previewImageContainer);
+        previewImageView.requestFocus();
+    }
+
+    private void close(FilerViewController launcherController, Pane basePane) {
+        previewImageView.setImage(null);
+        basePane.getChildren().remove(previewImageContainer);
+        launcherController.endPreviewImage();
+    }
+
+    private void initImagePreview(FilerViewController launcherController, Pane basePane) {
         // 中央寄せするために HBox をかます
         previewImageContainer = new HBox();
         previewImageContainer.setAlignment(Pos.CENTER);
         previewImageContainer.prefWidthProperty().bind(basePane.widthProperty());
         previewImageContainer.prefHeightProperty().bind(basePane.heightProperty());
         previewImageContainer.getStyleClass().add("imagePreviewBackground");
+
+        initPreviewImageView(launcherController, basePane);
+
+        previewImageContainer.getChildren().add(previewImageView);
+    }
+
+    private void initPreviewImageView(FilerViewController launcherController, Pane basePane) {
 
         previewImageView = new ImageView();
         previewImageView.setPreserveRatio(true);
@@ -55,30 +77,41 @@ public class ImageViewer {
         previewImageView.addEventFilter(KeyEvent.KEY_PRESSED, e -> {
             switch (e.getCode()) {
                 case J:
-                    // TODO 次イメージの表示
+                    launcherController.nextImage().ifPresent(nextImage -> {
+                        loadPreviewImage(nextImage);
+                    });
                     break;
                 case K:
-                    // TODO 前イメージの表示
+                    launcherController.previousImage().ifPresent(previousImage -> {
+                        loadPreviewImage(previousImage);
+                    });
+                    break;
+                case S:
+                    if (saveHandler != null) {
+                        saveHandler.accept(imagePath);
+                    }
                     break;
                 case ESCAPE:
                 case ENTER:
-                    previewImageView.setImage(null);
-                    basePane.getChildren().remove(previewImageContainer);
-                    filerViewController.focus();
+                    close(launcherController, basePane);
                     break;
                 default:
                     break;
             }
         });
-        previewImageContainer.getChildren().add(previewImageView);
+        // メッセージ窓をクリックしたりしてフォーカスを失うと制御不能になるので
+        previewImageView.focusedProperty().addListener((arg, oldValue, newValue) -> {
+            if (newValue == false) {
+                close(launcherController, basePane);
+            }
+        });
     }
 
-    private void loadPreviewImage(Path imagePath, Pane basePane) {
+    private void loadPreviewImage(Path imagePath) {
         try {
             Image image = new Image(Files.newInputStream(imagePath));
             previewImageView.setImage(image);
-            basePane.getChildren().add(previewImageContainer);
-            previewImageView.requestFocus();
+            this.imagePath = imagePath;
         } catch (IOException ex) {
             Message.error(ex);
         }
