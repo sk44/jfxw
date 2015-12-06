@@ -157,13 +157,9 @@ public class ContentRow extends FlowPane {
     public void updateSelected(boolean selected) {
 
         if (selected) {
-            // TODO 二重に add すると remove しても消えない（二回 remove すればいい？）
-            // そもそも二重に add するのがアレではる
-            if (getStyleClass().contains(CURRENT_ROW_CLASS_NAME) == false) {
-                getStyleClass().add(CURRENT_ROW_CLASS_NAME);
-            }
+            Nodes.addStyleClassTo(this, CURRENT_ROW_CLASS_NAME);
         } else {
-            getStyleClass().remove(CURRENT_ROW_CLASS_NAME);
+            Nodes.removeStyleClassFrom(this, CURRENT_ROW_CLASS_NAME);
         }
     }
 
@@ -172,11 +168,11 @@ public class ContentRow extends FlowPane {
             return;
         }
         // TODO 見せ方が微妙
-        markedProperty.set(markedProperty.get() == false);
-        if (markedProperty.get()) {
-            getStyleClass().add(MARKED_ROW_CLASS_NAME);
+        markedProperty.set(isMarked() == false);
+        if (isMarked()) {
+            Nodes.addStyleClassTo(this, MARKED_ROW_CLASS_NAME);
         } else {
-            getStyleClass().remove(MARKED_ROW_CLASS_NAME);
+            Nodes.removeStyleClassFrom(this, MARKED_ROW_CLASS_NAME);
         }
     }
 

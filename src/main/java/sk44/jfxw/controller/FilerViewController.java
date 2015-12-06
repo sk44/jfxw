@@ -68,18 +68,21 @@ public class FilerViewController implements Initializable {
         public abstract void handleEnter(FilerViewController controller, String text);
     }
 
-    private static final double CONTENT_HEIGHT = 16;
     private static final int HISTORY_BUFFER_SIZE = 24;
     private static final String CLASS_NAME_TEXT_INPUT = "filerTextInput";
     private static final String CLASS_NAME_PREVIEW_FILER = "previewFiler";
 
-    private void ensureVisible(ScrollPane pane, ContentRow node) {
+    private static void ensureVisible(ScrollPane scrollPane, ContentRow row) {
 
         // http://stackoverflow.com/questions/15840513/javafx-scrollpane-programmatically-moving-the-viewport-centering-content
-        double h = pane.getContent().getBoundsInLocal().getHeight();
-        double y = (node.getBoundsInParent().getMaxY() + node.getBoundsInParent().getMinY()) / 2.0;
-        double v = pane.getViewportBounds().getHeight();
-        pane.setVvalue(pane.getVmax() * ((y - 0.5 * v) / (h - v)));
+        // 全体の高さ
+        double contentHeight = scrollPane.getContent().getBoundsInLocal().getHeight();
+        // row の位置
+        double rowY = (row.getBoundsInParent().getMaxY() + row.getBoundsInParent().getMinY()) / 2.0;
+        // 表示範囲の高さ
+        double visibleHeight = scrollPane.getViewportBounds().getHeight();
+        // TODO 中央位置に合わせてスクロールしてしまうので、上か下に
+        scrollPane.setVvalue(scrollPane.getVmax() * ((rowY - 0.5 * visibleHeight) / (contentHeight - visibleHeight)));
     }
 
     @FXML
@@ -207,6 +210,9 @@ public class FilerViewController implements Initializable {
 //                openConfigure();
                 break;
             case SPACE:
+                // Space のデフォルト動作？で勝手にスクロールしてしまうので無効化
+                // TODO 全体的にやるべき？
+                event.consume();
                 getCurrentContent().toggleMark();
                 next();
                 break;
