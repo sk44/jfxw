@@ -31,6 +31,7 @@ import javafx.scene.paint.Color;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import sk44.jfxw.model.Filer;
@@ -46,29 +47,8 @@ import sk44.jfxw.view.Nodes;
  */
 public class FilerViewController implements Initializable {
 
-    private enum TextFieldType {
-
-        SEARCH {
-
-            @Override
-            public void handleEnter(FilerViewController controller, String text) {
-                controller.searchText = text;
-                controller.searchNext();
-            }
-
-        }, CREATE_DIR {
-
-            @Override
-            public void handleEnter(FilerViewController controller, String text) {
-                controller.filer.createDirectory(text);
-            }
-
-        };
-
-        public abstract void handleEnter(FilerViewController controller, String text);
-    }
-
     private static final int HISTORY_BUFFER_SIZE = 24;
+
     private static final String CLASS_NAME_TEXT_INPUT = "filerTextInput";
     private static final String CLASS_NAME_PREVIEW_FILER = "previewFiler";
 
@@ -101,6 +81,7 @@ public class FilerViewController implements Initializable {
 
     private Stage sortWindowStage;
     private TextField textField;
+    @Setter(AccessLevel.PACKAGE)
     private String searchText;
     @Getter
     private Filer filer;
@@ -177,7 +158,7 @@ public class FilerViewController implements Initializable {
                 break;
             case M:
                 if (event.isShiftDown()) {
-                    openTextField(TextFieldType.CREATE_DIR);
+                    openTextField(FilerTextFieldType.CREATE_DIR);
                 } else {
                     move();
                 }
@@ -217,7 +198,7 @@ public class FilerViewController implements Initializable {
                 next();
                 break;
             case SLASH:
-                openTextField(TextFieldType.SEARCH);
+                openTextField(FilerTextFieldType.SEARCH);
                 break;
             case TAB:
                 if (changeFocusListener != null) {
@@ -347,7 +328,7 @@ public class FilerViewController implements Initializable {
         }
     }
 
-    private void openTextField(TextFieldType type) {
+    private void openTextField(FilerTextFieldType type) {
 
         // 残っているものがあると永久に消えないのでクリアしておく
         if (textField != null) {
@@ -356,22 +337,7 @@ public class FilerViewController implements Initializable {
         // スラッシュが入力されてしまうので都度 new する
         textField = new TextField();
         textField.getStyleClass().add(CLASS_NAME_TEXT_INPUT);
-        textField.addEventFilter(KeyEvent.KEY_PRESSED, e -> {
-            switch (e.getCode()) {
-                case ESCAPE:
-                    removeTextField();
-                    break;
-                case ENTER:
-                    String text = textField.getText();
-                    if (text != null && text.length() > 0) {
-                        type.handleEnter(this, text);
-                        removeTextField();
-                    }
-                    break;
-                default:
-                    break;
-            }
-        });
+        type.setUpKeyPressedEventHandler(this, textField);
         // フォーカスアウトで消す
         textField.focusedProperty().addListener((value, oldValue, newValue) -> {
             if (newValue == false) {
@@ -450,11 +416,18 @@ public class FilerViewController implements Initializable {
         updateCursor();
     }
 
+    private static final String CLASS_NAME_CURRENT_FILER = "currentFiler";
+
     void focus() {
         // runLater でないと効かない
         Platform.runLater(flowPane::requestFocus);
 //        flowPane.requestFocus();
+        Nodes.addStyleClassTo(rootPane, CLASS_NAME_CURRENT_FILER);
         updateCursor();
+    }
+
+    void onLostFocus() {
+        Nodes.removeStyleClassFrom(rootPane, CLASS_NAME_CURRENT_FILER);
     }
 
     private void postEntryLoaded(Path entry, boolean parent, int index) {
@@ -466,7 +439,7 @@ public class FilerViewController implements Initializable {
         addContent(ContentRow.create(entry, scrollPane.widthProperty(), odd));
     }
 
-    private void searchNext() {
+    void searchNext() {
 
         if (isBottom()) {
             return;
@@ -506,7 +479,7 @@ public class FilerViewController implements Initializable {
 
     }
 
-    private void removeTextField() {
+    void removeTextField() {
         rootPane.getChildren().remove(textField);
         flowPane.requestFocus();
     }

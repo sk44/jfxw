@@ -75,8 +75,14 @@ public class MainWindowController implements Initializable {
         rightFilerViewController.withFiler(ModelLocator.INSTANCE.getRightFiler());
 
         // TODO くどいのでどうにか
-        leftFilerViewController.setChangeFocusListener(rightFilerViewController::focus);
-        rightFilerViewController.setChangeFocusListener(leftFilerViewController::focus);
+        leftFilerViewController.setChangeFocusListener(() -> {
+            rightFilerViewController.focus();
+            leftFilerViewController.onLostFocus();
+        });
+        rightFilerViewController.setChangeFocusListener(() -> {
+            leftFilerViewController.focus();
+            rightFilerViewController.onLostFocus();
+        });
 
         leftFilerViewController.setChangeCursorListener(this::updateStatus);
         rightFilerViewController.setChangeCursorListener(this::updateStatus);

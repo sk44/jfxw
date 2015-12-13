@@ -41,7 +41,7 @@
     -fx-text-fill: #ffffff;
 }
 
-:focused .currentRow *, .filerTextInput, .previewFiler .currentRow * {
+.currentFiler .currentRow, .filerTextInput, .previewFiler .currentRow * {
     /*-fx-background-color: #999999;*/
     -fx-background-color: rgba(153, 153, 153, 0.7);
     -fx-text-fill: #ffffff;
