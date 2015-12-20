@@ -19,6 +19,9 @@ import lombok.Getter;
 import lombok.Setter;
 import sk44.jfxw.model.fs.CopyDirectoryVisitor;
 import sk44.jfxw.model.fs.DeleteDirectoryVisitor;
+import sk44.jfxw.model.fs.MoveDirectoryVisitor;
+import sk44.jfxw.model.fs.OverwriteFileConfirmer;
+import sk44.jfxw.model.fs.PathHelper;
 import sk44.jfxw.model.message.Message;
 
 /**
@@ -157,20 +160,20 @@ public class Filer {
             + ", order: " + this.sortOrder + "sortDir: " + this.sortDirectories);
     }
 
-    public void copy(List<Path> entries, CopyDirectoryVisitor.OverwriteConfirmer confirmer) {
+    public void copy(List<Path> entries, OverwriteFileConfirmer confirmer) {
 
         for (Path entry : entries) {
             // TODO バックグラウンド実行を検討
             if (Files.isDirectory(entry)) {
-                CopyDirectoryVisitor copyDirectoryVisitor = new CopyDirectoryVisitor(entry,
-                    otherFiler.getCurrentDir(), confirmer);
+                Path toDir = otherFiler.resolve(entry);
                 try {
-                    Files.walkFileTree(entry, copyDirectoryVisitor);
+                    PathHelper.createDirectoryIfNotExists(toDir);
+                    Files.walkFileTree(entry, new CopyDirectoryVisitor(entry,
+                        toDir, confirmer));
                 } catch (IOException ex) {
                     Message.error(ex);
                     return;
                 }
-//                Message.info("copy directories is not implemented yet!");
                 continue;
             }
             if (otherFiler.copyFrom(entry) == false) {
@@ -181,11 +184,19 @@ public class Filer {
         otherFiler.reload();
     }
 
-    public void move(List<Path> entries) {
+    public void move(List<Path> entries, OverwriteFileConfirmer confirmer) {
+        // TODO 移動したあと空のディレクトリを消す
         for (Path entry : entries) {
-            // TODO ディレクトリの移動処理実装
             if (Files.isDirectory(entry)) {
-                Message.info("move directories is not implemented yet!");
+                Path toDir = otherFiler.resolve(entry);
+                try {
+                    PathHelper.createDirectoryIfNotExists(toDir);
+                    Files.walkFileTree(entry, new MoveDirectoryVisitor(entry,
+                        toDir, confirmer));
+                } catch (IOException ex) {
+                    Message.error(ex);
+                    return;
+                }
                 continue;
             }
             Message.debug("move target: " + entry.toString());
@@ -193,13 +204,16 @@ public class Filer {
                 break;
             }
         }
+
         reload();
+
         otherFiler.reload();
     }
 
     private boolean moveFrom(Path sourcePath) {
         Path newPath = resolve(sourcePath);
-        if (newPath == null) {
+        if (Files.exists(newPath)) {
+            Message.debug("path " + newPath.toString() + " is already exists.");
             return true;
         }
         if (Files.exists(newPath)) {
@@ -242,8 +256,8 @@ public class Filer {
 
     private boolean copyFrom(Path sourcePath) {
         Path newPath = resolve(sourcePath);
-        // TODO null?
-        if (newPath == null) {
+        if (Files.exists(newPath)) {
+            Message.debug("path " + newPath.toString() + " is already exists.");
             return true;
         }
         Message.info("copy " + sourcePath.toString() + " to " + newPath.toString());
@@ -257,12 +271,7 @@ public class Filer {
     }
 
     private Path resolve(Path sourcePath) {
-        Path newPath = currentDir.resolve(sourcePath.getFileName());
-        if (Files.exists(newPath)) {
-            Message.warn("path " + newPath.toString() + " is already exists.");
-            return null;
-        }
-        return newPath;
+        return currentDir.resolve(sourcePath.getFileName());
     }
 
     private void collectEntries() {

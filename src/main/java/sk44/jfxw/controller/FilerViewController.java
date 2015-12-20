@@ -264,7 +264,7 @@ public class FilerViewController implements Initializable {
     }
 
     private void move() {
-        filer.move(collectMarkedPathes());
+        filer.move(collectMarkedPathes(), this::showConfirmDialog);
         updateCursor();
     }
 
