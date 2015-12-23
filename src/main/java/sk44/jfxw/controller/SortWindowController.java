@@ -36,8 +36,6 @@ public class SortWindowController implements Initializable {
 
     @FXML
     private Pane rootPane;
-    @Deprecated
-    private Pane parentPane;
 
     @FXML
     private Label fileNameLabel;

@@ -2,6 +2,7 @@ package sk44.jfxw.controller;
 
 import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
@@ -38,6 +39,7 @@ import sk44.jfxw.model.Filer;
 import sk44.jfxw.model.ModelLocator;
 import sk44.jfxw.model.message.Message;
 import sk44.jfxw.view.ContentRow;
+import sk44.jfxw.view.ModalWindow;
 import sk44.jfxw.view.Nodes;
 
 /**
@@ -51,6 +53,7 @@ public class FilerViewController implements Initializable {
 
     private static final String CLASS_NAME_TEXT_INPUT = "filerTextInput";
     private static final String CLASS_NAME_PREVIEW_FILER = "previewFiler";
+    private static final String CLASS_NAME_CURRENT_FILER = "currentFiler";
 
     private static void ensureVisible(ScrollPane scrollPane, ContentRow row) {
 
@@ -80,6 +83,7 @@ public class FilerViewController implements Initializable {
     private final PathHistoriesCache historiesCache = new PathHistoriesCache(HISTORY_BUFFER_SIZE);
 
     private Stage sortWindowStage;
+    private ModalWindow<RenameWindowController> renameWindow;
     private TextField textField;
     @Setter(AccessLevel.PACKAGE)
     private String searchText;
@@ -116,30 +120,14 @@ public class FilerViewController implements Initializable {
     @FXML
     protected void handleCommandKeyPressed(KeyEvent event) {
         switch (event.getCode()) {
+            case C:
+                copy();
+                break;
+            case D:
+                delete();
+                break;
             case E:
                 execute();
-                break;
-            case S:
-                openSortOption();
-                break;
-            case DOWN:
-            case J:
-                // down
-                next();
-                break;
-            case UP:
-            case K:
-                // up
-                previous();
-                break;
-            case H:
-                this.filer.changeDirectoryToParentDir();
-                break;
-            case L:
-                ContentRow currentContent = getCurrentContent();
-                if (currentContent.isDirectory()) {
-                    this.filer.changeDirectoryTo(currentContent.getPath());
-                }
                 break;
             case G:
                 clearCursor();
@@ -150,11 +138,24 @@ public class FilerViewController implements Initializable {
                 }
                 updateCursor();
                 break;
-            case C:
-                copy();
+            case H:
+                this.filer.changeDirectoryToParentDir();
                 break;
-            case D:
-                delete();
+            case J:
+            case DOWN:
+                // down
+                next();
+                break;
+            case K:
+            case UP:
+                // up
+                previous();
+                break;
+            case L:
+                ContentRow currentContent = getCurrentContent();
+                if (currentContent.isDirectory()) {
+                    this.filer.changeDirectoryTo(currentContent.getPath());
+                }
                 break;
             case M:
                 if (event.isShiftDown()) {
@@ -180,6 +181,16 @@ public class FilerViewController implements Initializable {
             case Q:
                 Platform.exit();
                 break;
+            case R:
+                if (event.isShiftDown()) {
+                    filer.reload();
+                } else {
+                    openRenameWindow();
+                }
+                break;
+            case S:
+                openSortOption();
+                break;
             case X:
                 openByAssociated();
                 break;
@@ -187,7 +198,7 @@ public class FilerViewController implements Initializable {
                 yank();
                 break;
             case Z:
-                // TODO 設定
+                // TODO 設定画面？
 //                openConfigure();
                 break;
             case SPACE:
@@ -204,8 +215,6 @@ public class FilerViewController implements Initializable {
                 if (changeFocusListener != null) {
                     changeFocusListener.run();
                 }
-                // TODO どっちにフォーカスがあるかわからなくなるので見た目をどうにかしたい
-//                clearCursor();
                 break;
             case ENTER:
                 preview();
@@ -289,12 +298,32 @@ public class FilerViewController implements Initializable {
         }
     }
 
-    private void openConfigure() {
-        if (openConfigureHandler != null) {
-            openConfigureHandler.run();
-        } else {
-            Message.warn("open configuration handler not set.");
+    private void openRenameWindow() {
+        if (getCurrentContent().isParent()) {
+            return;
         }
+        Path target = getCurrentContent().getPath();
+        renameWindow = new ModalWindow<>();
+        renameWindow.show("/fxml/RenameWindow.fxml", rootPane.getScene().getWindow(), (controller) -> {
+            controller.setInitialValue(target.getFileName().toString());
+            controller.setCloseAction(renameWindow::close);
+            controller.setUpdateAction(newName -> {
+                try {
+                    // TODO パス区切り文字が入っている場合とか
+                    // TODO ディレクトリとファイルが同名の場合とか
+                    Path newPath = target.resolveSibling(newName);
+                    if (Files.exists(newPath)) {
+                        Message.warn(newPath + " is already exists.");
+                        return;
+                    }
+                    Files.move(target, newPath);
+                    Message.info("rename " + target + " to " + newPath);
+                    filer.reload();
+                } catch (IOException ex) {
+                    Message.error(ex);
+                }
+            });
+        });
     }
 
     private void openSortOption() {
@@ -415,8 +444,6 @@ public class FilerViewController implements Initializable {
         currentPathLabel.setText(toDir.toString());
         updateCursor();
     }
-
-    private static final String CLASS_NAME_CURRENT_FILER = "currentFiler";
 
     void focus() {
         // runLater でないと効かない

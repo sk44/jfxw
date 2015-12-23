@@ -41,7 +41,7 @@
     -fx-text-fill: #ffffff;
 }
 
-.currentFiler .currentRow, .filerTextInput, .previewFiler .currentRow * {
+.currentFiler .currentRow, .filerTextInput, .windowTextInput, .previewFiler .currentRow * {
     /*-fx-background-color: #999999;*/
     -fx-background-color: rgba(153, 153, 153, 0.7);
     -fx-text-fill: #ffffff;
@@ -59,13 +59,19 @@
     -fx-alignment: CENTER_RIGHT;
 }
 
-/* sort window */
+/* modal window */
 .windowContainer {
     -fx-background-color: rgba(0, 0, 0, 0.7);
     -fx-border-radius: 5px;
 }
 .windowContainer * {
     -fx-text-fill: #ffffff;
+    -fx-focus-color: #999999;
+}
+
+.windowLabel {
+    /* 聞いてない？ */
+    -fx-font-size: 30px;
 }
 
 .orderType {

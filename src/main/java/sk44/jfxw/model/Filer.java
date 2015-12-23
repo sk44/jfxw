@@ -99,7 +99,7 @@ public class Filer {
         this.postEntryLoadedObservers.add(observer);
     }
 
-    private void reload() {
+    public void reload() {
         changeDirectoryTo(currentDir);
     }
 

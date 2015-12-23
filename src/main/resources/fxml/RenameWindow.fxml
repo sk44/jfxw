@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.text.*?>
+<?import java.lang.*?>
+<?import java.net.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane id="AnchorPane" fx:id="rootPane" prefHeight="117.0" prefWidth="412.0" styleClass="windowContainer" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/8" fx:controller="sk44.jfxw.controller.RenameWindowController">
+    <stylesheets>
+        <URL value="@/styles/Styles.css" />
+    </stylesheets>
+    <children>
+        <Label layoutX="35.0" layoutY="40.0" text="Rename:" AnchorPane.leftAnchor="30.0" AnchorPane.topAnchor="30.0" styleClass="windowLabel" />
+        <TextField fx:id="textField" layoutX="35.0" layoutY="79.0" onAction="#handleTextEnter" prefHeight="26.0" prefWidth="269.0" AnchorPane.bottomAnchor="30.0" AnchorPane.leftAnchor="30.0" AnchorPane.rightAnchor="30.0" styleClass="windowTextInput" />
+    </children>
+
+</AnchorPane>
