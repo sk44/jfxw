@@ -31,6 +31,9 @@ public class ModalWindow<T> {
         // http://stackoverflow.com/questions/10486731/how-to-create-a-modal-window-in-javafx-2-1
         // http://nodamushi.hatenablog.com/entry/20130910/1378784711
         try {
+            // TODO 表示位置を調整. モニターの絶対座標になるもよう
+//            stage.setX(rootPane.getScaleX() + 10);
+//            stage.setY(20);
             stage.initStyle(StageStyle.TRANSPARENT);
 
             FXMLLoader loader = new FXMLLoader(getClass().getResource(resourcePath));
