@@ -19,13 +19,11 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TextField;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.FlowPane;
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import sk44.jfxw.model.Filer;
@@ -35,6 +33,7 @@ import sk44.jfxw.view.ContentRow;
 import sk44.jfxw.view.Fxml;
 import sk44.jfxw.view.ModalWindow;
 import sk44.jfxw.view.Nodes;
+import sk44.jfxw.view.SearchTextField;
 
 /**
  * FXML Controller class
@@ -45,7 +44,6 @@ public class FilerViewController implements Initializable {
 
     private static final int HISTORY_BUFFER_SIZE = 24;
 
-    private static final String CLASS_NAME_TEXT_INPUT = "filerTextInput";
     private static final String CLASS_NAME_PREVIEW_FILER = "previewFiler";
     private static final String CLASS_NAME_CURRENT_FILER = "currentFiler";
 
@@ -79,8 +77,7 @@ public class FilerViewController implements Initializable {
     private ModalWindow<SortWindowController> sortWindow;
     private ModalWindow<TextFieldWindowController> renameWindow;
     private ModalWindow<TextFieldWindowController> createDirWindow;
-    private TextField textField;
-    @Setter(AccessLevel.PACKAGE)
+    private SearchTextField searchTextField;
     private String searchText;
     @Getter
     private Filer filer;
@@ -201,7 +198,7 @@ public class FilerViewController implements Initializable {
                 next();
                 break;
             case SLASH:
-                openTextField(FilerTextFieldType.SEARCH);
+                openSearchTextField();
                 break;
             case TAB:
                 if (changeFocusListener != null) {
@@ -340,26 +337,11 @@ public class FilerViewController implements Initializable {
         });
     }
 
-    private void openTextField(FilerTextFieldType type) {
-
-        // 残っているものがあると永久に消えないのでクリアしておく
-        if (textField != null) {
-            removeTextField();
-        }
-        // スラッシュが入力されてしまうので都度 new する
-        textField = new TextField();
-        textField.getStyleClass().add(CLASS_NAME_TEXT_INPUT);
-        type.setUpKeyPressedEventHandler(this, textField);
-        // フォーカスアウトで消す
-        textField.focusedProperty().addListener((value, oldValue, newValue) -> {
-            if (newValue == false) {
-                removeTextField();
-            }
+    private void openSearchTextField() {
+        searchTextField.open((query) -> {
+            searchText = query;
+            searchNext();
         });
-        textField.prefWidthProperty().bind(rootPane.widthProperty());
-        AnchorPane.setBottomAnchor(textField, 0.0);
-        rootPane.getChildren().add(textField);
-        textField.requestFocus();
     }
 
     private ContentRow getCurrentContent() {
@@ -373,6 +355,9 @@ public class FilerViewController implements Initializable {
         scrollPane.setFitToHeight(true);
         flowPane.prefWidthProperty().bind(scrollPane.widthProperty());
         Bindings.bindContent(flowPane.getChildren(), contents);
+        searchTextField = new SearchTextField(rootPane, () -> {
+            flowPane.requestFocus();
+        });
     }
 
     private void addContent(ContentRow content) {
@@ -487,11 +472,6 @@ public class FilerViewController implements Initializable {
         }
         Message.info("not found.");
 
-    }
-
-    void removeTextField() {
-        rootPane.getChildren().remove(textField);
-        flowPane.requestFocus();
     }
 
     private void openByAssociated() {
