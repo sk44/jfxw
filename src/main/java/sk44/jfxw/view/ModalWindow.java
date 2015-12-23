@@ -26,7 +26,7 @@ public class ModalWindow<T> {
 
     private final Stage stage = new Stage();
 
-    public void show(String resourcePath, Window owner, Consumer<T> controllerConfigurer) {
+    public void show(Fxml fxml, Window owner, Consumer<T> controllerConfigurer) {
 
         // http://stackoverflow.com/questions/10486731/how-to-create-a-modal-window-in-javafx-2-1
         // http://nodamushi.hatenablog.com/entry/20130910/1378784711
@@ -36,7 +36,7 @@ public class ModalWindow<T> {
 //            stage.setY(20);
             stage.initStyle(StageStyle.TRANSPARENT);
 
-            FXMLLoader loader = new FXMLLoader(getClass().getResource(resourcePath));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource(fxml.getPath()));
             // 先にロードしないと controller が取れない
             Parent root = loader.load();
 

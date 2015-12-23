@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.text.*?>
+<?import java.lang.*?>
+<?import java.net.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane id="AnchorPane" fx:id="rootPane" prefHeight="100.0" prefWidth="400.0" styleClass="windowContainer" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sk44.jfxw.controller.TextFieldWindowController">
+    <stylesheets>
+        <URL value="@/styles/Styles.css" />
+    </stylesheets>
+    <children>
+        <Label fx:id="titleLabel" alignment="CENTER" contentDisplay="CENTER" layoutX="35.0" layoutY="40.0" styleClass="windowLabel" textAlignment="CENTER" AnchorPane.leftAnchor="30.0" AnchorPane.rightAnchor="30.0" AnchorPane.topAnchor="10.0">
+         <font>
+            <Font size="24.0" />
+         </font></Label>
+        <TextField fx:id="textField" layoutX="35.0" layoutY="79.0" onAction="#handleTextEnter" prefHeight="26.0" prefWidth="269.0" styleClass="windowTextInput" AnchorPane.bottomAnchor="20.0" AnchorPane.leftAnchor="30.0" AnchorPane.rightAnchor="30.0" />
+    </children>
+
+</AnchorPane>

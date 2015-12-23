@@ -37,30 +37,6 @@ enum FilerTextFieldType {
                 }
             });
         }
-    },
-    /**
-     * ディレクトリ作成。
-     */
-    CREATE_DIR {
-        @Override
-        void setUpKeyPressedEventHandler(FilerViewController controller, TextField textField) {
-            textField.addEventFilter(KeyEvent.KEY_PRESSED, (javafx.scene.input.KeyEvent e) -> {
-                switch (e.getCode()) {
-                    case ESCAPE:
-                        controller.removeTextField();
-                        break;
-                    case ENTER:
-                        String text = textField.getText();
-                        if (text != null && text.isEmpty() == false) {
-                            controller.getFiler().createDirectory(text);
-                            controller.removeTextField();
-                        }
-                        break;
-                    default:
-                        break;
-                }
-            });
-        }
     };
 
     abstract void setUpKeyPressedEventHandler(FilerViewController controller, TextField textField);

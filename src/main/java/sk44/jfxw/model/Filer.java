@@ -136,11 +136,11 @@ public class Filer {
         }
         try {
             Files.createDirectory(newDir);
+            Message.info(newDir + " created.");
+            changeDirectoryTo(newDir);
         } catch (IOException ex) {
             Message.error(ex);
         }
-        Message.info(newDir + " created.");
-        changeDirectoryTo(newDir);
     }
 
     public void syncCurrentDirectoryFromOther() {

@@ -32,6 +32,7 @@ import sk44.jfxw.model.Filer;
 import sk44.jfxw.model.ModelLocator;
 import sk44.jfxw.model.message.Message;
 import sk44.jfxw.view.ContentRow;
+import sk44.jfxw.view.Fxml;
 import sk44.jfxw.view.ModalWindow;
 import sk44.jfxw.view.Nodes;
 
@@ -76,7 +77,8 @@ public class FilerViewController implements Initializable {
     private final PathHistoriesCache historiesCache = new PathHistoriesCache(HISTORY_BUFFER_SIZE);
 
     private ModalWindow<SortWindowController> sortWindow;
-    private ModalWindow<RenameWindowController> renameWindow;
+    private ModalWindow<TextFieldWindowController> renameWindow;
+    private ModalWindow<TextFieldWindowController> createDirWindow;
     private TextField textField;
     @Setter(AccessLevel.PACKAGE)
     private String searchText;
@@ -88,8 +90,6 @@ public class FilerViewController implements Initializable {
     private Runnable changeFocusListener;
     @Setter
     private PathExecutor executionHandler;
-    @Setter
-    private Runnable openConfigureHandler;
     @Setter
     private Consumer<Path> previewImageHandler;
 
@@ -152,7 +152,7 @@ public class FilerViewController implements Initializable {
                 break;
             case M:
                 if (event.isShiftDown()) {
-                    openTextField(FilerTextFieldType.CREATE_DIR);
+                    openCreateDirectoryWindow();
                 } else {
                     move();
                 }
@@ -182,7 +182,7 @@ public class FilerViewController implements Initializable {
                 }
                 break;
             case S:
-                openSortOption();
+                openSortOptionWindow();
                 break;
             case X:
                 openByAssociated();
@@ -192,7 +192,6 @@ public class FilerViewController implements Initializable {
                 break;
             case Z:
                 // TODO 設定画面？
-//                openConfigure();
                 break;
             case SPACE:
                 // Space のデフォルト動作？で勝手にスクロールしてしまうので無効化
@@ -291,14 +290,25 @@ public class FilerViewController implements Initializable {
         }
     }
 
+    private void openCreateDirectoryWindow() {
+        createDirWindow = new ModalWindow<>();
+        createDirWindow.show(Fxml.TEXT_FIELD_WINDOW, rootPane.getScene().getWindow(), (controller) -> {
+            controller.updateContent("New directory", "");
+            controller.setCloseAction(createDirWindow::close);
+            controller.setUpdateAction(dirName -> {
+                filer.createDirectory(dirName);
+            });
+        });
+    }
+
     private void openRenameWindow() {
         if (getCurrentContent().isParent()) {
             return;
         }
         Path target = getCurrentContent().getPath();
         renameWindow = new ModalWindow<>();
-        renameWindow.show("/fxml/RenameWindow.fxml", rootPane.getScene().getWindow(), (controller) -> {
-            controller.setInitialValue(target.getFileName().toString());
+        renameWindow.show(Fxml.TEXT_FIELD_WINDOW, rootPane.getScene().getWindow(), (controller) -> {
+            controller.updateContent("Rename", target.getFileName().toString());
             controller.setCloseAction(renameWindow::close);
             controller.setUpdateAction(newName -> {
                 try {
@@ -319,10 +329,10 @@ public class FilerViewController implements Initializable {
         });
     }
 
-    private void openSortOption() {
+    private void openSortOptionWindow() {
 
         sortWindow = new ModalWindow<>();
-        sortWindow.show("/fxml/SortWindow.fxml", rootPane.getScene().getWindow(), (controller) -> {
+        sortWindow.show(Fxml.SORT_WINDOW, rootPane.getScene().getWindow(), (controller) -> {
             controller.updateSortOptions(this.filer.getSortType(),
                 this.filer.getSortOrder(), this.filer.isSortDirectories());
             controller.setCloseAction(this.sortWindow::close);

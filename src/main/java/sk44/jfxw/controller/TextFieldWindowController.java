@@ -11,6 +11,7 @@ import java.util.function.Consumer;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Pane;
@@ -22,10 +23,12 @@ import sk44.jfxw.model.message.Message;
  *
  * @author sk
  */
-public class RenameWindowController implements Initializable {
+public class TextFieldWindowController implements Initializable {
 
     @FXML
     private Pane rootPane;
+    @FXML
+    private Label titleLabel;
     @FXML
     private TextField textField;
 
@@ -59,7 +62,8 @@ public class RenameWindowController implements Initializable {
         update();
     }
 
-    public void setInitialValue(String initialValue) {
+    public void updateContent(String title, String initialValue) {
+        titleLabel.setText(title);
         textField.setText(initialValue);
     }
 

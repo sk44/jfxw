@@ -7,16 +7,14 @@ import static javafx.application.Application.launch;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.layout.Pane;
-import javafx.stage.Modality;
 import javafx.stage.Stage;
-import sk44.jfxw.controller.SortWindowController;
 import sk44.jfxw.model.Filer;
 import sk44.jfxw.model.ModelLocator;
 import sk44.jfxw.model.configuration.Configuration;
 import sk44.jfxw.model.configuration.ConfigurationStore;
 import sk44.jfxw.model.configuration.FilerConfig;
 import sk44.jfxw.model.message.Message;
+import sk44.jfxw.view.Fxml;
 
 public class MainApp extends Application {
 
@@ -29,7 +27,7 @@ public class MainApp extends Application {
 
         primaryStage = stage;
 
-        Parent root = FXMLLoader.load(getClass().getResource("/fxml/MainWindow.fxml"));
+        Parent root = FXMLLoader.load(getClass().getResource(Fxml.MAIN_WINDOW.getPath()));
 
         Scene scene = new Scene(root);
         scene.getStylesheets().add("/styles/Styles.css");
@@ -40,25 +38,6 @@ public class MainApp extends Application {
 
         stage.setScene(scene);
         stage.show();
-    }
-
-    private void openSortWindow() {
-        Stage dialogStage = new Stage();
-        dialogStage.setTitle("Sort option");
-        dialogStage.initModality(Modality.WINDOW_MODAL);
-        dialogStage.initOwner(primaryStage);
-
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/SortWindow.fxml"));
-        try {
-            Pane pane = loader.load();
-            Scene scene = new Scene(pane);
-            dialogStage.setScene(scene);
-            dialogStage.showAndWait();
-        } catch (IOException ex) {
-            Message.error(ex);
-            return;
-        }
-        SortWindowController controller = loader.getController();
     }
 
     private void initializeModelLocator() throws IOException {
