@@ -35,7 +35,7 @@ public class CopyDirectoryVisitor extends SimpleFileVisitor<Path> {
             return FileVisitResult.TERMINATE;
         }
         if (PathHelper.createDirectoryIfNotExists(targetDir)) {
-            Message.info(targetDir.toString() + " created.");
+            Message.debug(targetDir.toString() + " created.");
         }
         return FileVisitResult.CONTINUE;
     }
@@ -48,7 +48,7 @@ public class CopyDirectoryVisitor extends SimpleFileVisitor<Path> {
             || confirmer.confirm(newPath.toString() + " is already exists. overwrite it?")) {
 
             Files.copy(file, newPath, StandardCopyOption.COPY_ATTRIBUTES, StandardCopyOption.REPLACE_EXISTING);
-            Message.info("copied " + file.toString() + " to " + newPath.toString());
+            Message.debug("copied " + file.toString() + " to " + newPath.toString());
         }
         return FileVisitResult.CONTINUE;
     }

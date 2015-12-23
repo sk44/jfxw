@@ -35,7 +35,7 @@ public class MoveDirectoryVisitor extends SimpleFileVisitor<Path> {
             return FileVisitResult.TERMINATE;
         }
         if (PathHelper.createDirectoryIfNotExists(targetDir)) {
-            Message.info(targetDir.toString() + " created.");
+            Message.debug(targetDir.toString() + " created.");
         }
         return FileVisitResult.CONTINUE;
     }
@@ -49,7 +49,7 @@ public class MoveDirectoryVisitor extends SimpleFileVisitor<Path> {
 
             Files.move(file, newPath, StandardCopyOption.REPLACE_EXISTING);
             // TODO
-            Message.info("moved " + file.toString() + " to " + newPath.toString());
+            Message.debug("moved " + file.toString() + " to " + newPath.toString());
         }
         return FileVisitResult.CONTINUE;
     }

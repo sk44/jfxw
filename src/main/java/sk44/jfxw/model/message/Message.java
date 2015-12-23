@@ -49,6 +49,10 @@ public class Message {
         Subject.INSTANCE.notifyObservers(level.formatMessage(message, minLevel));
     }
 
+    public static void trace(String message) {
+        output(message, MessageLevel.TRACE);
+    }
+
     public static void debug(String message) {
         output(message, MessageLevel.DEBUG);
     }

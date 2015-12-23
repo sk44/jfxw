@@ -25,14 +25,14 @@ public class DeleteDirectoryVisitor extends SimpleFileVisitor<Path> {
             throw exc;
         }
         Files.delete(dir);
-        Message.info(dir.toString() + " deleted.");
+        Message.debug(dir.toString() + " deleted.");
         return FileVisitResult.CONTINUE;
     }
 
     @Override
     public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
         Files.delete(file);
-        Message.info(file.toString() + " deleted.");
+        Message.debug(file.toString() + " deleted.");
         return FileVisitResult.CONTINUE;
     }
 

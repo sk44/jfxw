@@ -174,6 +174,7 @@ public class Filer {
                     Message.error(ex);
                     return;
                 }
+                Message.info("copied: " + entry.toString() + "\n\tto: " + toDir.toString());
                 continue;
             }
             if (otherFiler.copyFrom(entry) == false) {
@@ -185,7 +186,6 @@ public class Filer {
     }
 
     public void move(List<Path> entries, OverwriteFileConfirmer confirmer) {
-        // TODO 移動したあと空のディレクトリを消す
         for (Path entry : entries) {
             if (Files.isDirectory(entry)) {
                 Path toDir = otherFiler.resolve(entry);
@@ -193,42 +193,20 @@ public class Filer {
                     PathHelper.createDirectoryIfNotExists(toDir);
                     Files.walkFileTree(entry, new MoveDirectoryVisitor(entry,
                         toDir, confirmer));
+                    Files.walkFileTree(entry, new DeleteDirectoryVisitor());
                 } catch (IOException ex) {
                     Message.error(ex);
                     return;
                 }
+                Message.info("moved: " + entry.toString() + "\n\tto: " + toDir.toString());
                 continue;
             }
-            Message.debug("move target: " + entry.toString());
             if (otherFiler.moveFrom(entry) == false) {
                 break;
             }
         }
-
         reload();
-
         otherFiler.reload();
-    }
-
-    private boolean moveFrom(Path sourcePath) {
-        Path newPath = resolve(sourcePath);
-        if (Files.exists(newPath)) {
-            Message.debug("path " + newPath.toString() + " is already exists.");
-            return true;
-        }
-        if (Files.exists(newPath)) {
-            // TODO confirm
-            Message.info("destination path " + newPath.toString() + " is already exists.");
-            return true;
-        }
-        Message.info("move:\n\t" + sourcePath.toString() + "\n\tto\n\t" + newPath.toString());
-        try {
-            Files.move(sourcePath, newPath);
-            return true;
-        } catch (IOException ex) {
-            Message.error(ex);
-            return false;
-        }
     }
 
     public void delete(List<Path> entries) {
@@ -241,6 +219,7 @@ public class Filer {
                     Message.error(ex);
                     return;
                 }
+                Message.info("deleted: " + entry.toString());
                 continue;
             }
             try {
@@ -260,14 +239,35 @@ public class Filer {
             Message.debug("path " + newPath.toString() + " is already exists.");
             return true;
         }
-        Message.info("copy " + sourcePath.toString() + " to " + newPath.toString());
         try {
             Files.copy(sourcePath, newPath);
+            Message.info("copied: " + sourcePath.toString() + "\n\tto: " + newPath.toString());
         } catch (IOException ex) {
             Message.error(ex);
             return false;
         }
         return true;
+    }
+
+    private boolean moveFrom(Path sourcePath) {
+        Path newPath = resolve(sourcePath);
+        if (Files.exists(newPath)) {
+            Message.debug("path " + newPath.toString() + " is already exists.");
+            return true;
+        }
+        if (Files.exists(newPath)) {
+            // TODO confirm
+            Message.info("destination path " + newPath.toString() + " is already exists.");
+            return true;
+        }
+        try {
+            Files.move(sourcePath, newPath);
+            Message.info("moved: " + sourcePath.toString() + "\n\tto: " + newPath.toString());
+            return true;
+        } catch (IOException ex) {
+            Message.error(ex);
+            return false;
+        }
     }
 
     private Path resolve(Path sourcePath) {
