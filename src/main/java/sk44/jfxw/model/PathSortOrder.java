@@ -8,19 +8,19 @@ public enum PathSortOrder {
 
     ASC {
 
-            @Override
-            public int order(int order) {
-                return order;
-            }
-        },
+        @Override
+        int order(int order) {
+            return order;
+        }
+    },
     DESC {
 
-            @Override
-            public int order(int order) {
-                return order * -1;
-            }
-        };
+        @Override
+        int order(int order) {
+            return order * -1;
+        }
+    };
 
-    public abstract int order(int order);
+    abstract int order(int order);
 
 }

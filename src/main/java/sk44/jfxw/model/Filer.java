@@ -157,7 +157,7 @@ public class Filer {
         this.sortDirectories = sortDirectories;
         reload();
         Message.info("sorted by: " + this.sortType.getDisplayName()
-            + ", order: " + this.sortOrder + "sortDir: " + this.sortDirectories);
+            + ", order: " + this.sortOrder + ", sortDir: " + this.sortDirectories);
     }
 
     public void copy(List<Path> entries, OverwriteFileConfirmer confirmer) {

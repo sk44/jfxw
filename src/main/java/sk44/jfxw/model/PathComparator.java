@@ -26,7 +26,7 @@ public class PathComparator implements Comparator<Path> {
 
     @Override
     public int compare(Path o1, Path o2) {
-        return sortOrder.order(sortType.compare(o1, o2, sortDirectories));
+        return sortType.compare(o1, o2, sortDirectories, sortOrder);
     }
 
 }
