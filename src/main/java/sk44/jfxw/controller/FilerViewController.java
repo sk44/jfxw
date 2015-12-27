@@ -30,6 +30,7 @@ import sk44.jfxw.model.Filer;
 import sk44.jfxw.model.ModelLocator;
 import sk44.jfxw.model.message.Message;
 import sk44.jfxw.view.ContentRow;
+import sk44.jfxw.view.CurrentPathInfoBox;
 import sk44.jfxw.view.Fxml;
 import sk44.jfxw.view.ModalWindow;
 import sk44.jfxw.view.Nodes;
@@ -79,6 +80,7 @@ public class FilerViewController implements Initializable {
     private ModalWindow<TextFieldWindowController> createDirWindow;
     private SearchTextField searchTextField;
     private String searchText;
+    private CurrentPathInfoBox currentPathInfoBox;
     @Getter
     private Filer filer;
     @Setter
@@ -358,6 +360,8 @@ public class FilerViewController implements Initializable {
         searchTextField = new SearchTextField(rootPane, () -> {
             flowPane.requestFocus();
         });
+        currentPathInfoBox = new CurrentPathInfoBox();
+        currentPathInfoBox.addTo(rootPane);
     }
 
     private void addContent(ContentRow content) {
@@ -385,7 +389,6 @@ public class FilerViewController implements Initializable {
         clearContents();
     }
 
-    // TODO notification
     private void directoryChanged(Path fromDir, Path toDir) {
 
         if (fromDir != null && fromDir.toString().equals(toDir.toString())) {
@@ -410,6 +413,7 @@ public class FilerViewController implements Initializable {
         }
         // TODO バインド
         currentPathLabel.setText(toDir.toString());
+        currentPathInfoBox.update(toDir);
         updateCursor();
     }
 

@@ -51,11 +51,16 @@ public class ContentRow extends FlowPane {
         }
         try {
             long size = Files.size(path);
-            return NumberFormat.getNumberInstance().format(size);
+            return formatFileSize(size);
         } catch (IOException ex) {
             Message.error(ex);
             return null;
         }
+    }
+
+    // TODO ここにあるべきか
+    public static String formatFileSize(long size) {
+        return NumberFormat.getNumberInstance().format(size);
     }
 
     public static ContentRow create(Path path, ReadOnlyDoubleProperty widthProperty, boolean odd) {
