@@ -274,9 +274,20 @@ public class FilerViewController implements Initializable {
     private void move() {
         // TODO 移動後に一番上にスクロールしてしまう対策
         List<ContentRow> markedRows = collectMarkedRows();
-//        Map<Path, ContentRow> rowMap = markedRows.stream()
-//            .collect(Collectors.toMap(ContentRow::getPath, row -> row));
-        filer.move(markedRows.stream().map(ContentRow::getPath).collect(Collectors.toList()), this::showConfirmDialog);
+        Map<Path, ContentRow> rowMap = markedRows.stream()
+            .collect(Collectors.toMap(ContentRow::getPath, row -> row));
+        filer.move(markedRows.stream().map(ContentRow::getPath).collect(Collectors.toList()),
+            this::showConfirmDialog,
+            movedPath -> {
+                // TODO
+                ContentRow moved = rowMap.get(movedPath);
+                contents.remove(moved);
+            });
+        // 要素数が減った結果インデックスが超過してしまう場合
+        if (index > contents.size() - 1) {
+            index = contents.size() - 1;
+        }
+
         updateCursor();
     }
 

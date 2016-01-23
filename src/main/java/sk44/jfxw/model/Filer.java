@@ -19,7 +19,6 @@ import java.util.stream.StreamSupport;
 import lombok.Getter;
 import lombok.Setter;
 import sk44.jfxw.model.fs.DeleteDirectoryVisitor;
-import sk44.jfxw.model.fs.MoveDirectoryVisitor;
 import sk44.jfxw.model.fs.OverwriteFileConfirmer;
 import sk44.jfxw.model.fs.PathHelper;
 import sk44.jfxw.model.message.Message;
@@ -164,35 +163,24 @@ public class Filer {
 
         entries.stream().forEach((entry) -> {
             // TODO バックグラウンド実行を検討
-            otherFiler.copyFrom(entry, confirmer);
+            Path newPath = otherFiler.resolve(entry);
+            PathHelper.copyPath(entry, newPath, confirmer);
             postCopy.accept(entry);
         });
+        // TODO リロードやめる
 //        reload();
         otherFiler.reload();
     }
 
-    public void move(List<Path> entries, OverwriteFileConfirmer confirmer) {
-        for (Path entry : entries) {
+    public void move(List<Path> entries, OverwriteFileConfirmer confirmer, Consumer<Path> postMove) {
+        entries.stream().forEach((entry) -> {
             // TODO 長いので別クラスへ処理を移動
-            if (Files.isDirectory(entry)) {
-                Path toDir = otherFiler.resolve(entry);
-                try {
-                    PathHelper.createDirectoryIfNotExists(toDir);
-                    Files.walkFileTree(entry, new MoveDirectoryVisitor(entry,
-                        toDir, confirmer));
-                    Files.walkFileTree(entry, new DeleteDirectoryVisitor());
-                } catch (IOException ex) {
-                    Message.error(ex);
-                    return;
-                }
-                Message.info("moved: " + entry.toString() + "\n\tto: " + toDir.toString());
-                continue;
-            }
-            if (otherFiler.moveFrom(entry) == false) {
-                break;
-            }
-        }
-        reload();
+            Path newPath = otherFiler.resolve(entry);
+            PathHelper.movePath(entry, newPath, confirmer);
+            postMove.accept(entry);
+        });
+        // TODO リロードやめる
+//        reload();
         otherFiler.reload();
     }
 
@@ -218,28 +206,6 @@ public class Filer {
             }
         }
         reload();
-    }
-
-    private void copyFrom(Path sourcePath, OverwriteFileConfirmer confirmer) {
-        Path newPath = resolve(sourcePath);
-        PathHelper.copyPath(sourcePath, newPath, confirmer);
-    }
-
-    private boolean moveFrom(Path sourcePath) {
-        Path newPath = resolve(sourcePath);
-        if (Files.exists(newPath)) {
-            // TODO confirm
-            Message.warn("destination path " + newPath.toString() + " is already exists.");
-            return true;
-        }
-        try {
-            Files.move(sourcePath, newPath);
-            Message.info("moved: " + sourcePath.toString() + "\n\tto: " + newPath.toString());
-            return true;
-        } catch (IOException ex) {
-            Message.error(ex);
-            return false;
-        }
     }
 
     private Path resolve(Path sourcePath) {

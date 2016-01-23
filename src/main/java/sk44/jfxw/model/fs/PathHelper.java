@@ -48,7 +48,7 @@ public class PathHelper {
 
         if (Files.isDirectory(source)) {
             try {
-                PathHelper.createDirectoryIfNotExists(dest);
+                createDirectoryIfNotExists(dest);
                 Files.walkFileTree(source, new CopyDirectoryVisitor(source,
                     dest, confirmer));
             } catch (IOException ex) {
@@ -58,22 +58,56 @@ public class PathHelper {
             Message.info("copied: " + source.toString() + "\n\tto: " + dest.toString());
             return;
         }
-        PathHelper.copyFile(source, dest, confirmer);
+        copyFile(source, dest, confirmer);
     }
 
     public static void copyFile(@NonNull Path source, @NonNull Path dest, OverwriteFileConfirmer confirmer) {
         assertTrue(Files.isDirectory(source) == false);
         assertTrue(Files.isDirectory(dest) == false);
-        try {
-            // TODO リネームしてコピーのサポート
-            if (Files.exists(dest) == false
-                || (confirmer != null && confirmer.confirm(dest.toString() + " is already exists. overwrite this?"))) {
+        if (Files.exists(dest) == false
+            || (confirmer != null && confirmer.confirm(dest.toString() + " is already exists. overwrite this?"))) {
+            try {
+                // TODO リネームしてコピーのサポート
                 Files.copy(source, dest, StandardCopyOption.COPY_ATTRIBUTES, StandardCopyOption.REPLACE_EXISTING);
                 Message.info("copied: " + source.toString() + "\n\tto: " + dest.toString());
+            } catch (IOException ex) {
+                Message.error(ex);
+                throw new UncheckedIOException(ex);
             }
-        } catch (IOException ex) {
-            Message.error(ex);
-            throw new UncheckedIOException(ex);
         }
+    }
+
+    public static void movePath(@NonNull Path source, @NonNull Path dest, OverwriteFileConfirmer confirmer) {
+
+        if (Files.isDirectory(source)) {
+            try {
+                createDirectoryIfNotExists(dest);
+                Files.walkFileTree(source, new MoveDirectoryVisitor(source,
+                    dest, confirmer));
+                Files.walkFileTree(source, new DeleteDirectoryVisitor());
+            } catch (IOException ex) {
+                Message.error(ex);
+                throw new UncheckedIOException(ex);
+            }
+            Message.info("moved: " + source.toString() + "\n\tto: " + dest.toString());
+            return;
+        }
+        moveFile(source, dest, confirmer);
+    }
+
+    public static void moveFile(@NonNull Path source, @NonNull Path dest, OverwriteFileConfirmer confirmer) {
+        assertTrue(Files.isDirectory(source) == false);
+        assertTrue(Files.isDirectory(dest) == false);
+        if (Files.exists(dest) == false
+            || (confirmer != null && confirmer.confirm(dest.toString() + " is already exists. overwrite this?"))) {
+            try {
+                Files.move(source, dest);
+                Message.info("moved: " + source.toString() + "\n\tto: " + dest.toString());
+            } catch (IOException ex) {
+                Message.error(ex);
+                throw new UncheckedIOException(ex);
+            }
+        }
+
     }
 }
