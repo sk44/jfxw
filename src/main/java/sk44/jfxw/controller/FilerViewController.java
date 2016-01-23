@@ -5,6 +5,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.function.Consumer;
@@ -242,7 +243,14 @@ public class FilerViewController implements Initializable {
     }
 
     private void copy() {
-        filer.copy(collectMarkedPathes(), this::showConfirmDialog);
+        List<ContentRow> markedRows = collectMarkedRows();
+        Map<Path, ContentRow> rowMap = markedRows.stream()
+            .collect(Collectors.toMap(ContentRow::getPath, row -> row));
+        filer.copy(markedRows.stream().map(ContentRow::getPath).collect(Collectors.toList()),
+            this::showConfirmDialog,
+            copiedPath -> {
+                rowMap.get(copiedPath).toggleMark();
+            });
         updateCursor();
     }
 
@@ -264,10 +272,21 @@ public class FilerViewController implements Initializable {
     }
 
     private void move() {
-        filer.move(collectMarkedPathes(), this::showConfirmDialog);
+        // TODO 移動後に一番上にスクロールしてしまう対策
+        List<ContentRow> markedRows = collectMarkedRows();
+//        Map<Path, ContentRow> rowMap = markedRows.stream()
+//            .collect(Collectors.toMap(ContentRow::getPath, row -> row));
+        filer.move(markedRows.stream().map(ContentRow::getPath).collect(Collectors.toList()), this::showConfirmDialog);
         updateCursor();
     }
 
+    private List<ContentRow> collectMarkedRows() {
+        return contents.stream()
+            .filter(ContentRow::isMarked)
+            .collect(Collectors.toList());
+    }
+
+    @Deprecated
     private List<Path> collectMarkedPathes() {
         return contents
             .stream()

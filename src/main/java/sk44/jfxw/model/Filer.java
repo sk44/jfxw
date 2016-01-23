@@ -13,11 +13,11 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 import lombok.Getter;
 import lombok.Setter;
-import sk44.jfxw.model.fs.CopyDirectoryVisitor;
 import sk44.jfxw.model.fs.DeleteDirectoryVisitor;
 import sk44.jfxw.model.fs.MoveDirectoryVisitor;
 import sk44.jfxw.model.fs.OverwriteFileConfirmer;
@@ -160,33 +160,20 @@ public class Filer {
             + ", order: " + this.sortOrder + ", sortDir: " + this.sortDirectories);
     }
 
-    public void copy(List<Path> entries, OverwriteFileConfirmer confirmer) {
+    public void copy(List<Path> entries, OverwriteFileConfirmer confirmer, Consumer<Path> postCopy) {
 
-        for (Path entry : entries) {
+        entries.stream().forEach((entry) -> {
             // TODO バックグラウンド実行を検討
-            if (Files.isDirectory(entry)) {
-                Path toDir = otherFiler.resolve(entry);
-                try {
-                    PathHelper.createDirectoryIfNotExists(toDir);
-                    Files.walkFileTree(entry, new CopyDirectoryVisitor(entry,
-                        toDir, confirmer));
-                } catch (IOException ex) {
-                    Message.error(ex);
-                    return;
-                }
-                Message.info("copied: " + entry.toString() + "\n\tto: " + toDir.toString());
-                continue;
-            }
-            if (otherFiler.copyFrom(entry) == false) {
-                return;
-            }
-        }
-        reload();
+            otherFiler.copyFrom(entry, confirmer);
+            postCopy.accept(entry);
+        });
+//        reload();
         otherFiler.reload();
     }
 
     public void move(List<Path> entries, OverwriteFileConfirmer confirmer) {
         for (Path entry : entries) {
+            // TODO 長いので別クラスへ処理を移動
             if (Files.isDirectory(entry)) {
                 Path toDir = otherFiler.resolve(entry);
                 try {
@@ -233,31 +220,16 @@ public class Filer {
         reload();
     }
 
-    private boolean copyFrom(Path sourcePath) {
+    private void copyFrom(Path sourcePath, OverwriteFileConfirmer confirmer) {
         Path newPath = resolve(sourcePath);
-        if (Files.exists(newPath)) {
-            Message.debug("path " + newPath.toString() + " is already exists.");
-            return true;
-        }
-        try {
-            Files.copy(sourcePath, newPath);
-            Message.info("copied: " + sourcePath.toString() + "\n\tto: " + newPath.toString());
-        } catch (IOException ex) {
-            Message.error(ex);
-            return false;
-        }
-        return true;
+        PathHelper.copyPath(sourcePath, newPath, confirmer);
     }
 
     private boolean moveFrom(Path sourcePath) {
         Path newPath = resolve(sourcePath);
         if (Files.exists(newPath)) {
-            Message.debug("path " + newPath.toString() + " is already exists.");
-            return true;
-        }
-        if (Files.exists(newPath)) {
             // TODO confirm
-            Message.info("destination path " + newPath.toString() + " is already exists.");
+            Message.warn("destination path " + newPath.toString() + " is already exists.");
             return true;
         }
         try {
