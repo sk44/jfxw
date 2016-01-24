@@ -7,6 +7,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.ResourceBundle;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -272,22 +273,27 @@ public class FilerViewController implements Initializable {
     }
 
     private void move() {
-        // TODO 移動後に一番上にスクロールしてしまう対策
+        ContentRow currentContent = getCurrentContent();
         List<ContentRow> markedRows = collectMarkedRows();
         Map<Path, ContentRow> rowMap = markedRows.stream()
             .collect(Collectors.toMap(ContentRow::getPath, row -> row));
         filer.move(markedRows.stream().map(ContentRow::getPath).collect(Collectors.toList()),
             this::showConfirmDialog,
             movedPath -> {
-                // TODO
+                if (Files.exists(movedPath)) {
+                    return;
+                }
                 ContentRow moved = rowMap.get(movedPath);
                 contents.remove(moved);
             });
         // 要素数が減った結果インデックスが超過してしまう場合
+        // TODO 移動後にカーソルがだぶる
+//        if (Files.exists(currentContent.getPath())) {
+//            updateIndex(indexOfPath(currentContent.getPath()).getAsInt());
+//        } else
         if (index > contents.size() - 1) {
-            index = contents.size() - 1;
+            updateIndex(contents.size() - 1);
         }
-
         updateCursor();
     }
 
@@ -426,18 +432,8 @@ public class FilerViewController implements Initializable {
             updateIndex(this.index - 1);
         } else if (historiesCache.contains(toDir)) {
             Path focused = historiesCache.lastFocusedIn(toDir);
-            boolean found = false;
-            for (int i = 0; i < contents.size(); i++) {
-                ContentRow content = contents.get(i);
-                if (content.getPath().equals(focused)) {
-                    updateIndex(i);
-                    found = true;
-                    break;
-                }
-            }
-            if (found == false) {
-                updateIndex(0);
-            }
+            int focusIndex = indexOfPath(focused).orElse(0);
+            updateIndex(focusIndex);
         } else {
             updateIndex(0);
         }
@@ -445,6 +441,16 @@ public class FilerViewController implements Initializable {
         currentPathLabel.setText(toDir.toString());
         currentPathInfoBox.update(toDir);
         updateCursor();
+    }
+
+    private OptionalInt indexOfPath(Path path) {
+        for (int i = 0; i < contents.size(); i++) {
+            ContentRow content = contents.get(i);
+            if (content.getPath().equals(path)) {
+                return OptionalInt.of(i);
+            }
+        }
+        return OptionalInt.empty();
     }
 
     void focus() {
