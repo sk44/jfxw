@@ -50,17 +50,21 @@ public class FilerViewController implements Initializable {
     private static final String CLASS_NAME_PREVIEW_FILER = "previewFiler";
     private static final String CLASS_NAME_CURRENT_FILER = "currentFiler";
 
-    private static void ensureVisible(ScrollPane scrollPane, ContentRow row) {
+    private static void ensureVisible(ScrollPane scrollPane, ContentRow row, int index) {
 
         // http://stackoverflow.com/questions/15840513/javafx-scrollpane-programmatically-moving-the-viewport-centering-content
-        // 全体の高さ
-        double contentHeight = scrollPane.getContent().getBoundsInLocal().getHeight();
-        // row の位置
-        double rowY = (row.getBoundsInParent().getMaxY() + row.getBoundsInParent().getMinY()) / 2.0;
-        // 表示範囲の高さ
-        double visibleHeight = scrollPane.getViewportBounds().getHeight();
-        // TODO 中央位置に合わせてスクロールしてしまうので、上か下に
-        scrollPane.setVvalue(scrollPane.getVmax() * ((rowY - 0.5 * visibleHeight) / (contentHeight - visibleHeight)));
+        Platform.runLater(() -> {
+            // 全体の高さ
+            double contentHeight = scrollPane.getContent().getBoundsInLocal().getHeight();
+            // row の位置
+            double rowY = (row.getBoundsInParent().getMaxY() + row.getBoundsInParent().getMinY()) / 2.0;
+//            double rowY = index * 15 + 7.5;
+            // 表示範囲の高さ
+            double visibleHeight = scrollPane.getViewportBounds().getHeight();
+            // TODO 中央位置に合わせてスクロールしてしまうので、上か下に
+            scrollPane.setVvalue(scrollPane.getVmax() * ((rowY - 0.5 * visibleHeight) / (contentHeight - visibleHeight)));
+            Message.info("contentHeignt: " + contentHeight + ", rowY: " + rowY + ", visibleHeight: " + visibleHeight + ", vvalue:" + scrollPane.getVvalue());
+        });
     }
 
     @FXML
@@ -292,6 +296,7 @@ public class FilerViewController implements Initializable {
 //            updateIndex(indexOfPath(currentContent.getPath()).getAsInt());
 //        } else
         if (index > contents.size() - 1) {
+            clearCursor();
             updateIndex(contents.size() - 1);
         }
         updateCursor();
@@ -319,7 +324,7 @@ public class FilerViewController implements Initializable {
     private void updateCursor() {
         ContentRow currentContent = getCurrentContent();
         currentContent.updateSelected(true);
-        ensureVisible(scrollPane, currentContent);
+        ensureVisible(scrollPane, currentContent, this.index);
         if (changeCursorListener != null && currentContent.isParent() == false) {
             changeCursorListener.accept(currentContent.getPath());
         }
@@ -429,7 +434,8 @@ public class FilerViewController implements Initializable {
 
         if (fromDir != null && fromDir.toString().equals(toDir.toString())) {
             // リロード時に上に戻らないように
-            updateIndex(this.index - 1);
+            // TODO ひとつずれる. 不要？
+//            updateIndex(this.index - 1);
         } else if (historiesCache.contains(toDir)) {
             Path focused = historiesCache.lastFocusedIn(toDir);
             int focusIndex = indexOfPath(focused).orElse(0);
@@ -455,10 +461,12 @@ public class FilerViewController implements Initializable {
 
     void focus() {
         // runLater でないと効かない
-        Platform.runLater(flowPane::requestFocus);
-//        flowPane.requestFocus();
-        Nodes.addStyleClassTo(rootPane, CLASS_NAME_CURRENT_FILER);
-        updateCursor();
+//        Platform.runLater(flowPane::requestFocus);
+        Platform.runLater(() -> {
+            flowPane.requestFocus();
+            Nodes.addStyleClassTo(rootPane, CLASS_NAME_CURRENT_FILER);
+            updateCursor();
+        });
     }
 
     void onLostFocus() {
