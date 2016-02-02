@@ -63,7 +63,6 @@ public class FilerViewController implements Initializable {
             double visibleHeight = scrollPane.getViewportBounds().getHeight();
             // TODO 中央位置に合わせてスクロールしてしまうので、上か下に
             scrollPane.setVvalue(scrollPane.getVmax() * ((rowY - 0.5 * visibleHeight) / (contentHeight - visibleHeight)));
-            Message.info("contentHeignt: " + contentHeight + ", rowY: " + rowY + ", visibleHeight: " + visibleHeight + ", vvalue:" + scrollPane.getVvalue());
         });
     }
 
@@ -290,11 +289,6 @@ public class FilerViewController implements Initializable {
                 ContentRow moved = rowMap.get(movedPath);
                 contents.remove(moved);
             });
-        // 要素数が減った結果インデックスが超過してしまう場合
-        // TODO 移動後にカーソルがだぶる
-//        if (Files.exists(currentContent.getPath())) {
-//            updateIndex(indexOfPath(currentContent.getPath()).getAsInt());
-//        } else
         if (index > contents.size() - 1) {
             clearCursor();
             updateIndex(contents.size() - 1);

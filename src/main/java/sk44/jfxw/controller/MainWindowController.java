@@ -93,7 +93,6 @@ public class MainWindowController implements Initializable {
 
         ModelLocator.INSTANCE.getLeftFiler().changeDirectoryToInitPath();
         ModelLocator.INSTANCE.getRightFiler().changeDirectoryToInitPath();
-        // TODO 初回表示時、スクロールバーが動かない
         leftFilerViewController.focus();
         messageArea.appendText("Ready.");
     }

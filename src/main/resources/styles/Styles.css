@@ -9,11 +9,6 @@
     -fx-background-color: #000000;
 }
 
-.test {
-    /*-fx-background-color: #999999;*/
-    /*-fx-background-image: url("https://www.google.com/images/srpr/logo3w.png");*/
-}
-
 .mainWindow * {
     -fx-background-color: transparent;
     -fx-text-fill: #cccccc;
