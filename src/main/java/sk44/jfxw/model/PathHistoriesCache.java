@@ -1,4 +1,4 @@
-package sk44.jfxw.controller;
+package sk44.jfxw.model;
 
 import java.nio.file.Path;
 import java.util.LinkedHashMap;

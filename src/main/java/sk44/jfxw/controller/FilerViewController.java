@@ -45,8 +45,6 @@ import sk44.jfxw.view.SearchTextField;
  */
 public class FilerViewController implements Initializable {
 
-    private static final int HISTORY_BUFFER_SIZE = 24;
-
     private static final String CLASS_NAME_PREVIEW_FILER = "previewFiler";
     private static final String CLASS_NAME_CURRENT_FILER = "currentFiler";
 
@@ -78,7 +76,6 @@ public class FilerViewController implements Initializable {
 
     private int index = 0;
     private final ObservableList<ContentRow> contents = FXCollections.observableArrayList();
-    private final PathHistoriesCache historiesCache = new PathHistoriesCache(HISTORY_BUFFER_SIZE);
 
     private ModalWindow<SortWindowController> sortWindow;
     private ModalWindow<TextFieldWindowController> renameWindow;
@@ -112,6 +109,7 @@ public class FilerViewController implements Initializable {
         } else {
             this.index = index;
         }
+        this.filer.addToCache(getCurrentContent().getPath());
     }
 
     @FXML
@@ -276,18 +274,18 @@ public class FilerViewController implements Initializable {
     }
 
     private void move() {
-        ContentRow currentContent = getCurrentContent();
+//        ContentRow currentContent = getCurrentContent();
         List<ContentRow> markedRows = collectMarkedRows();
-        Map<Path, ContentRow> rowMap = markedRows.stream()
-            .collect(Collectors.toMap(ContentRow::getPath, row -> row));
+//        Map<Path, ContentRow> rowMap = markedRows.stream()
+//            .collect(Collectors.toMap(ContentRow::getPath, row -> row));
         filer.move(markedRows.stream().map(ContentRow::getPath).collect(Collectors.toList()),
             this::showConfirmDialog,
             movedPath -> {
-                if (Files.exists(movedPath)) {
-                    return;
-                }
-                ContentRow moved = rowMap.get(movedPath);
-                contents.remove(moved);
+//                if (Files.exists(movedPath)) {
+//                    return;
+//                }
+//                ContentRow moved = rowMap.get(movedPath);
+//                contents.remove(moved);
             });
         if (index > contents.size() - 1) {
             clearCursor();
@@ -420,23 +418,15 @@ public class FilerViewController implements Initializable {
         if (contents.isEmpty()) {
             return;
         }
-        historiesCache.put(previousPath, getCurrentContent().getPath());
         clearContents();
     }
 
     private void directoryChanged(Path fromDir, Path toDir) {
 
-        if (fromDir != null && fromDir.toString().equals(toDir.toString())) {
-            // リロード時に上に戻らないように
-            // TODO ひとつずれる. 不要？
-//            updateIndex(this.index - 1);
-        } else if (historiesCache.contains(toDir)) {
-            Path focused = historiesCache.lastFocusedIn(toDir);
-            int focusIndex = indexOfPath(focused).orElse(0);
-            updateIndex(focusIndex);
-        } else {
-            updateIndex(0);
-        }
+        int focusIndex = this.filer.lastFocusedPathIn(toDir)
+            .map(focused -> indexOfPath(focused).orElse(0))
+            .orElse(0);
+        updateIndex(focusIndex);
         // TODO バインド
         currentPathLabel.setText(toDir.toString());
         currentPathInfoBox.update(toDir);
@@ -455,7 +445,6 @@ public class FilerViewController implements Initializable {
 
     void focus() {
         // runLater でないと効かない
-//        Platform.runLater(flowPane::requestFocus);
         Platform.runLater(() -> {
             flowPane.requestFocus();
             Nodes.addStyleClassTo(rootPane, CLASS_NAME_CURRENT_FILER);

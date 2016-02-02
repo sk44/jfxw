@@ -47,6 +47,8 @@ public class Filer {
         void postLoad(Path entry, boolean parent, int index);
     }
 
+    private static final int HISTORY_BUFFER_SIZE = 24;
+
     private static Path normalizePath(Path path) {
         return path.toAbsolutePath().normalize();
     }
@@ -71,6 +73,8 @@ public class Filer {
     private final List<PreChangeDirectoryObserver> preChangeDirectoryObservers = new ArrayList<>();
     private final List<PostChangeDirectoryObserver> postChangeDirectoryObservers = new ArrayList<>();
     private final List<PathEntryLoadedObserver> postEntryLoadedObservers = new ArrayList<>();
+
+    private final PathHistoriesCache historiesCache = new PathHistoriesCache(HISTORY_BUFFER_SIZE);
 
     @Getter
     private PathSortType sortType;
@@ -113,9 +117,13 @@ public class Filer {
         }
     }
 
+    public void addToCache(Path currentPath) {
+        historiesCache.put(currentDir, currentPath);
+    }
+
     public void changeDirectoryTo(Path dir) {
         if (Files.isDirectory(dir) == false) {
-            // TODO assert?
+            Message.warn(dir + " is not a directory. change directory cancelled.");
             return;
         }
         Path fromDir = this.currentDir;
@@ -123,7 +131,13 @@ public class Filer {
         this.currentDir = normalizePath(dir);
         collectEntries();
         this.postChangeDirectoryObservers.forEach(observer -> observer.directoryChanged(fromDir, this.currentDir));
-        Message.debug("moved to: " + dir.toString());
+    }
+
+    public Optional<Path> lastFocusedPathIn(Path dir) {
+        if (historiesCache.contains(dir)) {
+            return Optional.of(historiesCache.lastFocusedIn(dir));
+        }
+        return Optional.empty();
     }
 
     public void createDirectory(String newDirectoryName) {
@@ -174,13 +188,13 @@ public class Filer {
 
     public void move(List<Path> entries, OverwriteFileConfirmer confirmer, Consumer<Path> postMove) {
         entries.stream().forEach((entry) -> {
-            // TODO 長いので別クラスへ処理を移動
-            Path newPath = otherFiler.resolve(entry);
-            PathHelper.movePath(entry, newPath, confirmer);
-            postMove.accept(entry);
+            Path movedPath = otherFiler.resolve(entry);
+            PathHelper.movePath(entry, movedPath, confirmer);
+//            postMove.accept(entry);
+            // 移動後に反対側の窓でフォーカスさせる
+            otherFiler.addToCache(movedPath);
         });
-        // TODO リロードやめる
-//        reload();
+        reload();
         otherFiler.reload();
     }
 
