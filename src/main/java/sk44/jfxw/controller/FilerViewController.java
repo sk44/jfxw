@@ -7,14 +7,10 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.OptionalInt;
 import java.util.ResourceBundle;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javafx.application.Platform;
-import javafx.beans.binding.Bindings;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
@@ -33,6 +29,7 @@ import sk44.jfxw.model.ModelLocator;
 import sk44.jfxw.model.message.Message;
 import sk44.jfxw.view.ContentRow;
 import sk44.jfxw.view.CurrentPathInfoBox;
+import sk44.jfxw.view.FilerContents;
 import sk44.jfxw.view.Fxml;
 import sk44.jfxw.view.ModalWindow;
 import sk44.jfxw.view.Nodes;
@@ -48,7 +45,7 @@ public class FilerViewController implements Initializable {
     private static final String CLASS_NAME_PREVIEW_FILER = "previewFiler";
     private static final String CLASS_NAME_CURRENT_FILER = "currentFiler";
 
-    private static void ensureVisible(ScrollPane scrollPane, ContentRow row, int index) {
+    private static void ensureVisible(ScrollPane scrollPane, ContentRow row) {
 
         // http://stackoverflow.com/questions/15840513/javafx-scrollpane-programmatically-moving-the-viewport-centering-content
         Platform.runLater(() -> {
@@ -74,8 +71,7 @@ public class FilerViewController implements Initializable {
     @FXML
     private Label currentPathLabel;
 
-    private int index = 0;
-    private final ObservableList<ContentRow> contents = FXCollections.observableArrayList();
+    private final FilerContents contents = new FilerContents();
 
     private ModalWindow<SortWindowController> sortWindow;
     private ModalWindow<TextFieldWindowController> renameWindow;
@@ -94,24 +90,6 @@ public class FilerViewController implements Initializable {
     @Setter
     private Consumer<Path> previewImageHandler;
 
-    private boolean isBottom() {
-        return index + 1 == contents.size();
-    }
-
-    private void updateIndex(int index) {
-        if (index < 0) {
-            this.index = 0;
-            return;
-        }
-        int size = this.contents.size();
-        if (size <= index) {
-            this.index = size - 1;
-        } else {
-            this.index = index;
-        }
-        this.filer.addToCache(getCurrentContent().getPath());
-    }
-
     @FXML
     protected void handleCommandKeyPressed(KeyEvent event) {
         switch (event.getCode()) {
@@ -125,11 +103,11 @@ public class FilerViewController implements Initializable {
                 execute();
                 break;
             case G:
-                clearCursor();
+                contents.clearCursor();
                 if (event.isShiftDown()) {
-                    updateIndex(contents.size() - 1);
+                    contents.updateIndexToBottom();
                 } else {
-                    updateIndex(0);
+                    contents.updateIndexToTop();
                 }
                 updateCursor();
                 break;
@@ -147,7 +125,7 @@ public class FilerViewController implements Initializable {
                 previous();
                 break;
             case L:
-                ContentRow currentContent = getCurrentContent();
+                ContentRow currentContent = contents.getCurrentContent();
                 if (currentContent.isDirectory()) {
                     this.filer.changeDirectoryTo(currentContent.getPath());
                 }
@@ -199,7 +177,7 @@ public class FilerViewController implements Initializable {
                 // Space のデフォルト動作？で勝手にスクロールしてしまうので無効化
                 // TODO 全体的にやるべき？
                 event.consume();
-                getCurrentContent().toggleMark();
+                contents.getCurrentContent().toggleMark();
                 next();
                 break;
             case SLASH:
@@ -219,7 +197,7 @@ public class FilerViewController implements Initializable {
     }
 
     private void execute() {
-        Path pathOnCursor = getCurrentContent().getPath();
+        Path pathOnCursor = contents.getCurrentContentPath();
         if (executionHandler != null) {
             if (executionHandler.tryExecute(pathOnCursor) == false) {
                 // TODO たらい回しにするかんじで
@@ -228,24 +206,17 @@ public class FilerViewController implements Initializable {
     }
 
     private void next() {
-        if (isBottom()) {
-            return;
-        }
-        clearCursor();
-        updateIndex(this.index + 1);
+        contents.updateIndexToDown();
         updateCursor();
     }
 
     private void previous() {
-        if (index > 0) {
-            clearCursor();
-            updateIndex(this.index - 1);
-            updateCursor();
-        }
+        contents.updateIndexToUp();
+        updateCursor();
     }
 
     private void copy() {
-        List<ContentRow> markedRows = collectMarkedRows();
+        List<ContentRow> markedRows = contents.collectMarkedRows();
         Map<Path, ContentRow> rowMap = markedRows.stream()
             .collect(Collectors.toMap(ContentRow::getPath, row -> row));
         filer.copy(markedRows.stream().map(ContentRow::getPath).collect(Collectors.toList()),
@@ -268,14 +239,13 @@ public class FilerViewController implements Initializable {
         alert.showAndWait()
             .filter(response -> response == ButtonType.OK)
             .ifPresent(response -> {
-                filer.delete(collectMarkedPathes());
+                filer.delete(contents.collectMarkedPathes());
                 updateCursor();
             });
     }
 
     private void move() {
-//        ContentRow currentContent = getCurrentContent();
-        List<ContentRow> markedRows = collectMarkedRows();
+        List<ContentRow> markedRows = contents.collectMarkedRows();
 //        Map<Path, ContentRow> rowMap = markedRows.stream()
 //            .collect(Collectors.toMap(ContentRow::getPath, row -> row));
         filer.move(markedRows.stream().map(ContentRow::getPath).collect(Collectors.toList()),
@@ -287,36 +257,21 @@ public class FilerViewController implements Initializable {
 //                ContentRow moved = rowMap.get(movedPath);
 //                contents.remove(moved);
             });
-        if (index > contents.size() - 1) {
-            clearCursor();
-            updateIndex(contents.size() - 1);
-        }
+//        if (index > contents.size() - 1) {
+//            clearCursor();
+//            updateIndex(contents.size() - 1);
+//        }
         updateCursor();
     }
 
-    private List<ContentRow> collectMarkedRows() {
-        return contents.stream()
-            .filter(ContentRow::isMarked)
-            .collect(Collectors.toList());
-    }
-
-    @Deprecated
-    private List<Path> collectMarkedPathes() {
-        return contents
-            .stream()
-            .filter(content -> content.isMarked())
-            .map(content -> content.getPath())
-            .collect(Collectors.toList());
-    }
-
-    private void clearCursor() {
-        getCurrentContent().updateSelected(false);
+    private void onPathRemoved(Path removed) {
+        // TODO パスが消えた時の処理
     }
 
     private void updateCursor() {
-        ContentRow currentContent = getCurrentContent();
+        ContentRow currentContent = contents.getCurrentContent();
         currentContent.updateSelected(true);
-        ensureVisible(scrollPane, currentContent, this.index);
+        ensureVisible(scrollPane, currentContent);
         if (changeCursorListener != null && currentContent.isParent() == false) {
             changeCursorListener.accept(currentContent.getPath());
         }
@@ -334,10 +289,11 @@ public class FilerViewController implements Initializable {
     }
 
     private void openRenameWindow() {
-        if (getCurrentContent().isParent()) {
+        ContentRow currentContent = contents.getCurrentContent();
+        if (currentContent.isParent()) {
             return;
         }
-        Path target = getCurrentContent().getPath();
+        Path target = currentContent.getPath();
         renameWindow = new ModalWindow<>();
         renameWindow.show(Fxml.TEXT_FIELD_WINDOW, rootPane.getScene().getWindow(), (controller) -> {
             controller.updateContent("Rename", target.getFileName().toString());
@@ -379,17 +335,13 @@ public class FilerViewController implements Initializable {
         });
     }
 
-    private ContentRow getCurrentContent() {
-        return contents.get(index);
-    }
-
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         // bind しないと、ウィンドウ幅を変更したとき表示がズレる
 //        scrollPane.setFitToWidth(true);
         scrollPane.setFitToHeight(true);
         flowPane.prefWidthProperty().bind(scrollPane.widthProperty());
-        Bindings.bindContent(flowPane.getChildren(), contents);
+        contents.bindContentWith(flowPane.getChildren());
         searchTextField = new SearchTextField(rootPane, () -> {
             flowPane.requestFocus();
         });
@@ -397,50 +349,28 @@ public class FilerViewController implements Initializable {
         currentPathInfoBox.addTo(rootPane);
     }
 
-    private void addContent(ContentRow content) {
-        contents.add(content);
-//        flowPane.getChildren().add(content);
-    }
-
-    private void clearContents() {
-        contents.clear();
-//        flowPane.getChildren().clear();
-    }
-
     public void withFiler(Filer filer) {
         this.filer = filer;
         this.filer.addPreChangeDirectoryObserver(this::preChangeDirectory);
         this.filer.addPostChangeDirectoryObserver(this::directoryChanged);
         this.filer.addPostEntryLoadedObserver(this::postEntryLoaded);
+        this.contents.setFiler(filer);
     }
 
     private void preChangeDirectory(Path previousPath) {
-        if (contents.isEmpty()) {
-            return;
-        }
-        clearContents();
+        contents.clear();
     }
 
     private void directoryChanged(Path fromDir, Path toDir) {
 
         int focusIndex = this.filer.lastFocusedPathIn(toDir)
-            .map(focused -> indexOfPath(focused).orElse(0))
+            .map(focused -> contents.indexOfPath(focused).orElse(0))
             .orElse(0);
-        updateIndex(focusIndex);
+        contents.updateIndex(focusIndex);
         // TODO バインド
         currentPathLabel.setText(toDir.toString());
         currentPathInfoBox.update(toDir);
         updateCursor();
-    }
-
-    private OptionalInt indexOfPath(Path path) {
-        for (int i = 0; i < contents.size(); i++) {
-            ContentRow content = contents.get(i);
-            if (content.getPath().equals(path)) {
-                return OptionalInt.of(i);
-            }
-        }
-        return OptionalInt.empty();
     }
 
     void focus() {
@@ -459,54 +389,26 @@ public class FilerViewController implements Initializable {
     private void postEntryLoaded(Path entry, boolean parent, int index) {
         final boolean odd = index % 2 != 0;
         if (parent) {
-            addContent(ContentRow.forParent(entry, scrollPane.widthProperty(), odd));
+            contents.add(ContentRow.forParent(entry, scrollPane.widthProperty(), odd));
             return;
         }
-        addContent(ContentRow.create(entry, scrollPane.widthProperty(), odd));
+        contents.add(ContentRow.create(entry, scrollPane.widthProperty(), odd));
     }
 
     void searchNext() {
-
-        if (isBottom()) {
-            return;
-        }
-        Message.debug("search text: " + searchText);
-
-        for (int i = index + 1; i < contents.size(); i++) {
-            ContentRow content = contents.get(i);
-            if (content.isNameMatch(searchText)) {
-                Message.debug("found: " + content.getName());
-                clearCursor();
-                updateIndex(i);
-                updateCursor();
-                return;
-            }
-        }
-        Message.info("not found.");
+        contents.searchNext(searchText, () -> {
+            updateCursor();
+        });
     }
 
     private void searchPrevious() {
-        if (index == 0) {
-            return;
-        }
-        Message.debug("search text: " + searchText);
-
-        for (int i = index - 1; i >= 0; i--) {
-            ContentRow content = contents.get(i);
-            if (content.isNameMatch(searchText)) {
-                Message.debug("found: " + content.getName());
-                clearCursor();
-                updateIndex(i);
-                updateCursor();
-                return;
-            }
-        }
-        Message.info("not found.");
-
+        contents.searchPrevious(searchText, () -> {
+            updateCursor();
+        });
     }
 
     private void openByAssociated() {
-        Path onCursor = getCurrentContent().getPath();
+        Path onCursor = contents.getCurrentContentPath();
         ModelLocator.INSTANCE
             .getConfigurationStore()
             .getConfiguration()
@@ -522,7 +424,7 @@ public class FilerViewController implements Initializable {
     }
 
     private void yank() {
-        String path = getCurrentContent().getPath().toString();
+        String path = contents.getCurrentContentPath().toString();
         final Clipboard clipboard = Clipboard.getSystemClipboard();
         final ClipboardContent content = new ClipboardContent();
         content.putString(path);
@@ -534,30 +436,20 @@ public class FilerViewController implements Initializable {
         if (previewImageHandler == null) {
             return;
         }
-        currentImage().ifPresent(image -> {
+        contents.currentImage().ifPresent(image -> {
             previewImageHandler.accept(image);
             Nodes.addStyleClassTo(flowPane, CLASS_NAME_PREVIEW_FILER);
         });
     }
 
-    private Optional<Path> currentImage() {
-        Path path = getCurrentContent().getPath();
-        return Filer.extensionOf(path)
-            .filter(ext -> ext.equalsIgnoreCase("jpg")
-                || ext.equalsIgnoreCase("jpeg")
-                || ext.equalsIgnoreCase("png")
-                || ext.equalsIgnoreCase("gif"))
-            .map(ext -> path);
-    }
-
     public Optional<Path> nextImage() {
         next();
-        return currentImage();
+        return contents.currentImage();
     }
 
     public Optional<Path> previousImage() {
         previous();
-        return currentImage();
+        return contents.currentImage();
     }
 
     public void endPreviewImage() {
