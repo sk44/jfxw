@@ -351,9 +351,9 @@ public class FilerViewController implements Initializable {
 
     public void withFiler(Filer filer) {
         this.filer = filer;
-        this.filer.addPreChangeDirectoryObserver(this::preChangeDirectory);
-        this.filer.addPostChangeDirectoryObserver(this::directoryChanged);
-        this.filer.addPostEntryLoadedObserver(this::postEntryLoaded);
+        this.filer.addListenerToPreChangeDirectoryEvent(this::preChangeDirectory);
+        this.filer.addListenerToPostChangeDirectoryEvent(this::directoryChanged);
+        this.filer.addListenerToPostEntryLoadedEvent(this::postEntryLoaded);
         this.contents.setFiler(filer);
     }
 

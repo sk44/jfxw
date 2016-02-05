@@ -10,7 +10,6 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -30,19 +29,19 @@ import sk44.jfxw.model.message.Message;
 public class Filer {
 
     @FunctionalInterface
-    public interface PreChangeDirectoryObserver {
+    public interface PreChangeDirectoryListener {
 
         void changeDirectoryFrom(Path previousDir);
     }
 
     @FunctionalInterface
-    public interface PostChangeDirectoryObserver {
+    public interface PostChangeDirectoryListener {
 
         void directoryChanged(Path fromDir, Path toDir);
     }
 
     @FunctionalInterface
-    public interface PathEntryLoadedObserver {
+    public interface PathEntryLoadedListener {
 
         void postLoad(Path entry, boolean parent, int index);
     }
@@ -70,9 +69,9 @@ public class Filer {
         this.sortDirectories = sortDirectories;
     }
 
-    private final List<PreChangeDirectoryObserver> preChangeDirectoryObservers = new ArrayList<>();
-    private final List<PostChangeDirectoryObserver> postChangeDirectoryObservers = new ArrayList<>();
-    private final List<PathEntryLoadedObserver> postEntryLoadedObservers = new ArrayList<>();
+    private final EventSource<PreChangeDirectoryListener> preChangeDirectoryEvent = new EventSource<>();
+    private final EventSource<PostChangeDirectoryListener> postChangeDirectoryEvent = new EventSource<>();
+    private final EventSource<PathEntryLoadedListener> postEntryLoadedEvent = new EventSource<>();
 
     private final PathHistoriesCache historiesCache = new PathHistoriesCache(HISTORY_BUFFER_SIZE);
 
@@ -90,16 +89,16 @@ public class Filer {
     private Filer otherFiler;
 
     // TODO remove の仕組みが必要かなー
-    public void addPreChangeDirectoryObserver(PreChangeDirectoryObserver observer) {
-        this.preChangeDirectoryObservers.add(observer);
+    public void addListenerToPreChangeDirectoryEvent(PreChangeDirectoryListener listener) {
+        this.preChangeDirectoryEvent.addListener(listener);
     }
 
-    public void addPostChangeDirectoryObserver(PostChangeDirectoryObserver observer) {
-        this.postChangeDirectoryObservers.add(observer);
+    public void addListenerToPostChangeDirectoryEvent(PostChangeDirectoryListener listener) {
+        this.postChangeDirectoryEvent.addListener(listener);
     }
 
-    public void addPostEntryLoadedObserver(PathEntryLoadedObserver observer) {
-        this.postEntryLoadedObservers.add(observer);
+    public void addListenerToPostEntryLoadedEvent(PathEntryLoadedListener listener) {
+        this.postEntryLoadedEvent.addListener(listener);
     }
 
     public void reload() {
@@ -127,10 +126,10 @@ public class Filer {
             return;
         }
         Path fromDir = this.currentDir;
-        this.preChangeDirectoryObservers.forEach(observer -> observer.changeDirectoryFrom(fromDir));
+        this.preChangeDirectoryEvent.raiseEvent(observer -> observer.changeDirectoryFrom(fromDir));
         this.currentDir = normalizePath(dir);
         collectEntries();
-        this.postChangeDirectoryObservers.forEach(observer -> observer.directoryChanged(fromDir, this.currentDir));
+        this.postChangeDirectoryEvent.raiseEvent(observer -> observer.directoryChanged(fromDir, this.currentDir));
     }
 
     public Optional<Path> lastFocusedPathIn(Path dir) {
@@ -231,9 +230,8 @@ public class Filer {
         int index = 0;
         if (parent != null) {
             Path normalizePath = normalizePath(parent);
-            for (PathEntryLoadedObserver observer : this.postEntryLoadedObservers) {
-                observer.postLoad(normalizePath, true, index);
-            }
+            int value = index;
+            postEntryLoadedEvent.raiseEvent(e -> e.postLoad(normalizePath, true, value));
             index++;
         }
         // TODO 権限がない場合真っ白になる
@@ -242,9 +240,8 @@ public class Filer {
                 .sorted(new PathComparator(sortType, sortOrder, sortDirectories))
                 .collect(Collectors.toList());
             for (Path entry : entries) {
-                for (PathEntryLoadedObserver observer : this.postEntryLoadedObservers) {
-                    observer.postLoad(entry, false, index);
-                }
+                int value = index;
+                postEntryLoadedEvent.raiseEvent(e -> e.postLoad(entry, false, value));
                 index++;
             }
         } catch (IOException ex) {
