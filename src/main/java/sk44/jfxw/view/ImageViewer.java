@@ -100,8 +100,8 @@ public class ImageViewer {
             }
         });
         // メッセージ窓をクリックしたりしてフォーカスを失うと制御不能になるので
-        previewImageView.focusedProperty().addListener((arg, oldValue, newValue) -> {
-            if (newValue == false) {
+        previewImageView.focusedProperty().addListener((arg, oldValue, focused) -> {
+            if (focused == false) {
                 close(launcherController, basePane);
             }
         });

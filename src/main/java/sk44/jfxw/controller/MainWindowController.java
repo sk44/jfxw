@@ -70,10 +70,6 @@ public class MainWindowController implements Initializable {
 
         // 左ファイル窓
         Filer leftFiler = ModelLocator.INSTANCE.getLeftFiler();
-        leftFiler.addListenerToToggleFilerFocusEvent(() -> {
-            rightFilerViewController.focus();
-            leftFilerViewController.onLostFocus();
-        });
         leftFiler.addListenerToPreviewImageEvent(imagePath -> {
             // 反対側の filer に画像を表示する
             imageViewerInFiler.open(imagePath, leftFilerViewController, rightFilerViewController.getRootPane());
@@ -82,10 +78,6 @@ public class MainWindowController implements Initializable {
 
         // 右ファイル窓
         Filer rightFiler = ModelLocator.INSTANCE.getRightFiler();
-        rightFiler.addListenerToToggleFilerFocusEvent(() -> {
-            leftFilerViewController.focus();
-            rightFilerViewController.onLostFocus();
-        });
         rightFiler.addListenerToPreviewImageEvent(imagePath -> {
             imageViewerInWindow.open(imagePath, rightFilerViewController, rootPane);
         });
@@ -94,10 +86,17 @@ public class MainWindowController implements Initializable {
         leftFilerViewController.withFiler(leftFiler);
         rightFilerViewController.withFiler(rightFiler);
 
+        messageArea.focusedProperty().addListener((arg, oldValue, focused) -> {
+            if (focused) {
+                // カーソル操作ができなくなるので、むりやり元のファイル窓にフォーカスを戻す
+                leftFiler.updateFocus();
+            }
+        });
+
         leftFiler.changeDirectoryToInitPath();
         rightFiler.changeDirectoryToInitPath();
 
-        leftFilerViewController.focus();
+        leftFiler.focus();
         messageArea.appendText("Ready.");
     }
 

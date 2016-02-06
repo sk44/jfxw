@@ -322,6 +322,13 @@ public class FilerViewController implements Initializable {
         searchTextField = new SearchTextField(rootPane, () -> {
             flowPane.requestFocus();
         });
+        // マウス操作でのフォーカス変更に対応する
+        // 無効化してしまうのもありかも
+        scrollPane.focusedProperty().addListener((arg, oldValue, focused) -> {
+            if (focused) {
+                filer.focus();
+            }
+        });
         currentPathInfoBox = new CurrentPathInfoBox();
         currentPathInfoBox.addTo(rootPane);
     }
@@ -333,6 +340,12 @@ public class FilerViewController implements Initializable {
         this.filer.addListenerToPostEntryLoadedEvent(this::postEntryLoaded);
         this.filer.addListenerToPreviewImageEvent(imagePath -> {
             Nodes.addStyleClassTo(flowPane, CLASS_NAME_PREVIEW_FILER);
+        });
+        this.filer.addListenerToFocusedEvent(() -> {
+            focus();
+        });
+        this.filer.addListenerToLostFocusEvent(() -> {
+            onLostFocus();
         });
         this.contents.setFiler(filer);
     }
@@ -353,7 +366,7 @@ public class FilerViewController implements Initializable {
         updateCursor();
     }
 
-    void focus() {
+    private void focus() {
         // runLater でないと効かない
         Platform.runLater(() -> {
             flowPane.requestFocus();
@@ -362,7 +375,7 @@ public class FilerViewController implements Initializable {
         });
     }
 
-    void onLostFocus() {
+    private void onLostFocus() {
         Nodes.removeStyleClassFrom(rootPane, CLASS_NAME_CURRENT_FILER);
     }
 
@@ -420,6 +433,7 @@ public class FilerViewController implements Initializable {
     }
 
     public void endPreviewImage() {
+        // TODO 対称性がない
         Nodes.removeStyleClassFrom(flowPane, CLASS_NAME_PREVIEW_FILER);
         focus();
     }

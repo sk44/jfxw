@@ -53,12 +53,6 @@ public class Filer {
     }
 
     @FunctionalInterface
-    public interface ToggleFilerFocusListener {
-
-        void toggle();
-    }
-
-    @FunctionalInterface
     public interface PreviewImageListener {
 
         void preview(Path imagePath);
@@ -87,7 +81,8 @@ public class Filer {
         this.sortDirectories = sortDirectories;
     }
 
-    private final EventSource<ToggleFilerFocusListener> toggleFilerFocusEvent = new EventSource<>();
+    private final EventSource<Runnable> focusedEvent = new EventSource<>();
+    private final EventSource<Runnable> lostFocusEvent = new EventSource<>();
     private final EventSource<PreChangeDirectoryListener> preChangeDirectoryEvent = new EventSource<>();
     private final EventSource<PostChangeDirectoryListener> postChangeDirectoryEvent = new EventSource<>();
     private final EventSource<PathEntryLoadedListener> postEntryLoadedEvent = new EventSource<>();
@@ -95,6 +90,8 @@ public class Filer {
     private final EventSource<PreviewImageListener> previewImageEvent = new EventSource<>();
 
     private final PathHistoriesCache historiesCache = new PathHistoriesCache(HISTORY_BUFFER_SIZE);
+
+    private boolean focused;
 
     @Getter
     private PathSortType sortType;
@@ -109,8 +106,12 @@ public class Filer {
     @Setter
     private Filer otherFiler;
 
-    public void addListenerToToggleFilerFocusEvent(ToggleFilerFocusListener listener) {
-        toggleFilerFocusEvent.addListener(listener);
+    public void addListenerToFocusedEvent(Runnable listener) {
+        focusedEvent.addListener(listener);
+    }
+
+    public void addListenerToLostFocusEvent(Runnable listener) {
+        lostFocusEvent.addListener(listener);
     }
 
     public void addListenerToCursorChangedEvent(CursorChangedListener listener) {
@@ -135,7 +136,31 @@ public class Filer {
     }
 
     public void toggleFocus() {
-        toggleFilerFocusEvent.raiseEvent(ToggleFilerFocusListener::toggle);
+        if (focused) {
+            otherFiler.focus();
+        } else {
+            focus();
+        }
+    }
+
+    // TODO ここにあるのは微妙に違和感
+    public void updateFocus() {
+        if (focused) {
+            focus();
+        } else {
+            otherFiler.focus();
+        }
+    }
+
+    public void focus() {
+        focused = true;
+        focusedEvent.raiseEvent(Runnable::run);
+        otherFiler.lostFocus();
+    }
+
+    private void lostFocus() {
+        focused = false;
+        lostFocusEvent.raiseEvent(Runnable::run);
     }
 
     public void onCursorChangedTo(Path path) {
