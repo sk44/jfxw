@@ -78,8 +78,6 @@ public class MainApp extends Application {
 
         configuration.updateLeftFilerConfig(leftFiler);
         configuration.updateRightFilerConfig(rightFiler);
-//        configuration.setLeftPath(leftFiler.getCurrentDir().toString());
-//        configuration.setRightPath(rightFiler.getCurrentDir().toString());
 
         configurationStore.save();
     }

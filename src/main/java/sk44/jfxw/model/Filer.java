@@ -46,6 +46,24 @@ public class Filer {
         void postLoad(Path entry, boolean parent, int index);
     }
 
+    @FunctionalInterface
+    public interface CursorChangedListener {
+
+        void changedTo(Path path);
+    }
+
+    @FunctionalInterface
+    public interface ToggleFilerFocusListener {
+
+        void toggle();
+    }
+
+    @FunctionalInterface
+    public interface PreviewImageListener {
+
+        void preview(Path imagePath);
+    }
+
     private static final int HISTORY_BUFFER_SIZE = 24;
 
     private static Path normalizePath(Path path) {
@@ -69,9 +87,12 @@ public class Filer {
         this.sortDirectories = sortDirectories;
     }
 
+    private final EventSource<ToggleFilerFocusListener> toggleFilerFocusEvent = new EventSource<>();
     private final EventSource<PreChangeDirectoryListener> preChangeDirectoryEvent = new EventSource<>();
     private final EventSource<PostChangeDirectoryListener> postChangeDirectoryEvent = new EventSource<>();
     private final EventSource<PathEntryLoadedListener> postEntryLoadedEvent = new EventSource<>();
+    private final EventSource<CursorChangedListener> cursorChangedEvent = new EventSource<>();
+    private final EventSource<PreviewImageListener> previewImageEvent = new EventSource<>();
 
     private final PathHistoriesCache historiesCache = new PathHistoriesCache(HISTORY_BUFFER_SIZE);
 
@@ -88,6 +109,18 @@ public class Filer {
     @Setter
     private Filer otherFiler;
 
+    public void addListenerToToggleFilerFocusEvent(ToggleFilerFocusListener listener) {
+        toggleFilerFocusEvent.addListener(listener);
+    }
+
+    public void addListenerToCursorChangedEvent(CursorChangedListener listener) {
+        cursorChangedEvent.addListener(listener);
+    }
+
+    public void addListenerToPreviewImageEvent(PreviewImageListener listener) {
+        previewImageEvent.addListener(listener);
+    }
+
     // TODO remove の仕組みが必要かなー
     public void addListenerToPreChangeDirectoryEvent(PreChangeDirectoryListener listener) {
         this.preChangeDirectoryEvent.addListener(listener);
@@ -99,6 +132,18 @@ public class Filer {
 
     public void addListenerToPostEntryLoadedEvent(PathEntryLoadedListener listener) {
         this.postEntryLoadedEvent.addListener(listener);
+    }
+
+    public void toggleFocus() {
+        toggleFilerFocusEvent.raiseEvent(ToggleFilerFocusListener::toggle);
+    }
+
+    public void onCursorChangedTo(Path path) {
+        cursorChangedEvent.raiseEvent(listener -> listener.changedTo(path));
+    }
+
+    public void previewImage(Path imagePath) {
+        previewImageEvent.raiseEvent(listener -> listener.preview(imagePath));
     }
 
     public void reload() {
@@ -126,10 +171,10 @@ public class Filer {
             return;
         }
         Path fromDir = this.currentDir;
-        this.preChangeDirectoryEvent.raiseEvent(observer -> observer.changeDirectoryFrom(fromDir));
+        this.preChangeDirectoryEvent.raiseEvent(listener -> listener.changeDirectoryFrom(fromDir));
         this.currentDir = normalizePath(dir);
         collectEntries();
-        this.postChangeDirectoryEvent.raiseEvent(observer -> observer.directoryChanged(fromDir, this.currentDir));
+        this.postChangeDirectoryEvent.raiseEvent(listener -> listener.directoryChanged(fromDir, this.currentDir));
     }
 
     public Optional<Path> lastFocusedPathIn(Path dir) {
@@ -231,7 +276,7 @@ public class Filer {
         if (parent != null) {
             Path normalizePath = normalizePath(parent);
             int value = index;
-            postEntryLoadedEvent.raiseEvent(e -> e.postLoad(normalizePath, true, value));
+            postEntryLoadedEvent.raiseEvent(listener -> listener.postLoad(normalizePath, true, value));
             index++;
         }
         // TODO 権限がない場合真っ白になる
@@ -241,7 +286,7 @@ public class Filer {
                 .collect(Collectors.toList());
             for (Path entry : entries) {
                 int value = index;
-                postEntryLoadedEvent.raiseEvent(e -> e.postLoad(entry, false, value));
+                postEntryLoadedEvent.raiseEvent(listener -> listener.postLoad(entry, false, value));
                 index++;
             }
         } catch (IOException ex) {

@@ -14,6 +14,8 @@ import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
 import lombok.Setter;
 import sk44.jfxw.model.Filer;
 import sk44.jfxw.model.message.Message;
@@ -179,5 +181,14 @@ public class FilerContents {
         }
         Message.info("not found.");
 
+    }
+
+    public void yankCurrentContent() {
+        String path = getCurrentContentPath().toString();
+        final Clipboard clipboard = Clipboard.getSystemClipboard();
+        final ClipboardContent content = new ClipboardContent();
+        content.putString(path);
+        clipboard.setContent(content);
+        Message.info("yank: " + path);
     }
 }

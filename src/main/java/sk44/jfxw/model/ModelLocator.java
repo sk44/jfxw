@@ -5,9 +5,9 @@
  */
 package sk44.jfxw.model;
 
-import sk44.jfxw.model.configuration.ConfigurationStore;
 import lombok.Getter;
 import lombok.Setter;
+import sk44.jfxw.model.configuration.ConfigurationStore;
 
 /**
  *

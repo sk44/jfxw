@@ -13,6 +13,7 @@ import javafx.scene.control.TextArea;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
+import sk44.jfxw.model.Filer;
 import sk44.jfxw.model.ModelLocator;
 import sk44.jfxw.model.message.Message;
 import sk44.jfxw.view.ImageViewer;
@@ -67,32 +68,35 @@ public class MainWindowController implements Initializable {
         ModelLocator.INSTANCE.getConfigurationStore().getConfiguration().backgroundImagePath()
             .ifPresent(this::loadBackgroundImage);
 
-        leftFilerViewController.withFiler(ModelLocator.INSTANCE.getLeftFiler());
-        rightFilerViewController.withFiler(ModelLocator.INSTANCE.getRightFiler());
-
-        // TODO くどいのでどうにか
-        leftFilerViewController.setChangeFocusListener(() -> {
+        // 左ファイル窓
+        Filer leftFiler = ModelLocator.INSTANCE.getLeftFiler();
+        leftFiler.addListenerToToggleFilerFocusEvent(() -> {
             rightFilerViewController.focus();
             leftFilerViewController.onLostFocus();
         });
-        rightFilerViewController.setChangeFocusListener(() -> {
-            leftFilerViewController.focus();
-            rightFilerViewController.onLostFocus();
-        });
-
-        leftFilerViewController.setChangeCursorListener(this::updateStatus);
-        rightFilerViewController.setChangeCursorListener(this::updateStatus);
-
-        rightFilerViewController.setPreviewImageHandler(imagePath -> {
-            imageViewerInWindow.open(imagePath, rightFilerViewController, rootPane);
-        });
-        leftFilerViewController.setPreviewImageHandler(imagePath -> {
+        leftFiler.addListenerToPreviewImageEvent(imagePath -> {
             // 反対側の filer に画像を表示する
             imageViewerInFiler.open(imagePath, leftFilerViewController, rightFilerViewController.getRootPane());
         });
+        leftFiler.addListenerToCursorChangedEvent(this::updateStatus);
 
-        ModelLocator.INSTANCE.getLeftFiler().changeDirectoryToInitPath();
-        ModelLocator.INSTANCE.getRightFiler().changeDirectoryToInitPath();
+        // 右ファイル窓
+        Filer rightFiler = ModelLocator.INSTANCE.getRightFiler();
+        rightFiler.addListenerToToggleFilerFocusEvent(() -> {
+            leftFilerViewController.focus();
+            rightFilerViewController.onLostFocus();
+        });
+        rightFiler.addListenerToPreviewImageEvent(imagePath -> {
+            imageViewerInWindow.open(imagePath, rightFilerViewController, rootPane);
+        });
+        rightFiler.addListenerToCursorChangedEvent(this::updateStatus);
+
+        leftFilerViewController.withFiler(leftFiler);
+        rightFilerViewController.withFiler(rightFiler);
+
+        leftFiler.changeDirectoryToInitPath();
+        rightFiler.changeDirectoryToInitPath();
+
         leftFilerViewController.focus();
         messageArea.appendText("Ready.");
     }
@@ -104,7 +108,12 @@ public class MainWindowController implements Initializable {
     }
 
     private void updateStatus(Path path) {
-        String value = path.getFileName().toString();
+        Path fileName = path.getFileName();
+        if (fileName == null) {
+            statusLabel.setText("");
+            return;
+        }
+        String value = fileName.toString();
         if (Files.isDirectory(path)) {
             statusLabel.setText(value + "/");
         } else {

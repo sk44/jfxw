@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.ResourceBundle;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -17,13 +16,10 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.input.Clipboard;
-import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.FlowPane;
 import lombok.Getter;
-import lombok.Setter;
 import sk44.jfxw.model.Filer;
 import sk44.jfxw.model.ModelLocator;
 import sk44.jfxw.model.message.Message;
@@ -79,16 +75,9 @@ public class FilerViewController implements Initializable {
     private SearchTextField searchTextField;
     private String searchText;
     private CurrentPathInfoBox currentPathInfoBox;
+
     @Getter
     private Filer filer;
-    @Setter
-    private Consumer<Path> changeCursorListener;
-    @Setter
-    private Runnable changeFocusListener;
-    @Setter
-    private PathExecutor executionHandler;
-    @Setter
-    private Consumer<Path> previewImageHandler;
 
     @FXML
     protected void handleCommandKeyPressed(KeyEvent event) {
@@ -100,7 +89,7 @@ public class FilerViewController implements Initializable {
                 delete();
                 break;
             case E:
-                execute();
+                // TODO 実行？
                 break;
             case G:
                 contents.clearCursor();
@@ -168,7 +157,7 @@ public class FilerViewController implements Initializable {
                 openByAssociated();
                 break;
             case Y:
-                yank();
+                contents.yankCurrentContent();
                 break;
             case Z:
                 // TODO 設定画面？
@@ -184,24 +173,13 @@ public class FilerViewController implements Initializable {
                 openSearchTextField();
                 break;
             case TAB:
-                if (changeFocusListener != null) {
-                    changeFocusListener.run();
-                }
+                filer.toggleFocus();
                 break;
             case ENTER:
-                preview();
+                previewImage();
                 break;
             default:
                 break;
-        }
-    }
-
-    private void execute() {
-        Path pathOnCursor = contents.getCurrentContentPath();
-        if (executionHandler != null) {
-            if (executionHandler.tryExecute(pathOnCursor) == false) {
-                // TODO たらい回しにするかんじで
-            }
         }
     }
 
@@ -269,12 +247,11 @@ public class FilerViewController implements Initializable {
     }
 
     private void updateCursor() {
+        // TODO
         ContentRow currentContent = contents.getCurrentContent();
         currentContent.updateSelected(true);
         ensureVisible(scrollPane, currentContent);
-        if (changeCursorListener != null && currentContent.isParent() == false) {
-            changeCursorListener.accept(currentContent.getPath());
-        }
+        filer.onCursorChangedTo(currentContent.getPath());
     }
 
     private void openCreateDirectoryWindow() {
@@ -354,6 +331,9 @@ public class FilerViewController implements Initializable {
         this.filer.addListenerToPreChangeDirectoryEvent(this::preChangeDirectory);
         this.filer.addListenerToPostChangeDirectoryEvent(this::directoryChanged);
         this.filer.addListenerToPostEntryLoadedEvent(this::postEntryLoaded);
+        this.filer.addListenerToPreviewImageEvent(imagePath -> {
+            Nodes.addStyleClassTo(flowPane, CLASS_NAME_PREVIEW_FILER);
+        });
         this.contents.setFiler(filer);
     }
 
@@ -423,22 +403,9 @@ public class FilerViewController implements Initializable {
             });
     }
 
-    private void yank() {
-        String path = contents.getCurrentContentPath().toString();
-        final Clipboard clipboard = Clipboard.getSystemClipboard();
-        final ClipboardContent content = new ClipboardContent();
-        content.putString(path);
-        clipboard.setContent(content);
-        Message.info("yank: " + path);
-    }
-
-    private void preview() {
-        if (previewImageHandler == null) {
-            return;
-        }
+    private void previewImage() {
         contents.currentImage().ifPresent(image -> {
-            previewImageHandler.accept(image);
-            Nodes.addStyleClassTo(flowPane, CLASS_NAME_PREVIEW_FILER);
+            filer.previewImage(image);
         });
     }
 
