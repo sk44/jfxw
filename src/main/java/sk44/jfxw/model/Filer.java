@@ -12,7 +12,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 import lombok.Getter;
@@ -64,6 +63,12 @@ public class Filer {
         void update(Path currentDir);
     }
 
+    @FunctionalInterface
+    public interface PostProcessListener {
+
+        void postProcess(Path pathToProcess);
+    }
+
     private static final int HISTORY_BUFFER_SIZE = 24;
 
     private static Path normalizePath(Path path) {
@@ -95,6 +100,7 @@ public class Filer {
     private final EventSource<CursorChangedListener> cursorChangedEvent = new EventSource<>();
     private final EventSource<PreviewImageListener> previewImageEvent = new EventSource<>();
     private final EventSource<UpdateStatusListener> updateStatusEvent = new EventSource<>();
+    private final EventSource<PostProcessListener> postProcessEvent = new EventSource<>();
 
     private final PathHistoriesCache historiesCache = new PathHistoriesCache(HISTORY_BUFFER_SIZE);
 
@@ -127,6 +133,10 @@ public class Filer {
 
     public void addListenerToPreviewImageEvent(PreviewImageListener listener) {
         previewImageEvent.addListener(listener);
+    }
+
+    public void addListenerToPostProcessEvent(PostProcessListener listener) {
+        postProcessEvent.addListener(listener);
     }
 
     // TODO remove の仕組みが必要かなー
@@ -176,6 +186,10 @@ public class Filer {
     private void lostFocus() {
         focused = false;
         lostFocusEvent.raiseEvent(Runnable::run);
+    }
+
+    public void postProcess(Path pathToProcess) {
+        postProcessEvent.raiseEvent(listener -> listener.postProcess(pathToProcess));
     }
 
     public void onCursorChangedTo(Path path) {
@@ -258,24 +272,25 @@ public class Filer {
             + ", order: " + this.sortOrder + ", sortDir: " + this.sortDirectories);
     }
 
-    public void copy(List<Path> entries, OverwriteFileConfirmer confirmer, Consumer<Path> postCopy) {
+    public void copy(List<Path> entries, OverwriteFileConfirmer confirmer) {
 
         entries.stream().forEach((entry) -> {
             // TODO バックグラウンド実行を検討
             Path newPath = otherFiler.resolve(entry);
             PathHelper.copyPath(entry, newPath, confirmer);
-            postCopy.accept(entry);
-            // TODO 移動後に反対側の窓でフォーカスさせる
+            postProcess(entry);
+            // 移動後に反対側の窓でフォーカスさせる
+            otherFiler.addToCache(newPath);
         });
         otherFiler.reload();
     }
 
-    public void move(List<Path> entries, OverwriteFileConfirmer confirmer, Consumer<Path> postMove) {
+    public void move(List<Path> entries, OverwriteFileConfirmer confirmer) {
         entries.stream().forEach((entry) -> {
+            // TODO バックグラウンド実行を検討
             Path movedPath = otherFiler.resolve(entry);
             PathHelper.movePath(entry, movedPath, confirmer);
-            // TODO event で
-            postMove.accept(entry);
+            postProcess(entry);
             // 移動後に反対側の窓でフォーカスさせる（ reload に依存）
             otherFiler.addToCache(movedPath);
         });
@@ -294,16 +309,16 @@ public class Filer {
                     Message.error(ex);
                     return;
                 }
-                Message.info("deleted: " + entry.toString());
-                continue;
+            } else {
+                try {
+                    Files.delete(entry);
+                } catch (IOException ex) {
+                    Message.error(ex);
+                    return;
+                }
             }
-            try {
-                Files.delete(entry);
-                Message.info("deleted: " + entry.toString());
-            } catch (IOException ex) {
-                Message.error(ex);
-                return;
-            }
+            Message.info("deleted: " + entry.toString());
+            postProcess(entry);
         }
         reload();
     }

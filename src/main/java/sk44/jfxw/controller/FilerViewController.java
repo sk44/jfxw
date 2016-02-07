@@ -191,11 +191,7 @@ public class FilerViewController implements Initializable {
     }
 
     private void copy() {
-        filer.copy(contents.collectMarkedPathes(),
-            this::showConfirmDialog,
-            copiedPath -> {
-                contents.removeMark(copiedPath);
-            });
+        filer.copy(contents.collectMarkedPathes(), this::showConfirmDialog);
         updateCursor();
     }
 
@@ -217,14 +213,7 @@ public class FilerViewController implements Initializable {
     }
 
     private void move() {
-        filer.move(contents.collectMarkedPathes(),
-            this::showConfirmDialog,
-            movedPath -> {
-                if (Files.exists(movedPath)) {
-                    return;
-                }
-                contents.removeMark(movedPath);
-            });
+        filer.move(contents.collectMarkedPathes(), this::showConfirmDialog);
         updateCursor();
     }
 
@@ -330,6 +319,9 @@ public class FilerViewController implements Initializable {
             onLostFocus();
         });
         this.filer.addListenerToUpdateStatusEvent(currentPathInfoBox::update);
+        this.filer.addListenerToPostProcessEvent(pathToProcess -> {
+            contents.removeMark(pathToProcess);
+        });
         this.contents.setFiler(filer);
     }
 

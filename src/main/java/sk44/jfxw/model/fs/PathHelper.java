@@ -89,7 +89,7 @@ public class PathHelper {
                 Message.error(ex);
                 throw new UncheckedIOException(ex);
             }
-            Message.info("moved: " + source.toString() + "\n\tto: " + dest.toString());
+            Message.info("moved: \n\t" + source.toString() + "\n\tto: \n\t" + dest.toString());
             return;
         }
         moveFile(source, dest, confirmer);
@@ -102,7 +102,7 @@ public class PathHelper {
             || (confirmer != null && confirmer.confirm(dest.toString() + " is already exists. overwrite this?"))) {
             try {
                 Files.move(source, dest);
-                Message.info("moved: " + source.toString() + "\n\tto: " + dest.toString());
+                Message.info("moved: \n\t" + source.toString() + "\n\tto: \n\t" + dest.toString());
             } catch (IOException ex) {
                 Message.error(ex);
                 throw new UncheckedIOException(ex);
