@@ -169,11 +169,15 @@ public class ContentRow extends FlowPane {
     }
 
     public void toggleMark() {
+        // TODO 見せ方が微妙
+        updateMark(isMarked() == false);
+    }
+
+    public void updateMark(boolean mark) {
         if (asParent) {
             return;
         }
-        // TODO 見せ方が微妙
-        markedProperty.set(isMarked() == false);
+        markedProperty.set(mark);
         if (isMarked()) {
             Nodes.addStyleClassTo(this, MARKED_ROW_CLASS_NAME);
         } else {

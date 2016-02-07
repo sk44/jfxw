@@ -85,13 +85,6 @@ public class FilerContents {
         return index + 1 == size();
     }
 
-    public List<ContentRow> collectMarkedRows() {
-        return contents.stream()
-            .filter(ContentRow::isMarked)
-            .collect(Collectors.toList());
-    }
-
-    @Deprecated
     public List<Path> collectMarkedPathes() {
         return contents
             .stream()
@@ -109,11 +102,23 @@ public class FilerContents {
     }
 
     public void clearCursor() {
+        if (size() - 1 < index) {
+            return;
+        }
         getCurrentContent().updateSelected(false);
     }
 
     public void add(ContentRow content) {
         contents.add(content);
+    }
+
+    public void removeMark(Path path) {
+        // TODO map でもっておいたほうが速そう
+        Optional<ContentRow> content = contents.stream().filter(e -> e.getPath().equals(path)).findAny();
+        content.ifPresent(c -> {
+            c.updateMark(false);
+        });
+
     }
 
     public void clear() {

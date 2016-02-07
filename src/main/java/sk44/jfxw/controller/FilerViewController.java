@@ -4,11 +4,8 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.ResourceBundle;
-import java.util.stream.Collectors;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -194,13 +191,10 @@ public class FilerViewController implements Initializable {
     }
 
     private void copy() {
-        List<ContentRow> markedRows = contents.collectMarkedRows();
-        Map<Path, ContentRow> rowMap = markedRows.stream()
-            .collect(Collectors.toMap(ContentRow::getPath, row -> row));
-        filer.copy(markedRows.stream().map(ContentRow::getPath).collect(Collectors.toList()),
+        filer.copy(contents.collectMarkedPathes(),
             this::showConfirmDialog,
             copiedPath -> {
-                rowMap.get(copiedPath).toggleMark();
+                contents.removeMark(copiedPath);
             });
         updateCursor();
     }
@@ -223,27 +217,15 @@ public class FilerViewController implements Initializable {
     }
 
     private void move() {
-        List<ContentRow> markedRows = contents.collectMarkedRows();
-//        Map<Path, ContentRow> rowMap = markedRows.stream()
-//            .collect(Collectors.toMap(ContentRow::getPath, row -> row));
-        filer.move(markedRows.stream().map(ContentRow::getPath).collect(Collectors.toList()),
+        filer.move(contents.collectMarkedPathes(),
             this::showConfirmDialog,
             movedPath -> {
-//                if (Files.exists(movedPath)) {
-//                    return;
-//                }
-//                ContentRow moved = rowMap.get(movedPath);
-//                contents.remove(moved);
+                if (Files.exists(movedPath)) {
+                    return;
+                }
+                contents.removeMark(movedPath);
             });
-//        if (index > contents.size() - 1) {
-//            clearCursor();
-//            updateIndex(contents.size() - 1);
-//        }
         updateCursor();
-    }
-
-    private void onPathRemoved(Path removed) {
-        // TODO パスが消えた時の処理
     }
 
     private void updateCursor() {
@@ -347,6 +329,7 @@ public class FilerViewController implements Initializable {
         this.filer.addListenerToLostFocusEvent(() -> {
             onLostFocus();
         });
+        this.filer.addListenerToUpdateStatusEvent(currentPathInfoBox::update);
         this.contents.setFiler(filer);
     }
 
@@ -362,7 +345,6 @@ public class FilerViewController implements Initializable {
         contents.updateIndex(focusIndex);
         // TODO バインド
         currentPathLabel.setText(toDir.toString());
-        currentPathInfoBox.update(toDir);
         updateCursor();
     }
 

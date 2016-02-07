@@ -58,6 +58,12 @@ public class Filer {
         void preview(Path imagePath);
     }
 
+    @FunctionalInterface
+    public interface UpdateStatusListener {
+
+        void update(Path currentDir);
+    }
+
     private static final int HISTORY_BUFFER_SIZE = 24;
 
     private static Path normalizePath(Path path) {
@@ -88,6 +94,7 @@ public class Filer {
     private final EventSource<PathEntryLoadedListener> postEntryLoadedEvent = new EventSource<>();
     private final EventSource<CursorChangedListener> cursorChangedEvent = new EventSource<>();
     private final EventSource<PreviewImageListener> previewImageEvent = new EventSource<>();
+    private final EventSource<UpdateStatusListener> updateStatusEvent = new EventSource<>();
 
     private final PathHistoriesCache historiesCache = new PathHistoriesCache(HISTORY_BUFFER_SIZE);
 
@@ -133,6 +140,14 @@ public class Filer {
 
     public void addListenerToPostEntryLoadedEvent(PathEntryLoadedListener listener) {
         this.postEntryLoadedEvent.addListener(listener);
+    }
+
+    public void addListenerToUpdateStatusEvent(UpdateStatusListener listener) {
+        this.updateStatusEvent.addListener(listener);
+    }
+
+    public void updateStatus() {
+        updateStatusEvent.raiseEvent(listener -> listener.update(currentDir));
     }
 
     public void toggleFocus() {
@@ -200,6 +215,7 @@ public class Filer {
         this.currentDir = normalizePath(dir);
         collectEntries();
         this.postChangeDirectoryEvent.raiseEvent(listener -> listener.directoryChanged(fromDir, this.currentDir));
+        updateStatus();
     }
 
     public Optional<Path> lastFocusedPathIn(Path dir) {
@@ -249,9 +265,8 @@ public class Filer {
             Path newPath = otherFiler.resolve(entry);
             PathHelper.copyPath(entry, newPath, confirmer);
             postCopy.accept(entry);
+            // TODO 移動後に反対側の窓でフォーカスさせる
         });
-        // TODO リロードやめる
-//        reload();
         otherFiler.reload();
     }
 
@@ -259,10 +274,12 @@ public class Filer {
         entries.stream().forEach((entry) -> {
             Path movedPath = otherFiler.resolve(entry);
             PathHelper.movePath(entry, movedPath, confirmer);
-//            postMove.accept(entry);
-            // 移動後に反対側の窓でフォーカスさせる
+            // TODO event で
+            postMove.accept(entry);
+            // 移動後に反対側の窓でフォーカスさせる（ reload に依存）
             otherFiler.addToCache(movedPath);
         });
+        // TODO 先頭にカーソルが移動してしまう場合がある
         reload();
         otherFiler.reload();
     }

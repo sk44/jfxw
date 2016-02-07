@@ -43,10 +43,12 @@ public class CurrentPathInfoBox {
 
     private static long sumFileSize(Stream<Path> stream) {
         return stream
+            .filter(path -> Files.isDirectory(path) == false)
             .map(path -> {
                 try {
                     return Files.size(path);
                 } catch (IOException ex) {
+                    Message.error(ex);
                     return 0l;
                 }
             })
