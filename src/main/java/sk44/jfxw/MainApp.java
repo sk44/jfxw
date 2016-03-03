@@ -2,6 +2,7 @@ package sk44.jfxw;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Optional;
 import javafx.application.Application;
 import static javafx.application.Application.launch;
 import javafx.fxml.FXMLLoader;
@@ -43,7 +44,8 @@ public class MainApp extends Application {
     private void initializeModelLocator() throws IOException {
 
         ConfigurationStore configurationStore = new ConfigurationStore();
-        configurationStore.init(new File("."));
+        String configDirPath = Optional.ofNullable(System.getProperty("user.home")).orElse(".");
+        configurationStore.init(new File(configDirPath));
         Configuration configuration = configurationStore.getConfiguration();
 
         Message.minLevel(configuration.getLogLevel());
