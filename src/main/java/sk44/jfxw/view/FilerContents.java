@@ -148,14 +148,15 @@ public class FilerContents {
             .map(ext -> path);
     }
 
-    public void searchNext(String searchText, Runnable onFound) {
+    public void searchNext(String searchText, boolean keepCurrent, Runnable onFound) {
 
         if (isBottom()) {
             return;
         }
         Message.debug("search text: " + searchText);
 
-        for (int i = index + 1; i < contents.size(); i++) {
+        final int addIndex = keepCurrent ? 0 : 1;
+        for (int i = index + addIndex; i < contents.size(); i++) {
             ContentRow content = contents.get(i);
             if (content.isNameMatch(searchText)) {
                 Message.debug("found: " + content.getName());
@@ -165,7 +166,7 @@ public class FilerContents {
                 return;
             }
         }
-        Message.info("not found.");
+        Message.debug("not found.");
     }
 
     public void searchPrevious(String searchText, Runnable onFound) {
@@ -184,7 +185,7 @@ public class FilerContents {
                 return;
             }
         }
-        Message.info("not found.");
+        Message.debug("not found.");
 
     }
 

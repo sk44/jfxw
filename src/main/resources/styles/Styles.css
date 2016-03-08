@@ -46,6 +46,16 @@
     -fx-text-fill: #ffffff;
 }
 
+.filerTextInput {
+    -fx-border-radius: 5;
+    -fx-background-radius: 5;
+    /*
+    -fx-padding: 5px;
+    -fx-border-insets: 5px;
+    -fx-background-insets: 5px;
+    */
+}
+
 .markedRow * {
     -fx-text-fill: #ff0066;
 }

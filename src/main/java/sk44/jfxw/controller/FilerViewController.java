@@ -127,7 +127,7 @@ public class FilerViewController implements Initializable {
                 if (event.isShiftDown()) {
                     searchPrevious();
                 } else {
-                    searchNext();
+                    searchNext(false);
                 }
                 break;
             case O:
@@ -279,7 +279,7 @@ public class FilerViewController implements Initializable {
     private void openSearchTextField() {
         searchTextField.open((query) -> {
             searchText = query;
-            searchNext();
+            searchNext(true);
         });
     }
 
@@ -362,8 +362,8 @@ public class FilerViewController implements Initializable {
         contents.add(ContentRow.create(entry, scrollPane.widthProperty(), odd));
     }
 
-    void searchNext() {
-        contents.searchNext(searchText, () -> {
+    private void searchNext(boolean keepCurrent) {
+        contents.searchNext(searchText, keepCurrent, () -> {
             updateCursor();
         });
     }

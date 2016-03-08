@@ -51,14 +51,14 @@ public class SearchTextField {
     }
 
     private void setUpKeyPressedEventHandler(Consumer<String> searchHandler) {
-        textField.addEventFilter(KeyEvent.KEY_PRESSED, (javafx.scene.input.KeyEvent e) -> {
+        // KEY_PRESSED だと入力中の文字がスルーされる
+        textField.addEventFilter(KeyEvent.KEY_RELEASED, (javafx.scene.input.KeyEvent e) -> {
             switch (e.getCode()) {
                 case ESCAPE:
                 case ENTER:
                     removeTextField();
                     break;
                 default:
-                    // TODO 入力中の文字（末尾）がスルーされる
                     String searchText = textField.getText();
                     if (searchText != null && searchText.isEmpty() == false) {
                         searchHandler.accept(searchText);
