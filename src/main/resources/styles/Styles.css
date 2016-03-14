@@ -31,11 +31,6 @@
     -fx-text-fill: #66ccff;
 }
 
-.currentSortType {
-    -fx-background-color: #999999;
-    -fx-text-fill: #ffffff;
-}
-
 .currentRow {
     -fx-background-color: rgba(100, 100, 100, 0.7);
 }
@@ -70,12 +65,26 @@
 
 /* modal window */
 .windowContainer {
-    -fx-background-color: rgba(0, 0, 0, 0.7);
-    -fx-border-radius: 5px;
+    /*-fx-background-color: rgba(0, 0, 0, 0.7);*/
+    -fx-background-color: transparent;
 }
+
 .windowContainer * {
+    /*-fx-background-color: transparent;*/
     -fx-text-fill: #ffffff;
     -fx-focus-color: #999999;
+}
+
+.windowContent {
+    /*-fx-background-color: rgba(0, 0, 0, 0.7);*/
+    -fx-background-color: rgba(0, 0, 0, 0.5);
+    -fx-border-radius: 5;
+    -fx-background-radius: 5;
+    -fx-effect: dropshadow(three-pass-box , rgba(0, 0, 0, 0.8), 10, 0, 0, 0);
+}
+
+.windowContent * {
+    -fx-font-size: 14;
 }
 
 .windowLabel, windowLabel * {
@@ -87,9 +96,16 @@
     -fx-alignment: CENTER;
 }
 
-.currentOrderType {
-    -fx-background-color: #999999;
+.currentOrderType, .currentSortType {
+    -fx-background-color: rgba(127, 127, 127, 0.7); /*#999999;*/
 }
+
+/*
+.currentSortType {
+    -fx-background-color: #999999;
+    -fx-text-fill: #ffffff;
+}
+*/
 
 /* configure window */
 

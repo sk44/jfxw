@@ -42,7 +42,9 @@ public class ModalWindow<T> {
 
             controllerConfigurer.accept(loader.getController());
 
-            stage.setScene(new Scene(root, Color.TRANSPARENT));
+            Scene scene = new Scene(root, Color.TRANSPARENT);
+//            scene.setFill(Color.TRANSPARENT);
+            stage.setScene(scene);
             stage.initModality(Modality.WINDOW_MODAL);
             stage.initOwner(owner);
             stage.showAndWait();
