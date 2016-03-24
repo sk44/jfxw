@@ -56,11 +56,22 @@ public class Configuration {
     @Setter
     private String backgroundImagePath;
 
+    @Getter
+    @Setter
+    private String mainFont;
+
     @Setter
     private FilerConfig leftFilerConfig;
 
     @Setter
     private FilerConfig rightFilerConfig;
+
+    public Optional<String> mainFont() {
+        if (mainFont == null || mainFont.isEmpty()) {
+            return Optional.empty();
+        }
+        return Optional.of(mainFont);
+    }
 
     public Optional<Path> backgroundImagePath() {
         if (backgroundImagePath == null || backgroundImagePath.isEmpty()) {

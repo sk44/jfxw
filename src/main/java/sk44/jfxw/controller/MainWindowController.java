@@ -15,6 +15,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import sk44.jfxw.model.Filer;
 import sk44.jfxw.model.ModelLocator;
+import sk44.jfxw.model.configuration.Configuration;
 import sk44.jfxw.model.message.Message;
 import sk44.jfxw.view.ImageViewer;
 
@@ -65,8 +66,12 @@ public class MainWindowController implements Initializable {
         Message.addObserver(this::appendMessage);
 
         initBackgroundImageView();
-        ModelLocator.INSTANCE.getConfigurationStore().getConfiguration().backgroundImagePath()
+        final Configuration configuration = ModelLocator.INSTANCE.getConfigurationStore().getConfiguration();
+        configuration.backgroundImagePath()
             .ifPresent(this::loadBackgroundImage);
+        configuration.mainFont().ifPresent(font -> {
+            rootPane.setStyle("-fx-font: 12px " + font + ";");
+        });
 
         // 左ファイル窓
         Filer leftFiler = ModelLocator.INSTANCE.getLeftFiler();

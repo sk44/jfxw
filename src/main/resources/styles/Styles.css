@@ -1,6 +1,6 @@
 .root * {
     /*-fx-background-color: rgba(255, 255, 255, 1);*/
-    -fx-font: 12px "Menlo";
+    /*-fx-font: 12px "Menlo";*/
     /*-fx-base: rgba(255, 255, 255, 1);*/
     /*-fx-background: rgba(255, 255, 255, 1);*/
     /* テキストボックスの選択色など */
