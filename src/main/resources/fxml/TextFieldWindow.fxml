@@ -13,11 +13,13 @@
         <URL value="@/styles/Styles.css" />
     </stylesheets>
     <children>
-        <Label fx:id="titleLabel" alignment="CENTER" contentDisplay="CENTER" layoutX="35.0" layoutY="40.0" styleClass="windowLabel" textAlignment="CENTER" AnchorPane.leftAnchor="30.0" AnchorPane.rightAnchor="30.0" AnchorPane.topAnchor="10.0">
-         <font>
-            <Font size="24.0" />
-         </font></Label>
-        <TextField fx:id="textField" layoutX="35.0" layoutY="79.0" onAction="#handleTextEnter" prefHeight="26.0" prefWidth="269.0" styleClass="windowTextInput" AnchorPane.bottomAnchor="20.0" AnchorPane.leftAnchor="30.0" AnchorPane.rightAnchor="30.0" />
+        <AnchorPane styleClass="windowContent" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
+            <children>
+                <Label fx:id="titleLabel" alignment="CENTER" contentDisplay="CENTER" layoutX="35.0" layoutY="40.0" styleClass="windowLabel" textAlignment="CENTER" AnchorPane.leftAnchor="30.0" AnchorPane.rightAnchor="30.0" AnchorPane.topAnchor="10.0">
+                </Label>
+                <TextField fx:id="textField" layoutX="35.0" layoutY="79.0" onAction="#handleTextEnter" prefHeight="26.0" prefWidth="269.0" styleClass="windowTextInput" AnchorPane.bottomAnchor="20.0" AnchorPane.leftAnchor="30.0" AnchorPane.rightAnchor="30.0" />
+            </children>
+        </AnchorPane>
     </children>
 
 </AnchorPane>

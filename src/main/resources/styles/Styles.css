@@ -3,6 +3,9 @@
     -fx-font: 12px "Menlo";
     /*-fx-base: rgba(255, 255, 255, 1);*/
     /*-fx-background: rgba(255, 255, 255, 1);*/
+    /* テキストボックスの選択色など */
+    -fx-accent: rgba(60, 60, 60, 0.8);
+    /*-fx-focus-color: #999999;*/
 }
 
 .mainWindow {
@@ -70,21 +73,20 @@
 }
 
 .windowContainer * {
-    /*-fx-background-color: transparent;*/
     -fx-text-fill: #ffffff;
     -fx-focus-color: #999999;
 }
 
 .windowContent {
-    /*-fx-background-color: rgba(0, 0, 0, 0.7);*/
-    -fx-background-color: rgba(0, 0, 0, 0.5);
+    -fx-background-color: rgba(0, 0, 0, 0.4);
     -fx-border-radius: 5;
     -fx-background-radius: 5;
-    -fx-effect: dropshadow(three-pass-box , rgba(0, 0, 0, 0.8), 10, 0, 0, 0);
+    -fx-effect: dropshadow(three-pass-box , rgba(0, 0, 0, 0.9), 15, 0, 0, 0);
 }
 
 .windowContent * {
-    -fx-font-size: 14;
+    /*-fx-font-size: 14;*/
+    -fx-font: 14px "Helvetica";
 }
 
 .windowLabel, windowLabel * {

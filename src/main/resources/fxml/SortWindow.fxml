@@ -15,20 +15,20 @@
     <children>
         <AnchorPane styleClass="windowContent" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
             <children>
-                <Label fx:id="fileNameLabel" text="N: File Name" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="10.0">
-               <padding>
-                  <Insets left="20.0" />
-               </padding>
+                <Label fx:id="fileNameLabel" text="File Name(N)" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="10.0">
+                    <padding>
+                        <Insets left="20.0" />
+                    </padding>
                 </Label>
-                <Label fx:id="fileSizeLabel" text="S: File Size" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="30.0">
-               <padding>
-                  <Insets left="20.0" />
-               </padding>
+                <Label fx:id="fileSizeLabel" text="File Size(S)" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="30.0">
+                    <padding>
+                        <Insets left="20.0" />
+                    </padding>
                 </Label>
-                <Label fx:id="lastModifiedLabel" text="M: Last Modified" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="50.0">
-               <padding>
-                  <Insets left="20.0" />
-               </padding>
+                <Label fx:id="lastModifiedLabel" text="Last Modified(M)" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="50.0">
+                    <padding>
+                        <Insets left="20.0" />
+                    </padding>
                 </Label>
                 <CheckBox fx:id="sortDirectoriesCheckBox" layoutX="20.0" layoutY="102.0" mnemonicParsing="false" text="Sort directories" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" />
                 <Label fx:id="ascLabel" layoutX="10.0" layoutY="77.0" prefHeight="16.0" prefWidth="85.0" styleClass="orderType" text="Asc" textAlignment="CENTER" AnchorPane.leftAnchor="20.0" />
