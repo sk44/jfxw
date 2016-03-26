@@ -23,6 +23,10 @@ public enum ModelLocator {
 
     @Getter
     @Setter
+    private ApplicationEvents applicationEvents;
+
+    @Getter
+    @Setter
     private Filer rightFiler;
 
     @Getter

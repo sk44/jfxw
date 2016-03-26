@@ -8,7 +8,6 @@ package sk44.jfxw.view;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.function.Consumer;
 import javafx.geometry.Pos;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -16,6 +15,7 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import sk44.jfxw.controller.FilerViewController;
+import sk44.jfxw.model.ModelLocator;
 import sk44.jfxw.model.message.Message;
 
 /**
@@ -25,14 +25,9 @@ import sk44.jfxw.model.message.Message;
  */
 public class ImageViewer {
 
-    private final Consumer<Path> saveHandler;
     private HBox previewImageContainer;
     private ImageView previewImageView;
     private Path imagePath;
-
-    public ImageViewer(Consumer<Path> saveHandler) {
-        this.saveHandler = saveHandler;
-    }
 
     public void open(Path imagePath, FilerViewController launcherController, Pane basePane) {
         if (previewImageContainer == null) {
@@ -87,9 +82,7 @@ public class ImageViewer {
                     });
                     break;
                 case S:
-                    if (saveHandler != null) {
-                        saveHandler.accept(imagePath);
-                    }
+                    ModelLocator.INSTANCE.getApplicationEvents().updateBackgroundImage(imagePath);
                     break;
                 case ESCAPE:
                 case ENTER:

@@ -58,6 +58,10 @@ public class Configuration {
 
     @Getter
     @Setter
+    private String backgroundImageDir;
+
+    @Getter
+    @Setter
     private String mainFont;
 
     @Setter
@@ -78,6 +82,13 @@ public class Configuration {
             return Optional.empty();
         }
         return Optional.of(Paths.get(backgroundImagePath));
+    }
+
+    public Optional<Path> backgroundImageDir() {
+        if (backgroundImageDir == null || backgroundImageDir.isEmpty()) {
+            return Optional.empty();
+        }
+        return Optional.of(Paths.get(backgroundImageDir));
     }
 
     public FilerConfig getLeftFilerConfig() {

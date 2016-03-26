@@ -9,6 +9,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import sk44.jfxw.model.ApplicationEvents;
 import sk44.jfxw.model.Filer;
 import sk44.jfxw.model.ModelLocator;
 import sk44.jfxw.model.configuration.Configuration;
@@ -16,6 +17,9 @@ import sk44.jfxw.model.configuration.ConfigurationStore;
 import sk44.jfxw.model.configuration.FilerConfig;
 import sk44.jfxw.model.message.Message;
 import sk44.jfxw.view.Fxml;
+import static javafx.application.Application.launch;
+import static javafx.application.Application.launch;
+import static javafx.application.Application.launch;
 
 public class MainApp extends Application {
 
@@ -60,9 +64,12 @@ public class MainApp extends Application {
         rightFiler.setOtherFiler(leftFiler);
         leftFiler.setOtherFiler(rightFiler);
 
-        ModelLocator.INSTANCE.setConfigurationStore(configurationStore);
-        ModelLocator.INSTANCE.setLeftFiler(leftFiler);
-        ModelLocator.INSTANCE.setRightFiler(rightFiler);
+        ModelLocator locator = ModelLocator.INSTANCE;
+
+        locator.setConfigurationStore(configurationStore);
+        locator.setLeftFiler(leftFiler);
+        locator.setRightFiler(rightFiler);
+        locator.setApplicationEvents(new ApplicationEvents());
     }
 
     @Override

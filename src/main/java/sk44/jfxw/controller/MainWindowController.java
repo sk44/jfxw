@@ -34,8 +34,8 @@ public class MainWindowController implements Initializable {
     @FXML
     private Label statusLabel;
 
-    private final ImageViewer imageViewerInWindow = new ImageViewer(this::loadBackgroundImage);
-    private final ImageViewer imageViewerInFiler = new ImageViewer(this::loadBackgroundImage);
+    private final ImageViewer imageViewerInWindow = new ImageViewer();
+    private final ImageViewer imageViewerInFiler = new ImageViewer();
 
     private void initBackgroundImageView() {
         backgroundImageView.setSmooth(true);
@@ -46,13 +46,13 @@ public class MainWindowController implements Initializable {
         backgroundImageView.fitWidthProperty().bind(rootPane.widthProperty());
     }
 
-    private void loadBackgroundImage(Path imagePath) {
+    private void updateBackgroundImage(Path imagePath) {
         try {
             double width = rootPane.getPrefWidth();
             double height = rootPane.getPrefHeight();
             Image image = new Image(Files.newInputStream(imagePath), width, height, true, true);
             backgroundImageView.setImage(image);
-            Message.debug("background image loaded: " + imagePath + ", " + width + "x" + height);
+            Message.info("background image updated: " + imagePath);
             ModelLocator.INSTANCE.getConfigurationStore().getConfiguration()
                 .setBackgroundImagePath(imagePath.normalize().toString());
         } catch (IOException ex) {
@@ -64,17 +64,19 @@ public class MainWindowController implements Initializable {
     public void initialize(URL url, ResourceBundle rb) {
 
         Message.addObserver(this::appendMessage);
+        ModelLocator locator = ModelLocator.INSTANCE;
+        locator.getApplicationEvents().addUpdateBackgroundImageListener(this::updateBackgroundImage);
 
         initBackgroundImageView();
-        final Configuration configuration = ModelLocator.INSTANCE.getConfigurationStore().getConfiguration();
+        final Configuration configuration = locator.getConfigurationStore().getConfiguration();
         configuration.backgroundImagePath()
-            .ifPresent(this::loadBackgroundImage);
+            .ifPresent(this::updateBackgroundImage);
         configuration.mainFont().ifPresent(font -> {
             rootPane.setStyle("-fx-font: 12px \"" + font + "\";");
         });
 
         // 左ファイル窓
-        Filer leftFiler = ModelLocator.INSTANCE.getLeftFiler();
+        Filer leftFiler = locator.getLeftFiler();
         leftFiler.addListenerToPreviewImageEvent(imagePath -> {
             // 反対側の filer に画像を表示する
             imageViewerInFiler.open(imagePath, leftFilerViewController, rightFilerViewController.getRootPane());
@@ -82,7 +84,7 @@ public class MainWindowController implements Initializable {
         leftFiler.addListenerToCursorChangedEvent(this::updateStatus);
 
         // 右ファイル窓
-        Filer rightFiler = ModelLocator.INSTANCE.getRightFiler();
+        Filer rightFiler = locator.getRightFiler();
         rightFiler.addListenerToPreviewImageEvent(imagePath -> {
             imageViewerInWindow.open(imagePath, rightFilerViewController, rootPane);
         });

@@ -2,10 +2,15 @@ package sk44.jfxw.controller;
 
 import java.io.IOException;
 import java.net.URL;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 import java.util.ResourceBundle;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -149,6 +154,9 @@ public class FilerViewController implements Initializable {
                 break;
             case S:
                 openSortOptionWindow();
+                break;
+            case W:
+                updateBackgroundImage();
                 break;
             case X:
                 openByAssociated();
@@ -410,5 +418,32 @@ public class FilerViewController implements Initializable {
         // TODO 対称性がない
         Nodes.removeStyleClassFrom(flowPane, CLASS_NAME_PREVIEW_FILER);
         focus();
+    }
+
+    // TODO 実装をどこかに移動
+    private final Random random = new Random();
+
+    private void updateBackgroundImage() {
+        ModelLocator locator = ModelLocator.INSTANCE;
+        locator.getConfigurationStore().getConfiguration().backgroundImageDir().ifPresent(dir -> {
+            if (Files.exists(dir) == false || Files.isDirectory(dir) == false) {
+                Message.warn(dir + " does not exists or not a directory.");
+                return;
+            }
+            try (DirectoryStream<Path> stream = Files
+                .newDirectoryStream(dir, "*.{jpg,jpeg,png,gif}")) {
+                List<Path> images = StreamSupport.stream(stream.spliterator(), false)
+                    .collect(Collectors.toList());
+                if (images.isEmpty()) {
+                    Message.warn("no images found in " + dir + ".");
+                    return;
+                }
+                int targetIndex = random.nextInt(images.size() - 1);
+                locator.getApplicationEvents().updateBackgroundImage(images.get(targetIndex));
+
+            } catch (IOException ex) {
+                Message.error(ex);
+            }
+        });
     }
 }
