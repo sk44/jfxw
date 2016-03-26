@@ -70,7 +70,7 @@ public class MainWindowController implements Initializable {
         configuration.backgroundImagePath()
             .ifPresent(this::loadBackgroundImage);
         configuration.mainFont().ifPresent(font -> {
-            rootPane.setStyle("-fx-font: 12px " + font + ";");
+            rootPane.setStyle("-fx-font: 12px \"" + font + "\";");
         });
 
         // 左ファイル窓
