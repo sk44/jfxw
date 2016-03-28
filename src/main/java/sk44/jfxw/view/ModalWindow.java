@@ -68,6 +68,7 @@ public class ModalWindow<T> {
     }
 
     public void close() {
+        // TODO close でいいのか？隠すだけ？
         this.stage.close();
     }
 }

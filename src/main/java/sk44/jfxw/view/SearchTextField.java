@@ -11,9 +11,11 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.AnchorPane;
 
 /**
+ * なぜか IME がきかないので modal window で代替
  *
  * @author sk
  */
+@Deprecated
 public class SearchTextField {
 
     private static final String CLASS_NAME_TEXT_INPUT = "filerTextInput";
@@ -33,6 +35,7 @@ public class SearchTextField {
         if (textField != null) {
             removeTextField();
         }
+        // TODO IME をオンにできない
         // スラッシュが入力されてしまうので都度 new する
         textField = new TextField();
         textField.getStyleClass().add(CLASS_NAME_TEXT_INPUT);

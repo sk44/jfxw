@@ -74,6 +74,8 @@ public class FilerViewController implements Initializable {
     private ModalWindow<SortWindowController> sortWindow;
     private ModalWindow<TextFieldWindowController> renameWindow;
     private ModalWindow<TextFieldWindowController> createDirWindow;
+    private ModalWindow<TextFieldWindowController> searchWindow;
+    @Deprecated
     private SearchTextField searchTextField;
     private String searchText;
     private CurrentPathInfoBox currentPathInfoBox;
@@ -285,9 +287,31 @@ public class FilerViewController implements Initializable {
     }
 
     private void openSearchTextField() {
-        searchTextField.open((query) -> {
-            searchText = query;
-            searchNext(true);
+        searchWindow = new ModalWindow<>();
+        searchWindow.show(Fxml.TEXT_FIELD_WINDOW, rootPane.getScene().getWindow(), (controller) -> {
+            controller.updateContent("Search", searchText);
+            controller.setCloseAction(searchWindow::close);
+            controller.addKeyReleasedEventHandler((query, e) -> {
+                switch (e.getCode()) {
+                    case ESCAPE:
+                        break;
+                    case ENTER:
+                        if (e.isShiftDown()) {
+                            searchText = query;
+                            searchPrevious();
+                            searchWindow.close();
+                        }
+                        break;
+                    default:
+                        searchText = query;
+                        searchNext(true);
+                        break;
+                }
+            });
+            controller.setUpdateAction(query -> {
+                searchText = query;
+                searchNext(true);
+            });
         });
     }
 

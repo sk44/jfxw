@@ -25,6 +25,12 @@ import sk44.jfxw.model.message.Message;
  */
 public class TextFieldWindowController implements Initializable {
 
+    @FunctionalInterface
+    public interface KeyReleaseHandler {
+
+        void handle(String text, KeyEvent e);
+    }
+
     @FXML
     private Pane rootPane;
     @FXML
@@ -37,9 +43,6 @@ public class TextFieldWindowController implements Initializable {
     @Setter
     private Consumer<String> updateAction;
 
-    /**
-     * Initializes the controller class.
-     */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         textField.requestFocus();
@@ -78,6 +81,12 @@ public class TextFieldWindowController implements Initializable {
         updateAction.accept(newValue);
         close();
 
+    }
+
+    public void addKeyReleasedEventHandler(KeyReleaseHandler handler) {
+        textField.addEventFilter(KeyEvent.KEY_RELEASED, e -> {
+            handler.handle(textField.getText(), e);
+        });
     }
 
     private void close() {
