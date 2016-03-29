@@ -71,10 +71,12 @@ public class FilerViewController implements Initializable {
 
     private final FilerContents contents = new FilerContents();
 
-    private ModalWindow<SortWindowController> sortWindow;
-    private ModalWindow<TextFieldWindowController> renameWindow;
-    private ModalWindow<TextFieldWindowController> createDirWindow;
-    private ModalWindow<TextFieldWindowController> searchWindow;
+    private final ModalWindow<SortWindowController> sortWindow = new ModalWindow<>();
+    private final ModalWindow<TextFieldWindowController> renameWindow = new ModalWindow<>();
+    private final ModalWindow<TextFieldWindowController> createDirWindow = new ModalWindow<>();
+    private final ModalWindow<TextFieldWindowController> searchWindow = new ModalWindow<>();
+    private final ModalWindow<ConfirmWindowController> deleteConfirmWindow = new ModalWindow<>();
+
     @Deprecated
     private SearchTextField searchTextField;
     private String searchText;
@@ -212,14 +214,14 @@ public class FilerViewController implements Initializable {
     }
 
     private void delete() {
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.getDialogPane().setContentText("Are you sure?");
-        alert.showAndWait()
-            .filter(response -> response == ButtonType.OK)
-            .ifPresent(response -> {
+        deleteConfirmWindow.show(Fxml.CONFIRM_WINDOW, rootPane.getScene().getWindow(), controller -> {
+            controller.updateMessage("Are you sure?");
+            controller.setCloseAction(deleteConfirmWindow::close);
+            controller.setOkAction(() -> {
                 filer.delete(contents.collectMarkedPathes());
                 updateCursor();
             });
+        });
     }
 
     private void move() {
@@ -236,7 +238,6 @@ public class FilerViewController implements Initializable {
     }
 
     private void openCreateDirectoryWindow() {
-        createDirWindow = new ModalWindow<>();
         createDirWindow.show(Fxml.TEXT_FIELD_WINDOW, rootPane.getScene().getWindow(), (controller) -> {
             controller.updateContent("New directory", "");
             controller.setCloseAction(createDirWindow::close);
@@ -252,8 +253,7 @@ public class FilerViewController implements Initializable {
             return;
         }
         Path target = currentContent.getPath();
-        renameWindow = new ModalWindow<>();
-        renameWindow.show(Fxml.TEXT_FIELD_WINDOW, rootPane.getScene().getWindow(), (controller) -> {
+        renameWindow.show(Fxml.TEXT_FIELD_WINDOW, rootPane.getScene().getWindow(), controller -> {
             controller.updateContent("Rename", target.getFileName().toString());
             controller.setCloseAction(renameWindow::close);
             controller.setUpdateAction(newName -> {
@@ -276,9 +276,7 @@ public class FilerViewController implements Initializable {
     }
 
     private void openSortOptionWindow() {
-
-        sortWindow = new ModalWindow<>();
-        sortWindow.show(Fxml.SORT_WINDOW, rootPane.getScene().getWindow(), (controller) -> {
+        sortWindow.show(Fxml.SORT_WINDOW, rootPane.getScene().getWindow(), controller -> {
             controller.updateSortOptions(this.filer.getSortType(),
                 this.filer.getSortOrder(), this.filer.isSortDirectories());
             controller.setCloseAction(this.sortWindow::close);
@@ -287,8 +285,7 @@ public class FilerViewController implements Initializable {
     }
 
     private void openSearchTextField() {
-        searchWindow = new ModalWindow<>();
-        searchWindow.show(Fxml.TEXT_FIELD_WINDOW, rootPane.getScene().getWindow(), (controller) -> {
+        searchWindow.show(Fxml.TEXT_FIELD_WINDOW, rootPane.getScene().getWindow(), controller -> {
             controller.updateContent("Search", searchText);
             controller.setCloseAction(searchWindow::close);
             controller.addKeyReleasedEventHandler((query, e) -> {
@@ -322,9 +319,6 @@ public class FilerViewController implements Initializable {
         scrollPane.setFitToHeight(true);
         flowPane.prefWidthProperty().bind(scrollPane.widthProperty());
         contents.bindContentWith(flowPane.getChildren());
-        searchTextField = new SearchTextField(rootPane, () -> {
-            flowPane.requestFocus();
-        });
         // マウス操作でのフォーカス変更に対応する
         // 無効化してしまうのもありかも
         scrollPane.focusedProperty().addListener((arg, oldValue, focused) -> {

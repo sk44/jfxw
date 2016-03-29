@@ -24,10 +24,10 @@ import sk44.jfxw.model.message.Message;
  */
 public class ModalWindow<T> {
 
+    private boolean initialized = false;
     private final Stage stage = new Stage();
 
-    public void show(Fxml fxml, Window owner, Consumer<T> controllerConfigurer) {
-
+    private void init(Fxml fxml, Window owner, Consumer<T> controllerConfigurer) {
         // http://stackoverflow.com/questions/10486731/how-to-create-a-modal-window-in-javafx-2-1
         // http://nodamushi.hatenablog.com/entry/20130910/1378784711
         try {
@@ -45,10 +45,41 @@ public class ModalWindow<T> {
             stage.initModality(Modality.WINDOW_MODAL);
             stage.initOwner(owner);
             initStagePosition(owner);
-            stage.showAndWait();
+
+            initialized = true;
         } catch (IOException ex) {
             Message.error(ex);
         }
+    }
+
+    public void show(Fxml fxml, Window owner, Consumer<T> controllerConfigurer) {
+
+        if (initialized == false) {
+            init(fxml, owner, controllerConfigurer);
+        }
+        show();
+
+//        // http://stackoverflow.com/questions/10486731/how-to-create-a-modal-window-in-javafx-2-1
+//        // http://nodamushi.hatenablog.com/entry/20130910/1378784711
+//        try {
+//            stage.initStyle(StageStyle.TRANSPARENT);
+//
+//            FXMLLoader loader = new FXMLLoader(getClass().getResource(fxml.getPath()));
+//            // 先にロードしないと controller が取れない
+//            Parent root = loader.load();
+//
+//            controllerConfigurer.accept(loader.getController());
+//
+//            Scene scene = new Scene(root, Color.TRANSPARENT);
+////            scene.setFill(Color.TRANSPARENT);
+//            stage.setScene(scene);
+//            stage.initModality(Modality.WINDOW_MODAL);
+//            stage.initOwner(owner);
+//            initStagePosition(owner);
+//            stage.showAndWait();
+//        } catch (IOException ex) {
+//            Message.error(ex);
+//        }
     }
 
     private void initStagePosition(Window owner) {
@@ -65,6 +96,10 @@ public class ModalWindow<T> {
             stage.setY(stage.getY() - newHeight.doubleValue() / 2);
         });
 
+    }
+
+    private void show() {
+        this.stage.showAndWait();
     }
 
     public void close() {

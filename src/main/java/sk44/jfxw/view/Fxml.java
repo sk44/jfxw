@@ -14,7 +14,8 @@ public enum Fxml {
     FILER_VIEW("FilerView"),
     MAIN_WINDOW("MainWindow"),
     SORT_WINDOW("SortWindow"),
-    TEXT_FIELD_WINDOW("TextFieldWindow");
+    TEXT_FIELD_WINDOW("TextFieldWindow"),
+    CONFIRM_WINDOW("ConfirmWindow");
 
     private Fxml(String name) {
         this.name = name;
