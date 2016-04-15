@@ -23,7 +23,12 @@ import sk44.jfxw.model.message.Message;
  *
  * @author sk
  */
-public class TextFieldWindowController implements Initializable {
+public class TextFieldWindowController implements Initializable, ModalWindowController<Void> {
+
+    @Override
+    public Void getResult() {
+        return null;
+    }
 
     @FunctionalInterface
     public interface KeyReleaseHandler {

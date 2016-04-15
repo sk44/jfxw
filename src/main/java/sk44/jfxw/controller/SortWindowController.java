@@ -23,10 +23,15 @@ import sk44.jfxw.view.Nodes;
  *
  * @author sk
  */
-public class SortWindowController implements Initializable {
+public class SortWindowController implements Initializable, ModalWindowController<Void> {
 
     private static final String CURRENT_SORT_TYPE_CLASS_NAME = "currentSortType";
     private static final String CURRENT_ORDER_TYPE_CLASS_NAME = "currentOrderType";
+
+    @Override
+    public Void getResult() {
+        return null;
+    }
 
     @FunctionalInterface
     public interface UpdateAction {

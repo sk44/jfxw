@@ -20,7 +20,7 @@ import lombok.Setter;
  *
  * @author sk
  */
-public class ConfirmWindowController implements Initializable {
+public class ConfirmWindowController implements Initializable, ModalWindowController<Boolean> {
 
     @FXML
     private Pane rootPane;
@@ -32,6 +32,8 @@ public class ConfirmWindowController implements Initializable {
     private Runnable okAction;
     @Setter
     private Runnable closeAction;
+
+    private boolean resultOK = false;
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
@@ -55,11 +57,13 @@ public class ConfirmWindowController implements Initializable {
 
     @FXML
     protected void handleOKAction(ActionEvent event) {
+        resultOK = true;
         execute();
     }
 
     @FXML
     protected void handleCancelAction(ActionEvent event) {
+        resultOK = false;
         close();
     }
 
@@ -74,6 +78,11 @@ public class ConfirmWindowController implements Initializable {
 
     private void close() {
         this.closeAction.run();
+    }
+
+    @Override
+    public Boolean getResult() {
+        return resultOK;
     }
 
 }

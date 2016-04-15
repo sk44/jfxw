@@ -15,19 +15,22 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.Window;
+import sk44.jfxw.controller.ModalWindowController;
 import sk44.jfxw.model.message.Message;
 
 /**
  *
  * @author sk
- * @param <T> controller
+ * @param <C>
+ * @param <R>
  */
-public class ModalWindow<T> {
+public class ModalWindow<C extends ModalWindowController<R>, R> {
 
     private boolean initialized = false;
     private final Stage stage = new Stage();
+    private C controller;
 
-    private void init(Fxml fxml, Window owner, Consumer<T> controllerConfigurer) {
+    private void init(Fxml fxml, Window owner, Consumer<C> controllerConfigurer) {
         // http://stackoverflow.com/questions/10486731/how-to-create-a-modal-window-in-javafx-2-1
         // http://nodamushi.hatenablog.com/entry/20130910/1378784711
         try {
@@ -37,7 +40,8 @@ public class ModalWindow<T> {
             // 先にロードしないと controller が取れない
             Parent root = loader.load();
 
-            controllerConfigurer.accept(loader.getController());
+            controller = loader.getController();
+            controllerConfigurer.accept(controller);
 
             Scene scene = new Scene(root, Color.TRANSPARENT);
 //            scene.setFill(Color.TRANSPARENT);
@@ -52,12 +56,13 @@ public class ModalWindow<T> {
         }
     }
 
-    public void show(Fxml fxml, Window owner, Consumer<T> controllerConfigurer) {
+    public R showAndWait(Fxml fxml, Window owner, Consumer<C> controllerConfigurer) {
 
         if (initialized == false) {
             init(fxml, owner, controllerConfigurer);
         }
-        show();
+        this.stage.showAndWait();
+        return controller.getResult();
 
 //        // http://stackoverflow.com/questions/10486731/how-to-create-a-modal-window-in-javafx-2-1
 //        // http://nodamushi.hatenablog.com/entry/20130910/1378784711
@@ -96,10 +101,6 @@ public class ModalWindow<T> {
             stage.setY(stage.getY() - newHeight.doubleValue() / 2);
         });
 
-    }
-
-    private void show() {
-        this.stage.showAndWait();
     }
 
     public void close() {

@@ -44,7 +44,7 @@ public class PathHelper {
         }
     }
 
-    public static void copyPath(@NonNull Path source, @NonNull Path dest, OverwriteFileConfirmer confirmer) {
+    public static void copyPath(@NonNull Path source, @NonNull Path dest, @NonNull OverwriteFileConfirmer confirmer) {
 
         if (Files.isDirectory(source)) {
             try {
@@ -61,19 +61,27 @@ public class PathHelper {
         copyFile(source, dest, confirmer);
     }
 
-    public static void copyFile(@NonNull Path source, @NonNull Path dest, OverwriteFileConfirmer confirmer) {
+    public static void copyFile(@NonNull Path source, @NonNull Path dest, @NonNull OverwriteFileConfirmer confirmer) {
+        if (source.equals(dest)) {
+            Message.warn("cannot copy to same path.");
+            return;
+        }
         assertTrue(Files.isDirectory(source) == false);
         assertTrue(Files.isDirectory(dest) == false);
         if (Files.exists(dest) == false
-            || (confirmer != null && confirmer.confirm(dest.toString() + " is already exists. overwrite this?"))) {
-            try {
-                // TODO リネームしてコピーのサポート
-                Files.copy(source, dest, StandardCopyOption.COPY_ATTRIBUTES, StandardCopyOption.REPLACE_EXISTING);
-                Message.info("copied: " + source.toString() + "\n\tto: " + dest.toString());
-            } catch (IOException ex) {
-                Message.error(ex);
-                throw new UncheckedIOException(ex);
-            }
+            || confirmer.confirm(dest.toString() + " is already exists. overwrite this?")) {
+            copy(source, dest);
+        }
+    }
+
+    private static void copy(@NonNull Path source, @NonNull Path dest) {
+        try {
+            // TODO リネームしてコピーのサポート
+            Files.copy(source, dest, StandardCopyOption.COPY_ATTRIBUTES, StandardCopyOption.REPLACE_EXISTING);
+            Message.info("copied: " + source.toString() + "\n\tto: " + dest.toString());
+        } catch (IOException ex) {
+            Message.error(ex);
+            throw new UncheckedIOException(ex);
         }
     }
 

@@ -14,8 +14,6 @@ import java.util.stream.StreamSupport;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.input.KeyEvent;
@@ -31,7 +29,6 @@ import sk44.jfxw.view.FilerContents;
 import sk44.jfxw.view.Fxml;
 import sk44.jfxw.view.ModalWindow;
 import sk44.jfxw.view.Nodes;
-import sk44.jfxw.view.SearchTextField;
 
 /**
  * FXML Controller class
@@ -71,14 +68,13 @@ public class FilerViewController implements Initializable {
 
     private final FilerContents contents = new FilerContents();
 
-    private final ModalWindow<SortWindowController> sortWindow = new ModalWindow<>();
-    private final ModalWindow<TextFieldWindowController> renameWindow = new ModalWindow<>();
-    private final ModalWindow<TextFieldWindowController> createDirWindow = new ModalWindow<>();
-    private final ModalWindow<TextFieldWindowController> searchWindow = new ModalWindow<>();
-    private final ModalWindow<ConfirmWindowController> deleteConfirmWindow = new ModalWindow<>();
+    private final ModalWindow<SortWindowController, Void> sortWindow = new ModalWindow<>();
+    private final ModalWindow<TextFieldWindowController, Void> renameWindow = new ModalWindow<>();
+    private final ModalWindow<TextFieldWindowController, Void> createDirWindow = new ModalWindow<>();
+    private final ModalWindow<TextFieldWindowController, Void> searchWindow = new ModalWindow<>();
+    private final ModalWindow<ConfirmWindowController, Boolean> deleteConfirmWindow = new ModalWindow<>();
+    private final ModalWindow<ConfirmWindowController, Boolean> copyConfirmWindow = new ModalWindow<>();
 
-    @Deprecated
-    private SearchTextField searchTextField;
     private String searchText;
     private CurrentPathInfoBox currentPathInfoBox;
 
@@ -203,18 +199,22 @@ public class FilerViewController implements Initializable {
     }
 
     private void copy() {
-        filer.copy(contents.collectMarkedPathes(), this::showConfirmDialog);
+        filer.copy(contents.collectMarkedPathes(), this::showCopyConfirmDialog);
         updateCursor();
     }
 
-    private boolean showConfirmDialog(String message) {
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.getDialogPane().setContentText(message);
-        return alert.showAndWait().filter(response -> response == ButtonType.OK).isPresent();
+    private boolean showCopyConfirmDialog(String message) {
+        return copyConfirmWindow.showAndWait(Fxml.CONFIRM_WINDOW, rootPane.getScene().getWindow(), controller -> {
+            controller.updateMessage(message);
+            controller.setCloseAction(copyConfirmWindow::close);
+            controller.setOkAction(() -> {
+                // no-op
+            });
+        });
     }
 
     private void delete() {
-        deleteConfirmWindow.show(Fxml.CONFIRM_WINDOW, rootPane.getScene().getWindow(), controller -> {
+        deleteConfirmWindow.showAndWait(Fxml.CONFIRM_WINDOW, rootPane.getScene().getWindow(), controller -> {
             controller.updateMessage("Are you sure?");
             controller.setCloseAction(deleteConfirmWindow::close);
             controller.setOkAction(() -> {
@@ -225,7 +225,8 @@ public class FilerViewController implements Initializable {
     }
 
     private void move() {
-        filer.move(contents.collectMarkedPathes(), this::showConfirmDialog);
+        // TODO コピーとわける？
+        filer.move(contents.collectMarkedPathes(), this::showCopyConfirmDialog);
         updateCursor();
     }
 
@@ -238,7 +239,7 @@ public class FilerViewController implements Initializable {
     }
 
     private void openCreateDirectoryWindow() {
-        createDirWindow.show(Fxml.TEXT_FIELD_WINDOW, rootPane.getScene().getWindow(), (controller) -> {
+        createDirWindow.showAndWait(Fxml.TEXT_FIELD_WINDOW, rootPane.getScene().getWindow(), (controller) -> {
             controller.updateContent("New directory", "");
             controller.setCloseAction(createDirWindow::close);
             controller.setUpdateAction(dirName -> {
@@ -253,7 +254,7 @@ public class FilerViewController implements Initializable {
             return;
         }
         Path target = currentContent.getPath();
-        renameWindow.show(Fxml.TEXT_FIELD_WINDOW, rootPane.getScene().getWindow(), controller -> {
+        renameWindow.showAndWait(Fxml.TEXT_FIELD_WINDOW, rootPane.getScene().getWindow(), controller -> {
             controller.updateContent("Rename", target.getFileName().toString());
             controller.setCloseAction(renameWindow::close);
             controller.setUpdateAction(newName -> {
@@ -276,7 +277,7 @@ public class FilerViewController implements Initializable {
     }
 
     private void openSortOptionWindow() {
-        sortWindow.show(Fxml.SORT_WINDOW, rootPane.getScene().getWindow(), controller -> {
+        sortWindow.showAndWait(Fxml.SORT_WINDOW, rootPane.getScene().getWindow(), controller -> {
             controller.updateSortOptions(this.filer.getSortType(),
                 this.filer.getSortOrder(), this.filer.isSortDirectories());
             controller.setCloseAction(this.sortWindow::close);
@@ -285,7 +286,7 @@ public class FilerViewController implements Initializable {
     }
 
     private void openSearchTextField() {
-        searchWindow.show(Fxml.TEXT_FIELD_WINDOW, rootPane.getScene().getWindow(), controller -> {
+        searchWindow.showAndWait(Fxml.TEXT_FIELD_WINDOW, rootPane.getScene().getWindow(), controller -> {
             controller.updateContent("Search", searchText);
             controller.setCloseAction(searchWindow::close);
             controller.addKeyReleasedEventHandler((query, e) -> {
