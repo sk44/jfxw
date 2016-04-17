@@ -153,7 +153,12 @@ public class FilerViewController implements Initializable {
                 }
                 break;
             case S:
-                openSortOptionWindow();
+                if (event.isShiftDown()) {
+                    createSymbolicLink();
+
+                } else {
+                    openSortOptionWindow();
+                }
                 break;
             case W:
                 updateBackgroundImage();
@@ -228,6 +233,10 @@ public class FilerViewController implements Initializable {
         // TODO コピーとわける？
         filer.move(contents.collectMarkedPathes(), this::showCopyConfirmDialog);
         updateCursor();
+    }
+
+    private void createSymbolicLink() {
+        filer.createSymbolicLinks(contents.collectMarkedPathes());
     }
 
     private void updateCursor() {

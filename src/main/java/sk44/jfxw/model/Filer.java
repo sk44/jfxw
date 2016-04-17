@@ -286,6 +286,25 @@ public class Filer {
         otherFiler.reload();
     }
 
+    public void createSymbolicLinks(List<Path> entries) {
+        // TODO confirm が必要
+        try {
+            for (Path entry : entries) {
+                Path newLink = otherFiler.resolve(entry);
+                if (Files.exists(newLink)) {
+                    Message.error(newLink + " is already exists.");
+                    continue;
+                }
+                Files.createSymbolicLink(newLink, entry);
+                // リンク作成後に反対側の窓でフォーカスさせる
+                otherFiler.addToCache(newLink);
+            }
+            otherFiler.reload();
+        } catch (IOException ex) {
+            Message.error(ex);
+        }
+    }
+
     public void move(List<Path> entries, OverwriteFileConfirmer confirmer) {
         entries.stream().forEach((entry) -> {
             // TODO バックグラウンド実行を検討

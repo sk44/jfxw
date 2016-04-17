@@ -36,6 +36,7 @@ public class ContentRow extends FlowPane {
     private static final String LAST_MODIFIED_DATE_FORMAT = "yyyy/MM/dd HH:mm:ss";
     private static final Color CURSOR_COLOR = Color.LIGHTGREY;
 
+    // TODO シンボリックリンクの表現を考える
     public static LocalDateTime getLastModified(Path path) {
         try {
             return LocalDateTime.ofInstant(Files.getLastModifiedTime(path).toInstant(), ZoneOffset.ofHours(9));
@@ -93,7 +94,15 @@ public class ContentRow extends FlowPane {
         });
 
         String name = asParent ? PARENT_DIR_NAME : path.getFileName().toString();
-        if (asParent == false && isDirectory()) {
+        // TODO 色変えるなどだけするほうがスペース的に無理ないかも
+        if (isSymbolicLink()) {
+            try {
+                Path link = Files.readSymbolicLink(path);
+                name += "@ -> " + link;
+            } catch (IOException ex) {
+                Message.error(ex);
+            }
+        } else if (asParent == false && isDirectory()) {
             name += DIR_NAME_SUFFIX;
         }
         nameLabel = new Label(name);
@@ -138,6 +147,10 @@ public class ContentRow extends FlowPane {
 
     public final boolean isDirectory() {
         return Files.isDirectory(path);
+    }
+
+    private boolean isSymbolicLink() {
+        return Files.isSymbolicLink(path);
     }
 
     public boolean isParent() {

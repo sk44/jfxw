@@ -120,6 +120,15 @@ public class MainWindowController implements Initializable {
             return;
         }
         String value = fileName.toString();
+        if (Files.isSymbolicLink(path)) {
+            try {
+                Path link = Files.readSymbolicLink(path);
+                statusLabel.setText(value + "@ -> " + link);
+            } catch (IOException ex) {
+                Message.error(ex);
+            }
+            return;
+        }
         if (Files.isDirectory(path)) {
             statusLabel.setText(value + "/");
         } else {
