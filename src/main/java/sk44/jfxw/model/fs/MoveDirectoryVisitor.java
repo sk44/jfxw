@@ -44,6 +44,7 @@ public class MoveDirectoryVisitor extends SimpleFileVisitor<Path> {
     public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
         Path newPath = destDir.resolve(sourceDir.relativize(file));
         // TODO リネームして移動のサポート
+        // TODO PathHelper を使う
         if (Files.exists(newPath) == false
             || confirmer.confirm(newPath.toString() + " is already exists. overwrite it?")) {
 

@@ -44,7 +44,7 @@ public class PathHelper {
         }
     }
 
-    public static void copyPath(@NonNull Path source, @NonNull Path dest, @NonNull OverwriteFileConfirmer confirmer) {
+    public static boolean copyPath(@NonNull Path source, @NonNull Path dest, @NonNull OverwriteFileConfirmer confirmer) {
 
         if (Files.isDirectory(source)) {
             try {
@@ -56,22 +56,24 @@ public class PathHelper {
                 throw new UncheckedIOException(ex);
             }
             Message.info("copied: " + source.toString() + "\n\tto: " + dest.toString());
-            return;
+            return true;
         }
-        copyFile(source, dest, confirmer);
+        return copyFile(source, dest, confirmer);
     }
 
-    public static void copyFile(@NonNull Path source, @NonNull Path dest, @NonNull OverwriteFileConfirmer confirmer) {
+    public static boolean copyFile(@NonNull Path source, @NonNull Path dest, @NonNull OverwriteFileConfirmer confirmer) {
         if (source.equals(dest)) {
             Message.warn("cannot copy to same path.");
-            return;
+            return false;
         }
         assertTrue(Files.isDirectory(source) == false);
         assertTrue(Files.isDirectory(dest) == false);
         if (Files.exists(dest) == false
             || confirmer.confirm(dest.toString() + " is already exists. overwrite this?")) {
             copy(source, dest);
+            return true;
         }
+        return false;
     }
 
     private static void copy(@NonNull Path source, @NonNull Path dest) {
@@ -85,7 +87,7 @@ public class PathHelper {
         }
     }
 
-    public static void movePath(@NonNull Path source, @NonNull Path dest, OverwriteFileConfirmer confirmer) {
+    public static boolean movePath(@NonNull Path source, @NonNull Path dest, OverwriteFileConfirmer confirmer) {
 
         if (Files.isDirectory(source)) {
             try {
@@ -93,29 +95,30 @@ public class PathHelper {
                 Files.walkFileTree(source, new MoveDirectoryVisitor(source,
                     dest, confirmer));
                 Files.walkFileTree(source, new DeleteDirectoryVisitor());
+                Message.info("moved: \n\t" + source.toString() + "\n\tto: \n\t" + dest.toString());
+                return true;
             } catch (IOException ex) {
                 Message.error(ex);
                 throw new UncheckedIOException(ex);
             }
-            Message.info("moved: \n\t" + source.toString() + "\n\tto: \n\t" + dest.toString());
-            return;
         }
-        moveFile(source, dest, confirmer);
+        return moveFile(source, dest, confirmer);
     }
 
-    public static void moveFile(@NonNull Path source, @NonNull Path dest, OverwriteFileConfirmer confirmer) {
+    private static boolean moveFile(@NonNull Path source, @NonNull Path dest, OverwriteFileConfirmer confirmer) {
         assertTrue(Files.isDirectory(source) == false);
         assertTrue(Files.isDirectory(dest) == false);
         if (Files.exists(dest) == false
             || (confirmer != null && confirmer.confirm(dest.toString() + " is already exists. overwrite this?"))) {
             try {
-                Files.move(source, dest);
+                Files.move(source, dest, StandardCopyOption.REPLACE_EXISTING);
                 Message.info("moved: \n\t" + source.toString() + "\n\tto: \n\t" + dest.toString());
+                return true;
             } catch (IOException ex) {
                 Message.error(ex);
                 throw new UncheckedIOException(ex);
             }
         }
-
+        return false;
     }
 }

@@ -277,10 +277,11 @@ public class Filer {
         entries.stream().forEach((entry) -> {
             // TODO バックグラウンド実行を検討
             Path newPath = otherFiler.resolve(entry);
-            PathHelper.copyPath(entry, newPath, confirmer);
-            postProcess(entry);
-            // 移動後に反対側の窓でフォーカスさせる
-            otherFiler.addToCache(newPath);
+            if (PathHelper.copyPath(entry, newPath, confirmer)) {
+                postProcess(entry);
+                // 移動後に反対側の窓でフォーカスさせる
+                otherFiler.addToCache(newPath);
+            }
         });
         otherFiler.reload();
     }
@@ -289,10 +290,11 @@ public class Filer {
         entries.stream().forEach((entry) -> {
             // TODO バックグラウンド実行を検討
             Path movedPath = otherFiler.resolve(entry);
-            PathHelper.movePath(entry, movedPath, confirmer);
-            postProcess(entry);
-            // 移動後に反対側の窓でフォーカスさせる（ reload に依存）
-            otherFiler.addToCache(movedPath);
+            if (PathHelper.movePath(entry, movedPath, confirmer)) {
+                postProcess(entry);
+                // 移動後に反対側の窓でフォーカスさせる（ reload に依存）
+                otherFiler.addToCache(movedPath);
+            }
         });
         // TODO 先頭にカーソルが移動してしまう場合がある
         reload();
