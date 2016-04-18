@@ -12,11 +12,12 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <mainClass>sk44.jfxw.MainApp</mainClass>
+        <identifier>jfxw</identifier>
     </properties>
 
     <organization>
         <!-- Used as the 'Vendor' for JNLP generation -->
-        <name>Your Organisation</name>
+        <name>sk44</name>
     </organization>
 
     <dependencies>
@@ -36,6 +37,7 @@
     </dependencies>
 
     <build>
+        <finalName>jfxw</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -117,6 +119,16 @@
                     <additionalClasspathElements>
                         <additionalClasspathElement>${java.home}/lib/jfxrt.jar</additionalClasspathElement>
                     </additionalClasspathElements>
+                </configuration>
+            </plugin>
+            <!-- http://javafx-maven-plugin.github.io/ -->
+            <plugin>
+                <groupId>com.zenjava</groupId>
+                <artifactId>javafx-maven-plugin</artifactId>
+                <version>8.1.4</version>
+                <configuration>
+                    <mainClass>${mainClass}</mainClass>
+                    <identifier>${identifier}</identifier>
                 </configuration>
             </plugin>
         </plugins>
