@@ -152,9 +152,9 @@ public class FilerViewController implements Initializable {
                 break;
             case R:
                 if (event.isShiftDown()) {
-                    filer.reload();
-                } else {
                     openRenameWindow();
+                } else {
+                    filer.reload();
                 }
                 break;
             case S:
@@ -218,6 +218,7 @@ public class FilerViewController implements Initializable {
             controller.updateMessage(message);
             controller.setOkAction(() -> {
                 // no-op
+                // TODO no-op はわかりづらい
             });
         });
     }
