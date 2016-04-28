@@ -15,7 +15,8 @@ public enum Fxml {
     MAIN_WINDOW("MainWindow"),
     SORT_WINDOW("SortWindow"),
     TEXT_FIELD_WINDOW("TextFieldWindow"),
-    CONFIRM_WINDOW("ConfirmWindow");
+    CONFIRM_WINDOW("ConfirmWindow"),
+    JUMP_WINDOW("JumpWindow");
 
     private Fxml(String name) {
         this.name = name;

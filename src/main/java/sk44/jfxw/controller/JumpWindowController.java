@@ -6,11 +6,14 @@
 package sk44.jfxw.controller;
 
 import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ResourceBundle;
-import javafx.event.ActionEvent;
+import java.util.function.Consumer;
+import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Pane;
 import lombok.Setter;
@@ -20,63 +23,43 @@ import lombok.Setter;
  *
  * @author sk
  */
-public class ConfirmWindowController extends ModalWindowController<Boolean> implements Initializable {
+public class JumpWindowController extends ModalWindowController<Void> implements Initializable {
 
     @FXML
     private Pane rootPane;
-
     @FXML
-    private Label messageLabel;
+    private TextField textField;
 
     @Setter
-    private Runnable okAction;
-
-    private boolean resultOK = false;
+    private Consumer<Path> jumpAction;
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        // TODO
+        textField.requestFocus();
         this.rootPane.addEventFilter(KeyEvent.KEY_PRESSED, this::handleCommandKeyPressed);
     }
 
     protected void handleCommandKeyPressed(KeyEvent event) {
-
         switch (event.getCode()) {
             case ESCAPE:
                 close();
                 break;
-            case ENTER:
-                execute();
-                break;
             default:
                 break;
         }
+
     }
 
     @FXML
-    protected void handleOKAction(ActionEvent event) {
-        resultOK = true;
-        execute();
-    }
-
-    @FXML
-    protected void handleCancelAction(ActionEvent event) {
-        resultOK = false;
-        close();
-    }
-
-    public void updateMessage(String message) {
-        messageLabel.setText(message);
-    }
-
-    private void execute() {
-        this.okAction.run();
+    void handleTextEnter(Event event) {
+//        update();
+        // TODO 絞り込む？
+        jumpAction.accept(Paths.get(textField.getText()));
         close();
     }
 
     @Override
-    public Boolean getResult() {
-        return resultOK;
+    public Void getResult() {
+        return null;
     }
-
 }

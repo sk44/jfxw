@@ -23,7 +23,7 @@ import sk44.jfxw.model.message.Message;
  *
  * @author sk
  */
-public class TextFieldWindowController implements Initializable, ModalWindowController<Void> {
+public class TextFieldWindowController extends ModalWindowController<Void> implements Initializable {
 
     @Override
     public Void getResult() {
@@ -43,8 +43,6 @@ public class TextFieldWindowController implements Initializable, ModalWindowCont
     @FXML
     private TextField textField;
 
-    @Setter
-    private Runnable closeAction;
     @Setter
     private Consumer<String> updateAction;
 
@@ -94,7 +92,4 @@ public class TextFieldWindowController implements Initializable, ModalWindowCont
         });
     }
 
-    private void close() {
-        closeAction.run();
-    }
 }

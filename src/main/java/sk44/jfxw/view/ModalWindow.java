@@ -41,6 +41,7 @@ public class ModalWindow<C extends ModalWindowController<R>, R> {
             Parent root = loader.load();
 
             controller = loader.getController();
+            controller.setCloseAction(this::close);
             controllerConfigurer.accept(controller);
 
             Scene scene = new Scene(root, Color.TRANSPARENT);
@@ -103,7 +104,7 @@ public class ModalWindow<C extends ModalWindowController<R>, R> {
 
     }
 
-    public void close() {
+    private void close() {
         // TODO close でいいのか？隠すだけ？
         this.stage.close();
     }

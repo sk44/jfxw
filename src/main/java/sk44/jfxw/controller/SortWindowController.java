@@ -23,7 +23,7 @@ import sk44.jfxw.view.Nodes;
  *
  * @author sk
  */
-public class SortWindowController implements Initializable, ModalWindowController<Void> {
+public class SortWindowController extends ModalWindowController<Void> implements Initializable {
 
     private static final String CURRENT_SORT_TYPE_CLASS_NAME = "currentSortType";
     private static final String CURRENT_ORDER_TYPE_CLASS_NAME = "currentOrderType";
@@ -57,9 +57,6 @@ public class SortWindowController implements Initializable, ModalWindowControlle
 
     private PathSortType currentSortType;
     private PathSortOrder sortOrder;
-
-    @Setter
-    private Runnable closeAction;
     @Setter
     private UpdateAction updateAction;
 
@@ -94,11 +91,11 @@ public class SortWindowController implements Initializable, ModalWindowControlle
                 updateCurrentSortType(this.currentSortType, PathSortOrder.ASC);
                 break;
             case ESCAPE:
-                closeAction.run();
+                close();
                 break;
             case ENTER:
                 updateAction.update(this.currentSortType, this.sortOrder, this.sortDirectoriesCheckBox.isSelected());
-                closeAction.run();
+                close();
                 break;
             default:
                 break;

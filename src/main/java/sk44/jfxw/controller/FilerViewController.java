@@ -19,6 +19,7 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.FlowPane;
+import javafx.stage.Window;
 import lombok.Getter;
 import sk44.jfxw.model.Filer;
 import sk44.jfxw.model.ModelLocator;
@@ -74,6 +75,7 @@ public class FilerViewController implements Initializable {
     private final ModalWindow<TextFieldWindowController, Void> searchWindow = new ModalWindow<>();
     private final ModalWindow<ConfirmWindowController, Boolean> deleteConfirmWindow = new ModalWindow<>();
     private final ModalWindow<ConfirmWindowController, Boolean> copyConfirmWindow = new ModalWindow<>();
+    private final ModalWindow<JumpWindowController, Void> jumpWindow = new ModalWindow<>();
 
     private String searchText;
     private CurrentPathInfoBox currentPathInfoBox;
@@ -106,6 +108,9 @@ public class FilerViewController implements Initializable {
                 this.filer.changeDirectoryToParentDir();
                 break;
             case J:
+                if (event.isShiftDown()) {
+                    openJumpWindow();
+                }
             case DOWN:
                 // down
                 next();
@@ -209,9 +214,8 @@ public class FilerViewController implements Initializable {
     }
 
     private boolean showCopyConfirmDialog(String message) {
-        return copyConfirmWindow.showAndWait(Fxml.CONFIRM_WINDOW, rootPane.getScene().getWindow(), controller -> {
+        return copyConfirmWindow.showAndWait(Fxml.CONFIRM_WINDOW, getModalWindowOwner(), controller -> {
             controller.updateMessage(message);
-            controller.setCloseAction(copyConfirmWindow::close);
             controller.setOkAction(() -> {
                 // no-op
             });
@@ -219,9 +223,8 @@ public class FilerViewController implements Initializable {
     }
 
     private void delete() {
-        deleteConfirmWindow.showAndWait(Fxml.CONFIRM_WINDOW, rootPane.getScene().getWindow(), controller -> {
+        deleteConfirmWindow.showAndWait(Fxml.CONFIRM_WINDOW, getModalWindowOwner(), controller -> {
             controller.updateMessage("Are you sure?");
-            controller.setCloseAction(deleteConfirmWindow::close);
             controller.setOkAction(() -> {
                 filer.delete(contents.collectMarkedPathes());
                 updateCursor();
@@ -248,9 +251,8 @@ public class FilerViewController implements Initializable {
     }
 
     private void openCreateDirectoryWindow() {
-        createDirWindow.showAndWait(Fxml.TEXT_FIELD_WINDOW, rootPane.getScene().getWindow(), (controller) -> {
+        createDirWindow.showAndWait(Fxml.TEXT_FIELD_WINDOW, getModalWindowOwner(), (controller) -> {
             controller.updateContent("New directory", "");
-            controller.setCloseAction(createDirWindow::close);
             controller.setUpdateAction(dirName -> {
                 filer.createDirectory(dirName);
             });
@@ -263,9 +265,8 @@ public class FilerViewController implements Initializable {
             return;
         }
         Path target = currentContent.getPath();
-        renameWindow.showAndWait(Fxml.TEXT_FIELD_WINDOW, rootPane.getScene().getWindow(), controller -> {
+        renameWindow.showAndWait(Fxml.TEXT_FIELD_WINDOW, getModalWindowOwner(), controller -> {
             controller.updateContent("Rename", target.getFileName().toString());
-            controller.setCloseAction(renameWindow::close);
             controller.setUpdateAction(newName -> {
                 try {
                     // TODO パス区切り文字が入っている場合とか
@@ -285,19 +286,25 @@ public class FilerViewController implements Initializable {
         });
     }
 
+    private void openJumpWindow() {
+        jumpWindow.showAndWait(Fxml.JUMP_WINDOW, getModalWindowOwner(), controller -> {
+            controller.setJumpAction(path -> {
+                filer.changeDirectoryTo(path);
+            });
+        });
+    }
+
     private void openSortOptionWindow() {
-        sortWindow.showAndWait(Fxml.SORT_WINDOW, rootPane.getScene().getWindow(), controller -> {
+        sortWindow.showAndWait(Fxml.SORT_WINDOW, getModalWindowOwner(), controller -> {
             controller.updateSortOptions(this.filer.getSortType(),
                 this.filer.getSortOrder(), this.filer.isSortDirectories());
-            controller.setCloseAction(this.sortWindow::close);
             controller.setUpdateAction(this.filer::updateSortType);
         });
     }
 
     private void openSearchTextField() {
-        searchWindow.showAndWait(Fxml.TEXT_FIELD_WINDOW, rootPane.getScene().getWindow(), controller -> {
+        searchWindow.showAndWait(Fxml.TEXT_FIELD_WINDOW, getModalWindowOwner(), controller -> {
             controller.updateContent("Search", searchText);
-            controller.setCloseAction(searchWindow::close);
             controller.addKeyReleasedEventHandler((query, e) -> {
                 switch (e.getCode()) {
                     case ESCAPE:
@@ -306,7 +313,8 @@ public class FilerViewController implements Initializable {
                         if (e.isShiftDown()) {
                             searchText = query;
                             searchPrevious();
-                            searchWindow.close();
+//                            searchWindow.close();
+                            controller.close();
                         }
                         break;
                     default:
@@ -320,6 +328,10 @@ public class FilerViewController implements Initializable {
                 searchNext(true);
             });
         });
+    }
+
+    private Window getModalWindowOwner() {
+        return rootPane.getScene().getWindow();
     }
 
     @Override
