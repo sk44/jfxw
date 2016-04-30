@@ -15,6 +15,7 @@ import sk44.jfxw.model.configuration.Configuration;
 import sk44.jfxw.model.configuration.ConfigurationStore;
 import sk44.jfxw.model.configuration.FilerConfig;
 import sk44.jfxw.model.message.Message;
+import sk44.jfxw.model.persistence.EntityManagerFactoryProvider;
 import sk44.jfxw.view.Fxml;
 
 public class MainApp extends Application {
@@ -25,6 +26,7 @@ public class MainApp extends Application {
     public void start(Stage stage) throws Exception {
 
         initializeModelLocator();
+        EntityManagerFactoryProvider.init();
 
         primaryStage = stage;
 

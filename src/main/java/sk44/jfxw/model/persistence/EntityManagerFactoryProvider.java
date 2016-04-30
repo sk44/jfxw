@@ -17,19 +17,19 @@ import sk44.jfxw.model.configuration.ConfigDir;
  * @author sk
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-class EntityManagerFactoryProvider {
+public class EntityManagerFactoryProvider {
 
     private static final String PU_NAME = "jfxwPU";
-    private static final EntityManagerFactory FACTORY;
+    private static EntityManagerFactory FACTORY;
 
-    // TODO 初期化が遅いので、起動時にやってしまうのを検討
-    static {
+    public static void init() {
+        // TODO 起動時に呼ぶようにしたが、結局初回 jump 表示が遅い
         Properties props = new Properties();
         props.setProperty("javax.persistence.jdbc.url", "jdbc:derby:" + ConfigDir.get().toString() + "/jfxwdb;create=true");
         FACTORY = Persistence.createEntityManagerFactory(PU_NAME, props);
     }
 
-    public static EntityManagerFactory getFactory() {
+    static EntityManagerFactory getFactory() {
         return FACTORY;
     }
 }

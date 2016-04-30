@@ -50,6 +50,10 @@ public class Configuration {
 
     @Getter
     @Setter
+    private List<String> indexDirs;
+
+    @Getter
+    @Setter
     private MessageLevel logLevel;
 
     @Getter
@@ -59,6 +63,10 @@ public class Configuration {
     @Getter
     @Setter
     private String backgroundImageDir;
+
+    @Getter
+    @Setter
+    private List<String> editorCommand;
 
     @Getter
     @Setter

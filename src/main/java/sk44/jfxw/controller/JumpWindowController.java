@@ -5,6 +5,8 @@
  */
 package sk44.jfxw.controller;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -24,7 +26,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Pane;
 import lombok.Setter;
-import lombok.SneakyThrows;
+import sk44.jfxw.model.ModelLocator;
 import sk44.jfxw.model.fs.index.DirectoryIndex;
 import sk44.jfxw.model.fs.index.DirectoryScanner;
 import sk44.jfxw.model.message.Message;
@@ -96,24 +98,11 @@ public class JumpWindowController extends ModalWindowController<Void> implements
             .collect(Collectors.toList());
     }
 
-    @SneakyThrows
     protected void handleCommandKeyPressed(KeyEvent event) {
         switch (event.getCode()) {
             case R:
                 if (event.isControlDown()) {
-                    Message.info("updating directory indexes...");
-                    // TODO 設定ファイルあたりからとる
-                    // TODO 除外設定
-                    Path start = Paths.get("");
-                    repository.removeAll();
-                    Files.walkFileTree(start, new DirectoryScanner(path -> {
-                        DirectoryIndex newIndex = new DirectoryIndex();
-                        newIndex.setDirPath(path.toString());
-                        repository.add(newIndex);
-                        Message.info("add directory: " + path);
-                    }));
-                    context.save();
-                    Message.info("directory indexes updated.");
+                    scanIndexes();
                 }
                 break;
             case ESCAPE:
@@ -122,6 +111,27 @@ public class JumpWindowController extends ModalWindowController<Void> implements
             default:
                 break;
         }
+    }
+
+    private void scanIndexes() {
+        Message.info("updating directory indexes...");
+        // TODO 除外設定
+        repository.removeAll();
+        ModelLocator.INSTANCE.getConfigurationStore().getConfiguration().getIndexDirs().forEach(dir -> {
+            Path start = Paths.get(dir);
+            try {
+                Files.walkFileTree(start, new DirectoryScanner(path -> {
+                    DirectoryIndex newIndex = new DirectoryIndex();
+                    newIndex.setDirPath(path.toString());
+                    repository.add(newIndex);
+                    Message.info("add directory: " + path);
+                }));
+            } catch (IOException ex) {
+                throw new UncheckedIOException(ex);
+            }
+        });
+        context.save();
+        Message.info("directory indexes updated.");
 
     }
 
