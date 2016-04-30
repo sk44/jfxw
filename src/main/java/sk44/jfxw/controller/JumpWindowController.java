@@ -89,6 +89,7 @@ public class JumpWindowController extends ModalWindowController<Void> implements
                 item.setOnAction(event -> {
                     textField.setText(path);
                     completePupup.hide();
+                    jump();
                 });
                 return item;
             })
@@ -126,7 +127,10 @@ public class JumpWindowController extends ModalWindowController<Void> implements
 
     @FXML
     void handleTextEnter(Event event) {
-        // TODO 絞り込む？
+        jump();
+    }
+
+    private void jump() {
         jumpAction.accept(Paths.get(textField.getText()));
         close();
     }

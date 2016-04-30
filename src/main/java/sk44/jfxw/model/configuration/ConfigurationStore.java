@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Objects;
 
 /**
@@ -36,8 +37,8 @@ public class ConfigurationStore {
     private Configuration configuration;
     private File configFile;
 
-    public void init(File configFileDir) throws IOException {
-        configFile = new File(configFileDir, CONFIG_FILE_NAME);
+    public void init(Path configFileDir) throws IOException {
+        configFile = new File(configFileDir.toFile(), CONFIG_FILE_NAME);
         configuration = read(configFile);
     }
 

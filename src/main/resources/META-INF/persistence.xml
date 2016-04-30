@@ -4,7 +4,10 @@
         <provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
         <class>sk44.jfxw.model.fs.index.DirectoryIndex</class>
         <properties>
+            <!--
+            set by code
             <property name="javax.persistence.jdbc.url" value="jdbc:derby:jfxwdb;create=true"/>
+            -->
             <property name="javax.persistence.jdbc.user" value=""/>
             <property name="javax.persistence.jdbc.driver" value="org.apache.derby.jdbc.EmbeddedDriver"/>
             <property name="javax.persistence.jdbc.password" value=""/>

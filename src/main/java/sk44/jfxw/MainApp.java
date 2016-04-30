@@ -1,9 +1,8 @@
 package sk44.jfxw;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.Optional;
 import javafx.application.Application;
+import static javafx.application.Application.launch;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -11,12 +10,12 @@ import javafx.stage.Stage;
 import sk44.jfxw.model.ApplicationEvents;
 import sk44.jfxw.model.Filer;
 import sk44.jfxw.model.ModelLocator;
+import sk44.jfxw.model.configuration.ConfigDir;
 import sk44.jfxw.model.configuration.Configuration;
 import sk44.jfxw.model.configuration.ConfigurationStore;
 import sk44.jfxw.model.configuration.FilerConfig;
 import sk44.jfxw.model.message.Message;
 import sk44.jfxw.view.Fxml;
-import static javafx.application.Application.launch;
 
 public class MainApp extends Application {
 
@@ -45,8 +44,7 @@ public class MainApp extends Application {
     private void initializeModelLocator() throws IOException {
 
         ConfigurationStore configurationStore = new ConfigurationStore();
-        String configDirPath = Optional.ofNullable(System.getProperty("user.home")).orElse(".");
-        configurationStore.init(new File(configDirPath));
+        configurationStore.init(ConfigDir.get());
         Configuration configuration = configurationStore.getConfiguration();
 
         Message.minLevel(configuration.getLogLevel());
