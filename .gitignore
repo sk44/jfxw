@@ -6,3 +6,5 @@ jfxw*.jar
 jfxw.json
 
 .DS_Store
+
+*.log

@@ -110,7 +110,10 @@ public class FilerViewController implements Initializable {
             case J:
                 if (event.isShiftDown()) {
                     openJumpWindow();
+                } else {
+                    next();
                 }
+                break;
             case DOWN:
                 // down
                 next();

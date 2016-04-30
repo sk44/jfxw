@@ -17,6 +17,10 @@ public abstract class ModalWindowController<T> {
     @Setter
     private Runnable closeAction;
 
+    public void preShown() {
+        // overridable
+    }
+
     public abstract T getResult();
 
     protected void close() {

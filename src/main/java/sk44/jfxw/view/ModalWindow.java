@@ -62,6 +62,7 @@ public class ModalWindow<C extends ModalWindowController<R>, R> {
         if (initialized == false) {
             init(fxml, owner, controllerConfigurer);
         }
+        controller.preShown();
         this.stage.showAndWait();
         return controller.getResult();
 
