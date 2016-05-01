@@ -93,7 +93,7 @@ public class FilerViewController implements Initializable {
                 delete();
                 break;
             case E:
-                // TODO 実行？
+                openExternalEditor();
                 break;
             case G:
                 contents.clearCursor();
@@ -172,7 +172,7 @@ public class FilerViewController implements Initializable {
                 updateBackgroundImage();
                 break;
             case X:
-                openByAssociated();
+                openByAssociatedApplication();
                 break;
             case Y:
                 contents.yankCurrentContent();
@@ -426,20 +426,22 @@ public class FilerViewController implements Initializable {
         });
     }
 
-    private void openByAssociated() {
+    private void openExternalEditor() {
         Path onCursor = contents.getCurrentContentPath();
         ModelLocator.INSTANCE
             .getConfigurationStore()
             .getConfiguration()
-            .getAssociatedCommandFor(onCursor)
-            .ifPresent(command -> {
-                try {
-                    Message.info("exec: " + command);
-                    new ProcessBuilder(command).start();
-                } catch (IOException ex) {
-                    Message.error(ex);
-                }
-            });
+            .getEditorProcessFor(onCursor)
+            .execute();
+    }
+
+    private void openByAssociatedApplication() {
+        Path onCursor = contents.getCurrentContentPath();
+        ModelLocator.INSTANCE
+            .getConfigurationStore()
+            .getConfiguration()
+            .getAssociatedProcessFor(onCursor)
+            .execute();
     }
 
     private void previewImage() {

@@ -2,7 +2,6 @@ package sk44.jfxw;
 
 import java.io.IOException;
 import javafx.application.Application;
-import static javafx.application.Application.launch;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -17,6 +16,7 @@ import sk44.jfxw.model.configuration.FilerConfig;
 import sk44.jfxw.model.message.Message;
 import sk44.jfxw.model.persistence.EntityManagerFactoryProvider;
 import sk44.jfxw.view.Fxml;
+import static javafx.application.Application.launch;
 
 public class MainApp extends Application {
 

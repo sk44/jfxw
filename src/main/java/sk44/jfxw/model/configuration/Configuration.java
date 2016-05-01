@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -16,6 +15,7 @@ import lombok.ToString;
 import sk44.jfxw.model.Filer;
 import sk44.jfxw.model.message.Message;
 import sk44.jfxw.model.message.MessageLevel;
+import sk44.jfxw.model.process.ExternalProcess;
 
 /**
  *
@@ -25,8 +25,6 @@ import sk44.jfxw.model.message.MessageLevel;
 @EqualsAndHashCode
 @ToString
 public class Configuration {
-
-    private static final String ARGUMENT_PLACEHOLDER = "$arg";
 
     static Configuration defaultValue() {
 
@@ -121,26 +119,29 @@ public class Configuration {
         getRightFilerConfig().update(rightFiler);
     }
 
-    public Optional<List<String>> getAssociatedCommandFor(Path file) {
+    public ExternalProcess getAssociatedProcessFor(Path file) {
         Optional<String> extension = Filer.extensionOf(file);
-        // TODO isPresent 使わずにかけないかね
-        if (extension.isPresent()) {
-            if (fileAssociations.containsKey(extension.get())) {
-                return Optional.of(parseCommand(fileAssociations.get(extension.get()), file));
-            }
-        }
-        // 拡張子が定義されてなければデフォルトプレビュー実行
-        if (previewCommand != null && previewCommand.isEmpty() == false) {
-            return Optional.of(parseCommand(previewCommand, file));
-        }
-        Message.info("No commands associated.");
-        return Optional.empty();
+        return extension
+            .map(ext -> {
+                if (fileAssociations.containsKey(ext)) {
+                    return ExternalProcess.of(fileAssociations.get(ext), file);
+                }
+                // 拡張子が定義されてなければデフォルトプレビュー実行
+                if (previewCommand != null && previewCommand.isEmpty() == false) {
+                    return ExternalProcess.of(previewCommand, file);
+                }
+                Message.info("No commands associated.");
+                return ExternalProcess.empty();
+            })
+            .orElse(ExternalProcess.empty());
     }
 
-    private List<String> parseCommand(List<String> commands, Path file) {
-        return commands
-            .stream()
-            .map(param -> ARGUMENT_PLACEHOLDER.equals(param) ? file.toString() : param)
-            .collect(Collectors.toList());
+    public ExternalProcess getEditorProcessFor(Path file) {
+        if (editorCommand != null && editorCommand.isEmpty() == false) {
+            return ExternalProcess.of(editorCommand, file);
+        }
+        Message.info("Editor command not specified.");
+        return ExternalProcess.empty();
     }
+
 }
