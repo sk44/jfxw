@@ -23,9 +23,8 @@ public class EntityManagerFactoryProvider {
     private static EntityManagerFactory FACTORY;
 
     public static void init() {
-        // TODO 起動時に呼ぶようにしたが、結局初回 jump 表示が遅い
         Properties props = new Properties();
-        props.setProperty("javax.persistence.jdbc.url", "jdbc:derby:" + ConfigDir.get().toString() + "/jfxwdb;create=true");
+        props.setProperty("javax.persistence.jdbc.url", "jdbc:sqlite:" + ConfigDir.get().toString() + "/jfxwdb.sqlite");
         FACTORY = Persistence.createEntityManagerFactory(PU_NAME, props);
     }
 
