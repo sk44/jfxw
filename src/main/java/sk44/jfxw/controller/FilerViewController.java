@@ -30,6 +30,7 @@ import sk44.jfxw.view.FilerContents;
 import sk44.jfxw.view.Fxml;
 import sk44.jfxw.view.ModalWindow;
 import sk44.jfxw.view.Nodes;
+import sk44.jfxw.view.RenameWindow;
 
 /**
  * FXML Controller class
@@ -69,13 +70,14 @@ public class FilerViewController implements Initializable {
 
     private final FilerContents contents = new FilerContents();
 
-    private final ModalWindow<SortWindowController, Void> sortWindow = new ModalWindow<>();
-    private final ModalWindow<TextFieldWindowController, Void> renameWindow = new ModalWindow<>();
-    private final ModalWindow<TextFieldWindowController, Void> createDirWindow = new ModalWindow<>();
-    private final ModalWindow<TextFieldWindowController, Void> searchWindow = new ModalWindow<>();
+    private ModalWindow<SortWindowController, Void> sortWindow;
+    private RenameWindow renameWindow;
+    private ModalWindow<TextFieldWindowController, Void> createDirWindow;
+    private ModalWindow<TextFieldWindowController, Void> searchWindow;
+    // TODO final じゃなくする
     private final ModalWindow<ConfirmWindowController, Boolean> deleteConfirmWindow = new ModalWindow<>();
     private final ModalWindow<ConfirmWindowController, Boolean> copyConfirmWindow = new ModalWindow<>();
-    private final ModalWindow<JumpWindowController, Void> jumpWindow = new ModalWindow<>();
+    private ModalWindow<JumpWindowController, Void> jumpWindow;
 
     private String searchText;
     private CurrentPathInfoBox currentPathInfoBox;
@@ -255,83 +257,82 @@ public class FilerViewController implements Initializable {
     }
 
     private void openCreateDirectoryWindow() {
-        createDirWindow.showAndWait(Fxml.TEXT_FIELD_WINDOW, getModalWindowOwner(), (controller) -> {
-            controller.updateContent("New directory", "");
-            controller.setUpdateAction(dirName -> {
-                filer.createDirectory(dirName);
+        if (createDirWindow == null) {
+            createDirWindow = new ModalWindow<>(Fxml.TEXT_FIELD_WINDOW, getModalWindowOwner(), (controller) -> {
+                controller.updateContent("New directory", "");
+                controller.setUpdateAction(dirName -> {
+                    filer.createDirectory(dirName);
+                });
             });
-        });
+        }
+        createDirWindow.showAndWait();
     }
 
     private void openRenameWindow() {
-        ContentRow currentContent = contents.getCurrentContent();
-        if (currentContent.isParent()) {
-            return;
-        }
-        Path target = currentContent.getPath();
-        renameWindow.showAndWait(Fxml.TEXT_FIELD_WINDOW, getModalWindowOwner(), controller -> {
-            controller.updateContent("Rename", target.getFileName().toString());
-            controller.setUpdateAction(newName -> {
-                try {
-                    // TODO パス区切り文字が入っている場合とか
-                    // TODO ディレクトリとファイルが同名の場合とか
-                    Path newPath = target.resolveSibling(newName);
-                    if (Files.exists(newPath)) {
-                        Message.warn(newPath + " is already exists.");
-                        return;
-                    }
-                    Files.move(target, newPath);
-                    Message.info("rename " + target + " to " + newPath);
-                    filer.reload();
-                } catch (IOException ex) {
-                    Message.error(ex);
+        if (renameWindow == null) {
+            renameWindow = new RenameWindow(getModalWindowOwner(), () -> {
+                ContentRow currentContent = contents.getCurrentContent();
+                if (currentContent.isParent()) {
+                    return Optional.empty();
                 }
+                return Optional.of(currentContent.getPath());
+            }, () -> {
+                filer.reload();
             });
-        });
+        }
+        renameWindow.showAndWait();
     }
 
     private void openJumpWindow() {
-        jumpWindow.showAndWait(Fxml.JUMP_WINDOW, getModalWindowOwner(), controller -> {
-            controller.setJumpAction(path -> {
-                filer.changeDirectoryTo(path);
+        if (jumpWindow == null) {
+            jumpWindow = new ModalWindow<>(Fxml.JUMP_WINDOW, getModalWindowOwner(), controller -> {
+                controller.setJumpAction(path -> {
+                    filer.changeDirectoryTo(path);
+                });
             });
-        });
+        }
+        jumpWindow.showAndWait();
     }
 
     private void openSortOptionWindow() {
-        sortWindow.showAndWait(Fxml.SORT_WINDOW, getModalWindowOwner(), controller -> {
-            controller.updateSortOptions(this.filer.getSortType(),
-                this.filer.getSortOrder(), this.filer.isSortDirectories());
-            controller.setUpdateAction(this.filer::updateSortType);
-        });
+        if (sortWindow == null) {
+            sortWindow = new ModalWindow<>(Fxml.SORT_WINDOW, getModalWindowOwner(), controller -> {
+                controller.updateSortOptions(this.filer.getSortType(),
+                    this.filer.getSortOrder(), this.filer.isSortDirectories());
+                controller.setUpdateAction(this.filer::updateSortType);
+            });
+        }
+        sortWindow.showAndWait();
     }
 
     private void openSearchTextField() {
-        searchWindow.showAndWait(Fxml.TEXT_FIELD_WINDOW, getModalWindowOwner(), controller -> {
-            controller.updateContent("Search", searchText);
-            controller.addKeyReleasedEventHandler((query, e) -> {
-                switch (e.getCode()) {
-                    case ESCAPE:
-                        break;
-                    case ENTER:
-                        if (e.isShiftDown()) {
+        if (searchWindow == null) {
+            searchWindow = new ModalWindow<>(Fxml.TEXT_FIELD_WINDOW, getModalWindowOwner(), controller -> {
+                controller.updateContent("Search", searchText);
+                controller.addKeyReleasedEventHandler((query, e) -> {
+                    switch (e.getCode()) {
+                        case ESCAPE:
+                            break;
+                        case ENTER:
+                            if (e.isShiftDown()) {
+                                searchText = query;
+                                searchPrevious();
+                                controller.close();
+                            }
+                            break;
+                        default:
                             searchText = query;
-                            searchPrevious();
-//                            searchWindow.close();
-                            controller.close();
-                        }
-                        break;
-                    default:
-                        searchText = query;
-                        searchNext(true);
-                        break;
-                }
+                            searchNext(true);
+                            break;
+                    }
+                });
+                controller.setUpdateAction(query -> {
+                    searchText = query;
+                    searchNext(true);
+                });
             });
-            controller.setUpdateAction(query -> {
-                searchText = query;
-                searchNext(true);
-            });
-        });
+        }
+        searchWindow.showAndWait();
     }
 
     private Window getModalWindowOwner() {

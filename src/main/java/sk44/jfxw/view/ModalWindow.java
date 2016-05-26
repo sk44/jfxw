@@ -15,6 +15,8 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.Window;
+import lombok.AccessLevel;
+import lombok.Getter;
 import sk44.jfxw.controller.ModalWindowController;
 import sk44.jfxw.model.message.Message;
 
@@ -28,7 +30,16 @@ public class ModalWindow<C extends ModalWindowController<R>, R> {
 
     private boolean initialized = false;
     private final Stage stage = new Stage();
+    @Getter(AccessLevel.PROTECTED)
     private C controller;
+
+    @Deprecated
+    public ModalWindow() {
+    }
+
+    public ModalWindow(Fxml fxml, Window owner, Consumer<C> controllerConfigurer) {
+        init(fxml, owner, controllerConfigurer);
+    }
 
     private void init(Fxml fxml, Window owner, Consumer<C> controllerConfigurer) {
         // http://stackoverflow.com/questions/10486731/how-to-create-a-modal-window-in-javafx-2-1
@@ -57,6 +68,13 @@ public class ModalWindow<C extends ModalWindowController<R>, R> {
         }
     }
 
+    public R showAndWait() {
+        controller.preShown();
+        this.stage.showAndWait();
+        return controller.getResult();
+    }
+
+    @Deprecated
     public R showAndWait(Fxml fxml, Window owner, Consumer<C> controllerConfigurer) {
 
         if (initialized == false) {
@@ -65,28 +83,6 @@ public class ModalWindow<C extends ModalWindowController<R>, R> {
         controller.preShown();
         this.stage.showAndWait();
         return controller.getResult();
-
-//        // http://stackoverflow.com/questions/10486731/how-to-create-a-modal-window-in-javafx-2-1
-//        // http://nodamushi.hatenablog.com/entry/20130910/1378784711
-//        try {
-//            stage.initStyle(StageStyle.TRANSPARENT);
-//
-//            FXMLLoader loader = new FXMLLoader(getClass().getResource(fxml.getPath()));
-//            // 先にロードしないと controller が取れない
-//            Parent root = loader.load();
-//
-//            controllerConfigurer.accept(loader.getController());
-//
-//            Scene scene = new Scene(root, Color.TRANSPARENT);
-////            scene.setFill(Color.TRANSPARENT);
-//            stage.setScene(scene);
-//            stage.initModality(Modality.WINDOW_MODAL);
-//            stage.initOwner(owner);
-//            initStagePosition(owner);
-//            stage.showAndWait();
-//        } catch (IOException ex) {
-//            Message.error(ex);
-//        }
     }
 
     private void initStagePosition(Window owner) {

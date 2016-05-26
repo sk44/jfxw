@@ -247,7 +247,9 @@ public class Filer {
             return;
         }
         try {
-            Files.createDirectory(newDir);
+            // 複数階層も一応サポートしておく
+            Files.createDirectories(newDir);
+//            Files.createDirectory(newDir);
             Message.info(newDir + " created.");
             changeDirectoryTo(newDir);
         } catch (IOException ex) {

@@ -68,9 +68,18 @@ public class TextFieldWindowController extends ModalWindowController<Void> imple
         update();
     }
 
-    public void updateContent(String title, String initialValue) {
+    public void updateTitle(String title) {
         titleLabel.setText(title);
-        textField.setText(initialValue);
+
+    }
+
+    public void updateText(String text) {
+        textField.setText(text);
+    }
+
+    public void updateContent(String title, String initialValue) {
+        updateTitle(title);
+        updateText(initialValue);
     }
 
     private void update() {
@@ -90,6 +99,12 @@ public class TextFieldWindowController extends ModalWindowController<Void> imple
         textField.addEventFilter(KeyEvent.KEY_RELEASED, e -> {
             handler.handle(textField.getText(), e);
         });
+    }
+
+    @Override
+    protected void close() {
+        updateText("");
+        super.close();
     }
 
 }
