@@ -28,14 +28,9 @@ import sk44.jfxw.model.message.Message;
  */
 public class ModalWindow<C extends ModalWindowController<R>, R> {
 
-    private boolean initialized = false;
     private final Stage stage = new Stage();
     @Getter(AccessLevel.PROTECTED)
     private C controller;
-
-    @Deprecated
-    public ModalWindow() {
-    }
 
     public ModalWindow(Fxml fxml, Window owner, Consumer<C> controllerConfigurer) {
         init(fxml, owner, controllerConfigurer);
@@ -62,24 +57,12 @@ public class ModalWindow<C extends ModalWindowController<R>, R> {
             stage.initOwner(owner);
             initStagePosition(owner);
 
-            initialized = true;
         } catch (IOException ex) {
             Message.error(ex);
         }
     }
 
     public R showAndWait() {
-        controller.preShown();
-        this.stage.showAndWait();
-        return controller.getResult();
-    }
-
-    @Deprecated
-    public R showAndWait(Fxml fxml, Window owner, Consumer<C> controllerConfigurer) {
-
-        if (initialized == false) {
-            init(fxml, owner, controllerConfigurer);
-        }
         controller.preShown();
         this.stage.showAndWait();
         return controller.getResult();

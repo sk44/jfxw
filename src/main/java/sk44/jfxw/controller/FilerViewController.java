@@ -74,9 +74,8 @@ public class FilerViewController implements Initializable {
     private RenameWindow renameWindow;
     private ModalWindow<TextFieldWindowController, Void> createDirWindow;
     private ModalWindow<TextFieldWindowController, Void> searchWindow;
-    // TODO final じゃなくする
-    private final ModalWindow<ConfirmWindowController, Boolean> deleteConfirmWindow = new ModalWindow<>();
-    private final ModalWindow<ConfirmWindowController, Boolean> copyConfirmWindow = new ModalWindow<>();
+    private ModalWindow<ConfirmWindowController, Boolean> confirmOnDeletingWindow;
+    private ModalWindow<ConfirmWindowController, Boolean> confirmOnOverwritingWindow;
     private ModalWindow<JumpWindowController, Void> jumpWindow;
 
     private String searchText;
@@ -87,6 +86,7 @@ public class FilerViewController implements Initializable {
 
     @FXML
     protected void handleCommandKeyPressed(KeyEvent event) {
+//        Message.info(event.getCode().toString());
         switch (event.getCode()) {
             case C:
                 copy();
@@ -198,6 +198,12 @@ public class FilerViewController implements Initializable {
             case ENTER:
                 previewImage();
                 break;
+            case QUOTE:
+                // COLON のつもりだったが、 MBP では QUOTE になる模様
+                if (event.isControlDown()) {
+                    openJumpWindow();
+                }
+                break;
             default:
                 break;
         }
@@ -214,33 +220,39 @@ public class FilerViewController implements Initializable {
     }
 
     private void copy() {
-        filer.copy(contents.collectMarkedPathes(), this::showCopyConfirmDialog);
+        filer.copy(contents.collectMarkedPathes(), this::showConfirmOnOverwritingDialog);
         updateCursor();
     }
 
-    private boolean showCopyConfirmDialog(String message) {
-        return copyConfirmWindow.showAndWait(Fxml.CONFIRM_WINDOW, getModalWindowOwner(), controller -> {
-            controller.updateMessage(message);
-            controller.setOkAction(() -> {
-                // no-op
-                // TODO no-op はわかりづらい
+    private boolean showConfirmOnOverwritingDialog(String message) {
+        if (confirmOnOverwritingWindow == null) {
+            confirmOnOverwritingWindow = new ModalWindow<>(Fxml.CONFIRM_WINDOW, getModalWindowOwner(), controller -> {
+                controller.updateMessage(message);
+                controller.setOkAction(() -> {
+                    // no-op
+                    // TODO no-op はわかりづらい
+                });
             });
-        });
+        }
+        return confirmOnOverwritingWindow.showAndWait();
     }
 
     private void delete() {
-        deleteConfirmWindow.showAndWait(Fxml.CONFIRM_WINDOW, getModalWindowOwner(), controller -> {
-            controller.updateMessage("Are you sure?");
-            controller.setOkAction(() -> {
-                filer.delete(contents.collectMarkedPathes());
-                updateCursor();
+        if (confirmOnDeletingWindow == null) {
+            confirmOnDeletingWindow = new ModalWindow<>(Fxml.CONFIRM_WINDOW, getModalWindowOwner(), controller -> {
+                controller.updateMessage("Marked pathes will be deleted! Are you sure?");
+                controller.setOkAction(() -> {
+                    filer.delete(contents.collectMarkedPathes());
+                    updateCursor();
+                });
             });
-        });
+        }
+        confirmOnDeletingWindow.showAndWait();
     }
 
     private void move() {
         // TODO コピーとわける？
-        filer.move(contents.collectMarkedPathes(), this::showCopyConfirmDialog);
+        filer.move(contents.collectMarkedPathes(), this::showConfirmOnOverwritingDialog);
         updateCursor();
     }
 
