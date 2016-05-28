@@ -27,6 +27,7 @@ public class ContentRow extends FlowPane {
     private static final String MARK_CONTENT_CLASS_NAME = "markContent";
     private static final String CURRENT_ROW_CLASS_NAME = "currentRow";
     private static final String DIRECTORY_ROW_CLASS_NAME = "dirRow";
+    private static final String SYM_LINK_ROW_CLASS_NAME = "symlinkRow";
     private static final String MARKED_ROW_CLASS_NAME = "markedRow";
     private static final String ODD_ROW_CLASS_NAME = "oddRow";
     private static final String PARENT_DIR_NAME = "..";
@@ -126,7 +127,9 @@ public class ContentRow extends FlowPane {
         getChildren().add(sizeLabel);
         getChildren().add(lastModifiedLabel);
 
-        if (isDirectory()) {
+        if (isSymbolicLink()) {
+            getStyleClass().add(SYM_LINK_ROW_CLASS_NAME);
+        } else if (isDirectory()) {
             getStyleClass().add(DIRECTORY_ROW_CLASS_NAME);
         }
         if (odd) {

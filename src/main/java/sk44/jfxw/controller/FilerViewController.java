@@ -89,10 +89,10 @@ public class FilerViewController implements Initializable {
 //        Message.info(event.getCode().toString());
         switch (event.getCode()) {
             case C:
-                copy();
+                copyMarkedPathesToOtherFiler();
                 break;
             case D:
-                delete();
+                deleteMarkedPathes();
                 break;
             case E:
                 openExternalEditor();
@@ -135,7 +135,7 @@ public class FilerViewController implements Initializable {
                 if (event.isShiftDown()) {
                     openCreateDirectoryWindow();
                 } else {
-                    move();
+                    moveMarkedPathesToOtherFiler();
                 }
                 break;
             case N:
@@ -200,9 +200,7 @@ public class FilerViewController implements Initializable {
                 break;
             case QUOTE:
                 // COLON のつもりだったが、 MBP では QUOTE になる模様
-                if (event.isControlDown()) {
-                    openJumpWindow();
-                }
+                openJumpWindow();
                 break;
             default:
                 break;
@@ -219,8 +217,8 @@ public class FilerViewController implements Initializable {
         updateCursor();
     }
 
-    private void copy() {
-        filer.copy(contents.collectMarkedPathes(), this::showConfirmOnOverwritingDialog);
+    private void copyMarkedPathesToOtherFiler() {
+        filer.copyToOtherFiler(contents.collectMarkedPathes(), this::showConfirmOnOverwritingDialog);
         updateCursor();
     }
 
@@ -237,7 +235,7 @@ public class FilerViewController implements Initializable {
         return confirmOnOverwritingWindow.showAndWait();
     }
 
-    private void delete() {
+    private void deleteMarkedPathes() {
         if (confirmOnDeletingWindow == null) {
             confirmOnDeletingWindow = new ModalWindow<>(Fxml.CONFIRM_WINDOW, getModalWindowOwner(), controller -> {
                 controller.updateMessage("Marked pathes will be deleted! Are you sure?");
@@ -250,9 +248,9 @@ public class FilerViewController implements Initializable {
         confirmOnDeletingWindow.showAndWait();
     }
 
-    private void move() {
+    private void moveMarkedPathesToOtherFiler() {
         // TODO コピーとわける？
-        filer.move(contents.collectMarkedPathes(), this::showConfirmOnOverwritingDialog);
+        filer.moveToOtherFiler(contents.collectMarkedPathes(), this::showConfirmOnOverwritingDialog);
         updateCursor();
     }
 
@@ -498,7 +496,7 @@ public class FilerViewController implements Initializable {
                     return;
                 }
                 int targetIndex = random.nextInt(images.size() - 1);
-                locator.getApplicationEvents().updateBackgroundImage(images.get(targetIndex));
+                locator.getApplicationEvents().raiseBackgroundImageUpdating(images.get(targetIndex));
 
             } catch (IOException ex) {
                 Message.error(ex);

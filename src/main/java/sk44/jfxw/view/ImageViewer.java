@@ -82,7 +82,7 @@ public class ImageViewer {
                     });
                     break;
                 case S:
-                    ModelLocator.INSTANCE.getApplicationEvents().updateBackgroundImage(imagePath);
+                    ModelLocator.INSTANCE.getApplicationEvents().raiseBackgroundImageUpdating(imagePath);
                     break;
                 case ESCAPE:
                 case ENTER:

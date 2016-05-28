@@ -34,6 +34,10 @@
     -fx-text-fill: #66ccff;
 }
 
+.symlinkRow * {
+    -fx-text-fill: #ff33ff;
+}
+
 .currentRow {
     -fx-background-color: rgba(100, 100, 100, 0.7);
 }

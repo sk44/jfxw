@@ -17,6 +17,7 @@ import java.util.function.Consumer;
  */
 public class EventSource<T> {
 
+    // TODO 弱参照にしたほうがいいか
     private final List<T> listeners = new ArrayList<>();
 
     public void addListener(T listener) {

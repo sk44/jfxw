@@ -19,13 +19,13 @@ public class ApplicationEvents {
         void changeImageTo(Path imagePath);
     }
 
-    private final EventSource<UpdateBackgroundImageListener> updateBackgroundImageEvent = new EventSource<>();
+    private final EventSource<UpdateBackgroundImageListener> backgroundImageUpdating = new EventSource<>();
 
-    public void addUpdateBackgroundImageListener(UpdateBackgroundImageListener listener) {
-        this.updateBackgroundImageEvent.addListener(listener);
+    public void addBackgroundImageUpdatingListener(UpdateBackgroundImageListener listener) {
+        this.backgroundImageUpdating.addListener(listener);
     }
 
-    public void updateBackgroundImage(Path imagePath) {
-        this.updateBackgroundImageEvent.raiseEvent(listener -> listener.changeImageTo(imagePath));
+    public void raiseBackgroundImageUpdating(Path imagePath) {
+        this.backgroundImageUpdating.raiseEvent(listener -> listener.changeImageTo(imagePath));
     }
 }

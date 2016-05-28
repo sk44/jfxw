@@ -274,7 +274,7 @@ public class Filer {
             + ", order: " + this.sortOrder + ", sortDir: " + this.sortDirectories);
     }
 
-    public void copy(List<Path> entries, OverwriteFileConfirmer confirmer) {
+    public void copyToOtherFiler(List<Path> entries, OverwriteFileConfirmer confirmer) {
 
         entries.stream().forEach((entry) -> {
             // TODO バックグラウンド実行を検討
@@ -307,8 +307,17 @@ public class Filer {
         }
     }
 
-    public void move(List<Path> entries, OverwriteFileConfirmer confirmer) {
+    public void moveToOtherFiler(List<Path> entries, OverwriteFileConfirmer confirmer) {
+        if (isSameDirWithOther()) {
+            Message.warn("cannot move to the same dir.");
+            return;
+        }
         entries.stream().forEach((entry) -> {
+            // TODO スキップしてもマークが外れてしまう
+            if (entry.startsWith(otherFiler.currentDir)) {
+                Message.warn(entry + " is parent dir of " + otherFiler.currentDir + ". skip moving.");
+                return;
+            }
             // TODO バックグラウンド実行を検討
             Path movedPath = otherFiler.resolve(entry);
             if (PathHelper.movePath(entry, movedPath, confirmer)) {
@@ -344,6 +353,10 @@ public class Filer {
             postProcess(entry);
         }
         reload();
+    }
+
+    private boolean isSameDirWithOther() {
+        return currentDir.equals(otherFiler.currentDir);
     }
 
     private Path resolve(Path sourcePath) {
