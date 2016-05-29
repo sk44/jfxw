@@ -14,6 +14,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import sk44.jfxw.model.Filer;
+import sk44.jfxw.model.FilerEvents;
 import sk44.jfxw.model.ModelLocator;
 import sk44.jfxw.model.configuration.Configuration;
 import sk44.jfxw.model.message.Message;
@@ -77,18 +78,20 @@ public class MainWindowController implements Initializable {
 
         // 左ファイル窓
         Filer leftFiler = locator.getLeftFiler();
-        leftFiler.addListenerToPreviewImageEvent(imagePath -> {
+        FilerEvents leftFilerEvents = leftFiler.getEvents();
+        leftFilerEvents.addListenerToImageShowing(imagePath -> {
             // 反対側の filer に画像を表示する
             imageViewerInFiler.open(imagePath, leftFilerViewController, rightFilerViewController.getRootPane());
         });
-        leftFiler.addListenerToCursorChangedEvent(this::updateStatus);
+        leftFilerEvents.addListenerToCursorChanged(this::updateStatus);
 
         // 右ファイル窓
         Filer rightFiler = locator.getRightFiler();
-        rightFiler.addListenerToPreviewImageEvent(imagePath -> {
+        FilerEvents rightFilerEvents = rightFiler.getEvents();
+        rightFilerEvents.addListenerToImageShowing(imagePath -> {
             imageViewerInWindow.open(imagePath, rightFilerViewController, rootPane);
         });
-        rightFiler.addListenerToCursorChangedEvent(this::updateStatus);
+        rightFilerEvents.addListenerToCursorChanged(this::updateStatus);
 
         leftFilerViewController.withFiler(leftFiler);
         rightFilerViewController.withFiler(rightFiler);

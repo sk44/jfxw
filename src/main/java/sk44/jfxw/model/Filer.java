@@ -27,48 +27,6 @@ import sk44.jfxw.model.message.Message;
  */
 public class Filer {
 
-    @FunctionalInterface
-    public interface PreChangeDirectoryListener {
-
-        void changeDirectoryFrom(Path previousDir);
-    }
-
-    @FunctionalInterface
-    public interface PostChangeDirectoryListener {
-
-        void directoryChanged(Path fromDir, Path toDir);
-    }
-
-    @FunctionalInterface
-    public interface PathEntryLoadedListener {
-
-        void postLoad(Path entry, boolean parent, int index);
-    }
-
-    @FunctionalInterface
-    public interface CursorChangedListener {
-
-        void changedTo(Path path);
-    }
-
-    @FunctionalInterface
-    public interface PreviewImageListener {
-
-        void preview(Path imagePath);
-    }
-
-    @FunctionalInterface
-    public interface UpdateStatusListener {
-
-        void update(Path currentDir);
-    }
-
-    @FunctionalInterface
-    public interface PostProcessListener {
-
-        void postProcess(Path pathToProcess);
-    }
-
     private static final int HISTORY_BUFFER_SIZE = 24;
 
     private static Path normalizePath(Path path) {
@@ -90,19 +48,13 @@ public class Filer {
         this.sortType = sortType;
         this.sortOrder = sortOrder;
         this.sortDirectories = sortDirectories;
+        this.events = new FilerEvents();
     }
 
-    private final EventSource<Runnable> focusedEvent = new EventSource<>();
-    private final EventSource<Runnable> lostFocusEvent = new EventSource<>();
-    private final EventSource<PreChangeDirectoryListener> preChangeDirectoryEvent = new EventSource<>();
-    private final EventSource<PostChangeDirectoryListener> postChangeDirectoryEvent = new EventSource<>();
-    private final EventSource<PathEntryLoadedListener> postEntryLoadedEvent = new EventSource<>();
-    private final EventSource<CursorChangedListener> cursorChangedEvent = new EventSource<>();
-    private final EventSource<PreviewImageListener> previewImageEvent = new EventSource<>();
-    private final EventSource<UpdateStatusListener> updateStatusEvent = new EventSource<>();
-    private final EventSource<PostProcessListener> postProcessEvent = new EventSource<>();
-
     private final PathHistoriesCache historiesCache = new PathHistoriesCache(HISTORY_BUFFER_SIZE);
+
+    @Getter
+    private final FilerEvents events;
 
     private boolean focused;
 
@@ -118,47 +70,6 @@ public class Filer {
 
     @Setter
     private Filer otherFiler;
-
-    public void addListenerToFocusedEvent(Runnable listener) {
-        focusedEvent.addListener(listener);
-    }
-
-    public void addListenerToLostFocusEvent(Runnable listener) {
-        lostFocusEvent.addListener(listener);
-    }
-
-    public void addListenerToCursorChangedEvent(CursorChangedListener listener) {
-        cursorChangedEvent.addListener(listener);
-    }
-
-    public void addListenerToPreviewImageEvent(PreviewImageListener listener) {
-        previewImageEvent.addListener(listener);
-    }
-
-    public void addListenerToPostProcessEvent(PostProcessListener listener) {
-        postProcessEvent.addListener(listener);
-    }
-
-    // TODO remove の仕組みが必要かなー
-    public void addListenerToPreChangeDirectoryEvent(PreChangeDirectoryListener listener) {
-        this.preChangeDirectoryEvent.addListener(listener);
-    }
-
-    public void addListenerToPostChangeDirectoryEvent(PostChangeDirectoryListener listener) {
-        this.postChangeDirectoryEvent.addListener(listener);
-    }
-
-    public void addListenerToPostEntryLoadedEvent(PathEntryLoadedListener listener) {
-        this.postEntryLoadedEvent.addListener(listener);
-    }
-
-    public void addListenerToUpdateStatusEvent(UpdateStatusListener listener) {
-        this.updateStatusEvent.addListener(listener);
-    }
-
-    public void updateStatus() {
-        updateStatusEvent.raiseEvent(listener -> listener.update(currentDir));
-    }
 
     public void toggleFocus() {
         if (focused) {
@@ -179,25 +90,25 @@ public class Filer {
 
     public void focus() {
         focused = true;
-        focusedEvent.raiseEvent(Runnable::run);
+        events.raiseFocused();
         otherFiler.lostFocus();
     }
 
     private void lostFocus() {
         focused = false;
-        lostFocusEvent.raiseEvent(Runnable::run);
+        events.raiseLostFocused();
     }
 
-    public void postProcess(Path pathToProcess) {
-        postProcessEvent.raiseEvent(listener -> listener.postProcess(pathToProcess));
+    private void onMarkedEntryProcessed(Path pathToProcess) {
+        events.raiseMarkedEntryProcessed(pathToProcess);
     }
 
     public void onCursorChangedTo(Path path) {
-        cursorChangedEvent.raiseEvent(listener -> listener.changedTo(path));
+        events.raiseCursorChanged(path);
     }
 
     public void previewImage(Path imagePath) {
-        previewImageEvent.raiseEvent(listener -> listener.preview(imagePath));
+        events.raiseImageShowing(imagePath);
     }
 
     public void reload() {
@@ -225,11 +136,10 @@ public class Filer {
             return;
         }
         Path fromDir = this.currentDir;
-        this.preChangeDirectoryEvent.raiseEvent(listener -> listener.changeDirectoryFrom(fromDir));
+        events.raiseDirectoryWillChange(fromDir);
         this.currentDir = normalizePath(dir);
         collectEntries();
-        this.postChangeDirectoryEvent.raiseEvent(listener -> listener.directoryChanged(fromDir, this.currentDir));
-        updateStatus();
+        events.raiseDirectoryChanged(fromDir, this.currentDir);
     }
 
     public Optional<Path> lastFocusedPathIn(Path dir) {
@@ -280,7 +190,7 @@ public class Filer {
             // TODO バックグラウンド実行を検討
             Path newPath = otherFiler.resolve(entry);
             if (PathHelper.copyPath(entry, newPath, confirmer)) {
-                postProcess(entry);
+                onMarkedEntryProcessed(entry);
                 // 移動後に反対側の窓でフォーカスさせる
                 otherFiler.addToCache(newPath);
             }
@@ -321,7 +231,7 @@ public class Filer {
             // TODO バックグラウンド実行を検討
             Path movedPath = otherFiler.resolve(entry);
             if (PathHelper.movePath(entry, movedPath, confirmer)) {
-                postProcess(entry);
+                onMarkedEntryProcessed(entry);
                 // 移動後に反対側の窓でフォーカスさせる（ reload に依存）
                 otherFiler.addToCache(movedPath);
             }
@@ -350,7 +260,7 @@ public class Filer {
                 }
             }
             Message.info("deleted: " + entry.toString());
-            postProcess(entry);
+            onMarkedEntryProcessed(entry);
         }
         reload();
     }
@@ -369,7 +279,7 @@ public class Filer {
         if (parent != null) {
             Path normalizePath = normalizePath(parent);
             int value = index;
-            postEntryLoadedEvent.raiseEvent(listener -> listener.postLoad(normalizePath, true, value));
+            events.raiseFilerEntryLoaded(normalizePath, true, value);
             index++;
         }
         // TODO 権限がない場合真っ白になる
@@ -379,7 +289,7 @@ public class Filer {
                 .collect(Collectors.toList());
             for (Path entry : entries) {
                 int value = index;
-                postEntryLoadedEvent.raiseEvent(listener -> listener.postLoad(entry, false, value));
+                events.raiseFilerEntryLoaded(entry, false, value);
                 index++;
             }
         } catch (IOException ex) {

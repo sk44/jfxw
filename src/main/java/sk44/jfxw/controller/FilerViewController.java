@@ -22,6 +22,7 @@ import javafx.scene.layout.FlowPane;
 import javafx.stage.Window;
 import lombok.Getter;
 import sk44.jfxw.model.Filer;
+import sk44.jfxw.model.FilerEvents;
 import sk44.jfxw.model.ModelLocator;
 import sk44.jfxw.model.message.Message;
 import sk44.jfxw.view.ContentRow;
@@ -368,23 +369,23 @@ public class FilerViewController implements Initializable {
     }
 
     public void withFiler(Filer filer) {
-        this.filer = filer;
-        this.filer.addListenerToPreChangeDirectoryEvent(this::preChangeDirectory);
-        this.filer.addListenerToPostChangeDirectoryEvent(this::directoryChanged);
-        this.filer.addListenerToPostEntryLoadedEvent(this::postEntryLoaded);
-        this.filer.addListenerToPreviewImageEvent(imagePath -> {
+        FilerEvents filerEvents = filer.getEvents();
+        filerEvents.addListenerToDirectoryWillChange(this::preChangeDirectory);
+        filerEvents.addListenerToDirectoryChanged(this::directoryChanged);
+        filerEvents.addListenerToFilerEntryLoaded(this::postEntryLoaded);
+        filerEvents.addListenerToImageShowing(imagePath -> {
             Nodes.addStyleClassTo(flowPane, CLASS_NAME_PREVIEW_FILER);
         });
-        this.filer.addListenerToFocusedEvent(() -> {
+        filerEvents.addListenerToFocused(() -> {
             focus();
         });
-        this.filer.addListenerToLostFocusEvent(() -> {
+        filerEvents.addListenerToLostFocus(() -> {
             onLostFocus();
         });
-        this.filer.addListenerToUpdateStatusEvent(currentPathInfoBox::update);
-        this.filer.addListenerToPostProcessEvent(pathToProcess -> {
+        filerEvents.addListenerToMarkedEntryProcessed(pathToProcess -> {
             contents.removeMark(pathToProcess);
         });
+        this.filer = filer;
         this.contents.setFiler(filer);
     }
 
@@ -401,6 +402,7 @@ public class FilerViewController implements Initializable {
         // TODO バインド
         currentPathLabel.setText(toDir.toString());
         updateCursor();
+        currentPathInfoBox.update(toDir);
     }
 
     private void focus() {
