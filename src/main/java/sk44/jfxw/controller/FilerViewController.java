@@ -14,6 +14,7 @@ import java.util.stream.StreamSupport;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.geometry.Bounds;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.input.KeyEvent;
@@ -51,11 +52,16 @@ public class FilerViewController implements Initializable {
             double contentHeight = scrollPane.getContent().getBoundsInLocal().getHeight();
             // row の位置
             double rowY = (row.getBoundsInParent().getMaxY() + row.getBoundsInParent().getMinY()) / 2.0;
-//            double rowY = index * 15 + 7.5;
             // 表示範囲の高さ
             double visibleHeight = scrollPane.getViewportBounds().getHeight();
-            // TODO 中央位置に合わせてスクロールしてしまうので、上か下に
-            scrollPane.setVvalue(scrollPane.getVmax() * ((rowY - 0.5 * visibleHeight) / (contentHeight - visibleHeight)));
+            Bounds b = scrollPane.getViewportBounds();
+            if (rowY + b.getMinY() < 0) {
+                // 上へスクロールが必要
+                scrollPane.setVvalue(scrollPane.getVmax() * ((rowY - 7.5) / (contentHeight - visibleHeight)));
+            } else if (rowY + b.getMinY() > visibleHeight) {
+                // 下へスクロールが必要
+                scrollPane.setVvalue(scrollPane.getVmax() * ((rowY - visibleHeight + 7.5) / (contentHeight - visibleHeight)));
+            }
         });
     }
 
