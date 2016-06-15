@@ -43,6 +43,7 @@ public class FilerViewController implements Initializable {
 
     private static final String CLASS_NAME_PREVIEW_FILER = "previewFiler";
     private static final String CLASS_NAME_CURRENT_FILER = "currentFiler";
+    private static final double ROW_HEIGHT = 7.5;
 
     private static void ensureVisible(ScrollPane scrollPane, ContentRow row) {
 
@@ -57,10 +58,10 @@ public class FilerViewController implements Initializable {
             Bounds b = scrollPane.getViewportBounds();
             if (rowY + b.getMinY() < 0) {
                 // 上へスクロールが必要
-                scrollPane.setVvalue(scrollPane.getVmax() * ((rowY - 7.5) / (contentHeight - visibleHeight)));
+                scrollPane.setVvalue(scrollPane.getVmax() * ((rowY - ROW_HEIGHT) / (contentHeight - visibleHeight)));
             } else if (rowY + b.getMinY() > visibleHeight) {
                 // 下へスクロールが必要
-                scrollPane.setVvalue(scrollPane.getVmax() * ((rowY - visibleHeight + 7.5) / (contentHeight - visibleHeight)));
+                scrollPane.setVvalue(scrollPane.getVmax() * ((rowY - visibleHeight + ROW_HEIGHT) / (contentHeight - visibleHeight)));
             }
         });
     }

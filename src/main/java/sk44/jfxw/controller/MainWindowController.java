@@ -35,8 +35,8 @@ public class MainWindowController implements Initializable {
     @FXML
     private Label statusLabel;
 
-    private final ImageViewer imageViewerInWindow = new ImageViewer();
-    private final ImageViewer imageViewerInFiler = new ImageViewer();
+    private final ImageViewer imageViewerInWindow = new ImageViewer(true);
+    private final ImageViewer imageViewerInFiler = new ImageViewer(false);
 
     private void initBackgroundImageView() {
         backgroundImageView.setSmooth(true);
