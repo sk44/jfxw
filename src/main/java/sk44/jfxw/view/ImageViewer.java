@@ -15,6 +15,7 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
@@ -75,13 +76,11 @@ public class ImageViewer {
 
         StackPane imageHolder = new StackPane(previewImageView);
 
-//        previewImageContainer.getChildren().add(previewImageView);
-        // TODO 上下中央寄せにならない（上詰めになる）
+        // TODO 上下中央寄せにならない（上詰めになる）. GridPane などのほうがよいか
         // http://stackoverflow.com/questions/30687994/how-to-center-the-content-of-a-javafx-8-scrollpane
         scrollPane = new ScrollPane();
         scrollPane.prefWidthProperty().bind(basePane.widthProperty());
         scrollPane.prefHeightProperty().bind(basePane.heightProperty());
-//        scrollPane.setContent(previewImageView);
         scrollPane.setContent(imageHolder);
         GridPane grid = new GridPane();
 
@@ -89,7 +88,6 @@ public class ImageViewer {
             -> scrollPane.getViewportBounds().getWidth(), scrollPane.viewportBoundsProperty()));
         grid.getChildren().add(imageHolder);
 
-//        scrollPane.setContent(previewImageContainer);
         previewImageContainer.getChildren().add(scrollPane);
 
     }
@@ -104,10 +102,21 @@ public class ImageViewer {
         // container にバインドすると画質がえらく悪くなる上にリサイズがうまくいかない
 //        previewImageView.fitWidthProperty().bind(previewImageContainer.widthProperty());
 //        previewImageView.fitHeightProperty().bind(previewImageContainer.heightProperty());
-// TODO
-        bindImageSize();
+        if (scaleable) {
+            previewImageContainer.addEventFilter(MouseEvent.MOUSE_CLICKED, e -> {
+                toggleBinding();
+            });
+        } else {
+            bindImageSize();
+            // メッセージ窓をクリックしたりしてフォーカスを失うと制御不能になるので
+//        previewImageView.focusedProperty().addListener((arg, oldValue, focused) -> {
+            previewImageContainer.focusedProperty().addListener((arg, oldValue, focused) -> {
+                if (focused == false) {
+                    close(launcherController);
+                }
+            });
+        }
         previewImageContainer.addEventFilter(KeyEvent.KEY_PRESSED, e -> {
-//        previewImageView.addEventFilter(KeyEvent.KEY_PRESSED, e -> {
             switch (e.getCode()) {
                 case J:
                     launcherController.nextImage().ifPresent(nextImage -> {
@@ -133,13 +142,6 @@ public class ImageViewer {
                     break;
             }
         });
-        // メッセージ窓をクリックしたりしてフォーカスを失うと制御不能になるので
-//        previewImageView.focusedProperty().addListener((arg, oldValue, focused) -> {
-        previewImageContainer.focusedProperty().addListener((arg, oldValue, focused) -> {
-            if (focused == false) {
-                close(launcherController);
-            }
-        });
     }
 
     private boolean binding = false;
@@ -159,6 +161,10 @@ public class ImageViewer {
         previewImageView.fitWidthProperty().bind(basePane.widthProperty());
         previewImageView.fitHeightProperty().bind(basePane.heightProperty());
         binding = true;
+        // TODO カーソルの形状を変えるとか
+//        previewImageView.setOnMouseEntered(e -> {
+//            basePane.getScene().setCursor(Cursor.OPEN_HAND);
+//        });
     }
 
     private void unbindImageSize() {
@@ -173,9 +179,6 @@ public class ImageViewer {
     }
 
     private void loadPreviewImage(Path imagePath) {
-        if (scaleable && binding == false) {
-            bindImageSize();
-        }
         try {
             Image image = new Image(Files.newInputStream(imagePath));
             // ウィンドウサイズより小さい画像であればこれでよい
@@ -185,6 +188,14 @@ public class ImageViewer {
 //            previewImageView.fitWidthProperty().bind(basePane.widthProperty());
 //            previewImageView.fitHeightProperty().bind(basePane.heightProperty());
             previewImageView.setImage(image);
+            if (scaleable) {
+                if (basePane.getWidth() < image.getWidth()
+                    || basePane.getHeight() < image.getHeight()) {
+                    bindImageSize();
+                } else {
+                    unbindImageSize();
+                }
+            }
             this.imagePath = imagePath;
         } catch (IOException ex) {
             Message.error(ex);
