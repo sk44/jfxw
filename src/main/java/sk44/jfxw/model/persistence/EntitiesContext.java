@@ -17,7 +17,7 @@ public class EntitiesContext implements AutoCloseable {
     private boolean committed = false;
 
     public EntitiesContext() {
-        // TODO 遅い
+        // TODO 初回だけ遅い。内部的にキャッシュしている？
         this.em = EntityManagerFactoryProvider.getFactory().createEntityManager();
         // トランザクションを開始しておかないとクエリ発行時にしぬ？
         beginTransaction();
@@ -40,6 +40,7 @@ public class EntitiesContext implements AutoCloseable {
     public void save() {
         em.getTransaction().commit();
         committed = true;
+        beginTransaction();
     }
 
     @Override

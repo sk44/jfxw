@@ -15,7 +15,6 @@ import sk44.jfxw.model.configuration.Configuration;
 import sk44.jfxw.model.configuration.ConfigurationStore;
 import sk44.jfxw.model.configuration.FilerConfig;
 import sk44.jfxw.model.message.Message;
-import sk44.jfxw.model.persistence.EntitiesContext;
 import sk44.jfxw.model.persistence.EntityManagerFactoryProvider;
 import sk44.jfxw.view.Fxml;
 
@@ -68,8 +67,6 @@ public class MainApp extends Application {
         locator.setLeftFiler(leftFiler);
         locator.setRightFiler(rightFiler);
         locator.setBackgroundImage(new BackgroundImage());
-
-        locator.setEntitiesContext(new EntitiesContext());
     }
 
     @Override
