@@ -8,6 +8,7 @@ package sk44.jfxw.model;
 import lombok.Getter;
 import lombok.Setter;
 import sk44.jfxw.model.configuration.ConfigurationStore;
+import sk44.jfxw.model.persistence.EntitiesContext;
 
 /**
  *
@@ -33,4 +34,7 @@ public enum ModelLocator {
     @Setter
     private BackgroundImage backgroundImage;
 
+    @Getter
+    @Setter
+    private EntitiesContext entitiesContext;
 }

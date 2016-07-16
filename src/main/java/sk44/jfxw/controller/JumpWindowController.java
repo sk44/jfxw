@@ -147,7 +147,7 @@ public class JumpWindowController extends ModalWindowController<Void> implements
 
     @Override
     public void preShown() {
-        context = new EntitiesContext();
+        context = ModelLocator.INSTANCE.getEntitiesContext();
         repository = context.createDirectoryIndexRepository();
     }
 

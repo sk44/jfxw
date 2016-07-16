@@ -17,7 +17,9 @@ public class EntitiesContext implements AutoCloseable {
     private boolean committed = false;
 
     public EntitiesContext() {
+        // TODO 遅い
         this.em = EntityManagerFactoryProvider.getFactory().createEntityManager();
+        // トランザクションを開始しておかないとクエリ発行時にしぬ？
         beginTransaction();
     }
 
