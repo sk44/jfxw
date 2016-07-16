@@ -23,14 +23,14 @@ public enum ModelLocator {
 
     @Getter
     @Setter
-    private ApplicationEvents applicationEvents;
-
-    @Getter
-    @Setter
     private Filer rightFiler;
 
     @Getter
     @Setter
     private Filer leftFiler;
+
+    @Getter
+    @Setter
+    private BackgroundImage backgroundImage;
 
 }

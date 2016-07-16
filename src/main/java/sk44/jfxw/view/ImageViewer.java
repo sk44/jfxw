@@ -10,16 +10,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
-import javafx.geometry.Pos;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
-import javafx.scene.layout.StackPane;
 import sk44.jfxw.controller.FilerViewController;
 import sk44.jfxw.model.ModelLocator;
 import sk44.jfxw.model.message.Message;
@@ -38,7 +35,7 @@ public class ImageViewer {
     private final boolean scaleable;
 
     private ScrollPane scrollPane;
-    private HBox previewImageContainer;
+    private BorderPane previewImageContainer;
     private ImageView previewImageView;
     private Path imagePath;
     private Pane basePane;
@@ -66,29 +63,31 @@ public class ImageViewer {
 
     private void initImagePreview(FilerViewController launcherController) {
         // 中央寄せするために HBox をかます
-        previewImageContainer = new HBox();
-        previewImageContainer.setAlignment(Pos.CENTER);
+//        previewImageContainer = new HBox();
+//        previewImageContainer.setAlignment(Pos.CENTER);
+        previewImageContainer = new BorderPane();
         previewImageContainer.prefWidthProperty().bind(basePane.widthProperty());
         previewImageContainer.prefHeightProperty().bind(basePane.heightProperty());
         previewImageContainer.getStyleClass().add("imagePreviewBackground");
 
         initPreviewImageView(launcherController);
 
-        StackPane imageHolder = new StackPane(previewImageView);
+//        StackPane imageHolder = new StackPane(previewImageView);
+        BorderPane imageHolder = new BorderPane();
+        imageHolder.setCenter(previewImageView);
 
-        // TODO 上下中央寄せにならない（上詰めになる）. GridPane などのほうがよいか
+        // TODO 上下中央寄せにならない（上詰めになる）
         // http://stackoverflow.com/questions/30687994/how-to-center-the-content-of-a-javafx-8-scrollpane
         scrollPane = new ScrollPane();
         scrollPane.prefWidthProperty().bind(basePane.widthProperty());
         scrollPane.prefHeightProperty().bind(basePane.heightProperty());
         scrollPane.setContent(imageHolder);
-        GridPane grid = new GridPane();
 
         imageHolder.minWidthProperty().bind(Bindings.createDoubleBinding(()
             -> scrollPane.getViewportBounds().getWidth(), scrollPane.viewportBoundsProperty()));
-        grid.getChildren().add(imageHolder);
 
-        previewImageContainer.getChildren().add(scrollPane);
+//        previewImageContainer.getChildren().add(scrollPane);
+        previewImageContainer.setCenter(scrollPane);
 
     }
 
@@ -132,7 +131,7 @@ public class ImageViewer {
                     toggleBinding();
                     break;
                 case W:
-                    ModelLocator.INSTANCE.getApplicationEvents().raiseBackgroundImageUpdating(imagePath);
+                    ModelLocator.INSTANCE.getBackgroundImage().update(imagePath);
                     break;
                 case ESCAPE:
                 case ENTER:

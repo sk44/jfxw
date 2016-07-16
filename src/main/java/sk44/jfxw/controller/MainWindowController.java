@@ -66,7 +66,7 @@ public class MainWindowController implements Initializable {
 
         Message.addObserver(this::appendMessage);
         ModelLocator locator = ModelLocator.INSTANCE;
-        locator.getApplicationEvents().addBackgroundImageUpdatingListener(this::updateBackgroundImage);
+        locator.getBackgroundImage().addBackgroundImageUpdatingListener(this::updateBackgroundImage);
 
         initBackgroundImageView();
         final Configuration configuration = locator.getConfigurationStore().getConfiguration();

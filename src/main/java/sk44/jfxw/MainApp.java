@@ -7,7 +7,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-import sk44.jfxw.model.ApplicationEvents;
+import sk44.jfxw.model.BackgroundImage;
 import sk44.jfxw.model.Filer;
 import sk44.jfxw.model.ModelLocator;
 import sk44.jfxw.model.configuration.ConfigDir;
@@ -66,7 +66,7 @@ public class MainApp extends Application {
         locator.setConfigurationStore(configurationStore);
         locator.setLeftFiler(leftFiler);
         locator.setRightFiler(rightFiler);
-        locator.setApplicationEvents(new ApplicationEvents());
+        locator.setBackgroundImage(new BackgroundImage());
     }
 
     @Override
