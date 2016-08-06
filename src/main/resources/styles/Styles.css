@@ -30,8 +30,7 @@
 }
 
 .dirRow * {
-    /*-fx-text-fill: #3333ff;*/
-    -fx-text-fill: #66ccff;
+    /*-fx-text-fill: #66ccff;*/
 }
 
 .symlinkRow * {

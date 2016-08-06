@@ -1,6 +1,8 @@
 package sk44.jfxw.view;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.NumberFormat;
@@ -12,6 +14,8 @@ import javafx.beans.property.ReadOnlyDoubleProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.paint.Color;
 import javafx.util.converter.BooleanStringConverter;
@@ -31,11 +35,25 @@ public class ContentRow extends FlowPane {
     private static final String MARKED_ROW_CLASS_NAME = "markedRow";
     private static final String ODD_ROW_CLASS_NAME = "oddRow";
     private static final String PARENT_DIR_NAME = "..";
-    private static final String DIR_NAME_SUFFIX = "/";
+//    private static final String DIR_NAME_SUFFIX = "/";
+    private static final String DIR_NAME_SUFFIX = "";
     private static final String DIR_SIZE_VALUE = "<DIR>";
     private static final String MARK_VALUE = "*";
     private static final String LAST_MODIFIED_DATE_FORMAT = "yyyy/MM/dd HH:mm:ss";
     private static final Color CURSOR_COLOR = Color.LIGHTGREY;
+    private static final Image DIRECTORY_ICON;
+    private static final Image FILE_ICON;
+    private static final double ICON_SIZE = 16;
+
+    static {
+        try (InputStream dirStream = ContentRow.class.getResourceAsStream("/images/dir.png");
+            InputStream fileStream = ContentRow.class.getResourceAsStream("/images/file.png")) {
+            DIRECTORY_ICON = new Image(dirStream, ICON_SIZE, ICON_SIZE, true, true);
+            FILE_ICON = new Image(fileStream, ICON_SIZE, ICON_SIZE, true, true);
+        } catch (IOException ex) {
+            throw new UncheckedIOException(ex);
+        }
+    }
 
     // TODO シンボリックリンクの表現を考える
     public static LocalDateTime getLastModified(Path path) {
@@ -94,6 +112,15 @@ public class ContentRow extends FlowPane {
             }
         });
 
+        final Image iconImage;
+        if (isDirectory()) {
+            iconImage = DIRECTORY_ICON;
+        } else {
+            iconImage = FILE_ICON;
+        }
+        icon.setPreserveRatio(true);
+        icon.setImage(iconImage);
+
         String name = asParent ? PARENT_DIR_NAME : path.getFileName().toString();
         // TODO 色変えるなどだけするほうがスペース的に無理ないかも
         if (isSymbolicLink()) {
@@ -108,6 +135,7 @@ public class ContentRow extends FlowPane {
         }
         nameLabel = new Label(name);
         nameLabel.prefWidthProperty().bind(widthProperty.multiply(0.45));
+        nameLabel.setPadding(new Insets(0, 5, 0, 5));
 
         sizeLabel = new Label(isDirectory() ? DIR_SIZE_VALUE : formatFileSize(path));
         sizeLabel.getStyleClass().add("sizeContent");
@@ -123,6 +151,7 @@ public class ContentRow extends FlowPane {
         lastModifiedLabel.maxWidthProperty().set(150);
 
         getChildren().add(markLabel);
+        getChildren().add(icon);
         getChildren().add(nameLabel);
         getChildren().add(sizeLabel);
         getChildren().add(lastModifiedLabel);
@@ -144,6 +173,7 @@ public class ContentRow extends FlowPane {
     private final LocalDateTime lastModified;
 
     private final Label markLabel;
+    private final ImageView icon = new ImageView();
     private final Label nameLabel;
     private final Label sizeLabel;
     private final Label lastModifiedLabel;
