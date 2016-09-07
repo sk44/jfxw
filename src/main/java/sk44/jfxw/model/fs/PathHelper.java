@@ -17,6 +17,7 @@ import sk44.jfxw.model.message.Message;
  *
  * @author sk
  */
+@Deprecated
 public class PathHelper {
 
     // TODO なんか適切なクラスを考える
@@ -85,40 +86,5 @@ public class PathHelper {
             Message.error(ex);
             throw new UncheckedIOException(ex);
         }
-    }
-
-    public static boolean movePath(@NonNull Path source, @NonNull Path dest, OverwriteFileConfirmer confirmer) {
-
-        if (Files.isDirectory(source)) {
-            try {
-                createDirectoryIfNotExists(dest);
-                Files.walkFileTree(source, new MoveDirectoryVisitor(source,
-                    dest, confirmer));
-                Files.walkFileTree(source, new DeleteDirectoryVisitor());
-                Message.info("moved: \n\t" + source.toString() + "\n\tto: \n\t" + dest.toString());
-                return true;
-            } catch (IOException ex) {
-                Message.error(ex);
-                throw new UncheckedIOException(ex);
-            }
-        }
-        return moveFile(source, dest, confirmer);
-    }
-
-    private static boolean moveFile(@NonNull Path source, @NonNull Path dest, OverwriteFileConfirmer confirmer) {
-        assertTrue(Files.isDirectory(source) == false);
-        assertTrue(Files.isDirectory(dest) == false);
-        if (Files.exists(dest) == false
-            || (confirmer != null && confirmer.confirm(dest.toString() + " is already exists. overwrite this?"))) {
-            try {
-                Files.move(source, dest, StandardCopyOption.REPLACE_EXISTING);
-                Message.info("moved: \n\t" + source.toString() + "\n\tto: \n\t" + dest.toString());
-                return true;
-            } catch (IOException ex) {
-                Message.error(ex);
-                throw new UncheckedIOException(ex);
-            }
-        }
-        return false;
     }
 }

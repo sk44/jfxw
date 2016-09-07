@@ -14,6 +14,7 @@ import sk44.jfxw.model.configuration.ConfigDir;
 import sk44.jfxw.model.configuration.Configuration;
 import sk44.jfxw.model.configuration.ConfigurationStore;
 import sk44.jfxw.model.configuration.FilerConfig;
+import sk44.jfxw.model.fs.FileSystem;
 import sk44.jfxw.model.message.Message;
 import sk44.jfxw.model.persistence.EntityManagerFactoryProvider;
 import sk44.jfxw.view.Fxml;
@@ -54,10 +55,11 @@ public class MainApp extends Application {
         FilerConfig rightFilerConfig = configuration.getRightFilerConfig();
         FilerConfig leftFilerConfig = configuration.getLeftFilerConfig();
 
+        FileSystem fileSystem = new FileSystem();
         Filer rightFiler = new Filer(rightFilerConfig.getPath(), rightFilerConfig.getSortType(),
-            rightFilerConfig.getSortOrder(), rightFilerConfig.isSortDirectories());
+            rightFilerConfig.getSortOrder(), rightFilerConfig.isSortDirectories(), fileSystem);
         Filer leftFiler = new Filer(leftFilerConfig.getPath(), leftFilerConfig.getSortType(),
-            leftFilerConfig.getSortOrder(), leftFilerConfig.isSortDirectories());
+            leftFilerConfig.getSortOrder(), leftFilerConfig.isSortDirectories(), fileSystem);
         rightFiler.setOtherFiler(leftFiler);
         leftFiler.setOtherFiler(rightFiler);
 
@@ -67,6 +69,7 @@ public class MainApp extends Application {
         locator.setLeftFiler(leftFiler);
         locator.setRightFiler(rightFiler);
         locator.setBackgroundImage(new BackgroundImage());
+        locator.setFileSystem(fileSystem);
     }
 
     @Override

@@ -8,6 +8,7 @@ package sk44.jfxw.model;
 import lombok.Getter;
 import lombok.Setter;
 import sk44.jfxw.model.configuration.ConfigurationStore;
+import sk44.jfxw.model.fs.FileSystem;
 
 /**
  *
@@ -28,6 +29,10 @@ public enum ModelLocator {
     @Getter
     @Setter
     private Filer leftFiler;
+
+    @Getter
+    @Setter
+    private FileSystem fileSystem;
 
     @Getter
     @Setter

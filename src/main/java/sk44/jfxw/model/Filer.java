@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 import lombok.Getter;
 import lombok.Setter;
-import sk44.jfxw.model.fs.DeleteDirectoryVisitor;
+import sk44.jfxw.model.fs.FileSystem;
 import sk44.jfxw.model.fs.OverwriteFileConfirmer;
 import sk44.jfxw.model.fs.PathHelper;
 import sk44.jfxw.model.message.Message;
@@ -43,18 +43,21 @@ public class Filer {
         return Optional.empty();
     }
 
-    public Filer(String initialPath, PathSortType sortType, PathSortOrder sortOrder, boolean sortDirectories) {
+    public Filer(String initialPath, PathSortType sortType, PathSortOrder sortOrder, boolean sortDirectories, FileSystem fileSystem) {
         this.currentDir = normalizePath(Paths.get(initialPath));
         this.sortType = sortType;
         this.sortOrder = sortOrder;
         this.sortDirectories = sortDirectories;
         this.events = new FilerEvents();
+        this.fileSystem = fileSystem;
     }
 
     private final PathHistoriesCache historiesCache = new PathHistoriesCache(HISTORY_BUFFER_SIZE);
 
     @Getter
     private final FilerEvents events;
+
+    private final FileSystem fileSystem;
 
     private boolean focused;
 
@@ -230,7 +233,7 @@ public class Filer {
             }
             // TODO バックグラウンド実行を検討
             Path movedPath = otherFiler.resolve(entry);
-            if (PathHelper.movePath(entry, movedPath, confirmer)) {
+            if (fileSystem.movePath(entry, movedPath, confirmer)) {
                 onMarkedEntryProcessed(entry);
                 // 移動後に反対側の窓でフォーカスさせる（ reload に依存）
                 otherFiler.addToCache(movedPath);
@@ -244,25 +247,11 @@ public class Filer {
     public void delete(List<Path> entries) {
         for (Path entry : entries) {
             // TODO バックグラウンド実行を検討
-            if (Files.isDirectory(entry)) {
-                try {
-                    Files.walkFileTree(entry, new DeleteDirectoryVisitor());
-                } catch (IOException ex) {
-                    Message.error(ex);
-                    return;
-                }
-            } else {
-                try {
-                    Files.delete(entry);
-                } catch (IOException ex) {
-                    Message.error(ex);
-                    return;
-                }
-            }
+            fileSystem.deletePath(entry);
             Message.info("deleted: " + entry.toString());
             onMarkedEntryProcessed(entry);
         }
-        reload();
+//        reload();
     }
 
     private boolean isSameDirWithOther() {

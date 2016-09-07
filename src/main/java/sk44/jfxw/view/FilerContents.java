@@ -94,6 +94,9 @@ public class FilerContents {
     }
 
     public ContentRow getCurrentContent() {
+        if (contents.size() <= index) {
+            index = contents.size() - 1;
+        }
         return contents.get(index);
     }
 
@@ -113,12 +116,25 @@ public class FilerContents {
     }
 
     public void removeMark(Path path) {
-        // TODO map でもっておいたほうが速そう
-        Optional<ContentRow> content = contents.stream().filter(e -> e.getPath().equals(path)).findAny();
+        Optional<ContentRow> content = findRowByPath(path);
         content.ifPresent(c -> {
             c.updateMark(false);
         });
+    }
 
+    private Optional<ContentRow> findRowByPath(Path path) {
+        // TODO map とかでもっておいたほうが速そう
+        return contents.stream().filter(e -> e.getPath().equals(path)).findAny();
+    }
+
+    public void removePathIfContains(Path path) {
+        // TODO 親ディレクトリが消えた時の対応（親階層に移動するとか）
+        if (filer.getCurrentDir().equals(path.getParent()) == false) {
+            return;
+        }
+        findRowByPath(path).ifPresent(row -> {
+            contents.remove(row);
+        });
     }
 
     public void clear() {
