@@ -30,6 +30,8 @@ public class PathHelper {
         return childDir.startsWith(parentDir);
     }
 
+    // TODO fileSystem を使う
+    @Deprecated
     public static boolean createDirectoryIfNotExists(Path dir) throws IOException {
         // 同名のファイルが存在する場合もある
         if (Files.exists(dir) && Files.isDirectory(dir)) {

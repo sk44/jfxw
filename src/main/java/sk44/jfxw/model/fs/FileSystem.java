@@ -26,8 +26,13 @@ public class FileSystem {
         }
     }
 
+    private final EventSource<Consumer<Path>> pathCreated = new EventSource<>();
     private final EventSource<Consumer<Path>> fileDeleted = new EventSource<>();
     private final EventSource<Consumer<Path>> directoryDeleted = new EventSource<>();
+
+    public void addPathCreated(Consumer<Path> listener) {
+        pathCreated.addListener(listener);
+    }
 
     public void addFileDeleted(Consumer<Path> listener) {
         fileDeleted.addListener(listener);
@@ -61,12 +66,13 @@ public class FileSystem {
         raiseDirectoryRemoved(toDelete);
     }
 
-    public static boolean createDirectoryIfNotExists(Path dir) {
+    public boolean createDirectoryIfNotExists(Path dir) {
         // 同名のファイルが存在する場合もある
         if (Files.exists(dir) && Files.isDirectory(dir)) {
             return false;
         }
         IOExceptions.unchecked(() -> Files.createDirectory(dir));
+        railsePathCreated(dir);
         return true;
     }
 
@@ -76,7 +82,7 @@ public class FileSystem {
             IOExceptions.unchecked(() -> {
                 createDirectoryIfNotExists(dest);
                 Files.walkFileTree(source, new MoveDirectoryVisitor(source,
-                    dest, confirmer));
+                    dest, confirmer, this));
                 Files.walkFileTree(source, new DeleteDirectoryVisitor(this));
                 Message.info("moved: \n\t" + source.toString() + "\n\tto: \n\t" + dest.toString());
             });
@@ -85,17 +91,23 @@ public class FileSystem {
         return moveFile(source, dest, confirmer);
     }
 
-    private boolean moveFile(@NonNull Path source, @NonNull Path dest, OverwriteFileConfirmer confirmer) {
+    boolean moveFile(@NonNull Path source, @NonNull Path dest, OverwriteFileConfirmer confirmer) {
         assertTrue(Files.isDirectory(source) == false);
         assertTrue(Files.isDirectory(dest) == false);
         if (Files.exists(dest) == false
             || (confirmer != null && confirmer.confirm(dest.toString() + " is already exists. overwrite this?"))) {
 
             IOExceptions.unchecked(() -> Files.move(source, dest, StandardCopyOption.REPLACE_EXISTING));
+            raiseFileRemoved(source);
+            railsePathCreated(dest);
             Message.info("moved: \n\t" + source.toString() + "\n\tto: \n\t" + dest.toString());
             return true;
         }
         return false;
+    }
+
+    private void railsePathCreated(Path created) {
+        pathCreated.raiseEvent(listener -> listener.accept(created));
     }
 
     private void raiseFileRemoved(Path removedFile) {

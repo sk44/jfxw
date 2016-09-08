@@ -118,6 +118,16 @@ public class Filer {
         changeDirectoryTo(currentDir);
     }
 
+    public void changeDirectoryToExistingParentDir() {
+        Path parent = currentDir.getParent();
+        if (Files.exists(parent)) {
+            changeDirectoryTo(parent);
+        } else {
+            currentDir = parent;
+            changeDirectoryToExistingParentDir();
+        }
+    }
+
     public void changeDirectoryToInitPath() {
         changeDirectoryTo(currentDir);
     }
@@ -227,10 +237,6 @@ public class Filer {
         }
         entries.stream().forEach((entry) -> {
             // TODO スキップしてもマークが外れてしまう
-            if (entry.startsWith(otherFiler.currentDir)) {
-                Message.warn(entry + " is parent dir of " + otherFiler.currentDir + ". skip moving.");
-                return;
-            }
             // TODO バックグラウンド実行を検討
             Path movedPath = otherFiler.resolve(entry);
             if (fileSystem.movePath(entry, movedPath, confirmer)) {
@@ -239,8 +245,7 @@ public class Filer {
                 otherFiler.addToCache(movedPath);
             }
         });
-        // TODO 先頭にカーソルが移動してしまう場合がある
-        reload();
+//        reload();
         otherFiler.reload();
     }
 
@@ -249,7 +254,7 @@ public class Filer {
             // TODO バックグラウンド実行を検討
             fileSystem.deletePath(entry);
             Message.info("deleted: " + entry.toString());
-            onMarkedEntryProcessed(entry);
+//            onMarkedEntryProcessed(entry);
         }
 //        reload();
     }

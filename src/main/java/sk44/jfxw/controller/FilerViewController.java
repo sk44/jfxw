@@ -390,7 +390,7 @@ public class FilerViewController implements Initializable {
         this.contents.setFiler(filer);
         FileSystem fileSystem = ModelLocator.INSTANCE.getFileSystem();
         fileSystem.addDirectoryDeleted(dir -> {
-            contents.removePathIfContains(dir);
+            contents.onDirectoryDeleted(dir);
         });
         fileSystem.addFileDeleted(file -> {
             contents.removePathIfContains(file);

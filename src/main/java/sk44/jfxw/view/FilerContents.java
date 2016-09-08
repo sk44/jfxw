@@ -127,8 +127,16 @@ public class FilerContents {
         return contents.stream().filter(e -> e.getPath().equals(path)).findAny();
     }
 
+    public void onDirectoryDeleted(Path deletedDir) {
+        // 親ディレクトリが消えた場合
+        if (filer.getCurrentDir().startsWith(deletedDir)) {
+            filer.changeDirectoryToExistingParentDir();
+            return;
+        }
+        removePathIfContains(deletedDir);
+    }
+
     public void removePathIfContains(Path path) {
-        // TODO 親ディレクトリが消えた時の対応（親階層に移動するとか）
         if (filer.getCurrentDir().equals(path.getParent()) == false) {
             return;
         }
