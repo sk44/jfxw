@@ -3,12 +3,10 @@ package sk44.jfxw.controller;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.Optional;
-import java.util.Random;
 import java.util.ResourceBundle;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.geometry.Bounds;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.input.KeyEvent;
@@ -37,28 +35,6 @@ public class FilerViewController implements Initializable {
 
     private static final String CLASS_NAME_PREVIEW_FILER = "previewFiler";
     private static final String CLASS_NAME_CURRENT_FILER = "currentFiler";
-    private static final double ROW_HEIGHT = 7.5;
-
-    private static void ensureVisible(ScrollPane scrollPane, ContentRow row) {
-
-        // http://stackoverflow.com/questions/15840513/javafx-scrollpane-programmatically-moving-the-viewport-centering-content
-        Platform.runLater(() -> {
-            // 全体の高さ
-            double contentHeight = scrollPane.getContent().getBoundsInLocal().getHeight();
-            // row の位置
-            double rowY = (row.getBoundsInParent().getMaxY() + row.getBoundsInParent().getMinY()) / 2.0;
-            // 表示範囲の高さ
-            double visibleHeight = scrollPane.getViewportBounds().getHeight();
-            Bounds b = scrollPane.getViewportBounds();
-            if (rowY + b.getMinY() < 0) {
-                // 上へスクロールが必要
-                scrollPane.setVvalue(scrollPane.getVmax() * ((rowY - ROW_HEIGHT) / (contentHeight - visibleHeight)));
-            } else if (rowY + b.getMinY() > visibleHeight) {
-                // 下へスクロールが必要
-                scrollPane.setVvalue(scrollPane.getVmax() * ((rowY - visibleHeight + ROW_HEIGHT) / (contentHeight - visibleHeight)));
-            }
-        });
-    }
 
     @FXML
     @Getter
@@ -100,13 +76,11 @@ public class FilerViewController implements Initializable {
                 openExternalEditor();
                 break;
             case G:
-                contents.clearCursor();
                 if (event.isShiftDown()) {
                     contents.updateIndexToBottom();
                 } else {
                     contents.updateIndexToTop();
                 }
-                updateCursor();
                 break;
             case H:
                 this.filer.changeDirectoryToParentDir();
@@ -211,17 +185,14 @@ public class FilerViewController implements Initializable {
 
     private void next() {
         contents.updateIndexToDown();
-        updateCursor();
     }
 
     private void previous() {
         contents.updateIndexToUp();
-        updateCursor();
     }
 
     private void copyMarkedPathesToOtherFiler() {
         filer.copyToOtherFiler(contents.collectMarkedPathes(), this::showConfirmOnOverwritingDialog);
-        updateCursor();
     }
 
     private boolean showConfirmOnOverwritingDialog(String message) {
@@ -243,7 +214,6 @@ public class FilerViewController implements Initializable {
                 controller.updateMessage("Marked pathes will be deleted! Are you sure?");
                 controller.setOkAction(() -> {
                     filer.delete(contents.collectMarkedPathes());
-                    updateCursor();
                 });
             });
         }
@@ -253,19 +223,10 @@ public class FilerViewController implements Initializable {
     private void moveMarkedPathesToOtherFiler() {
         // TODO コピーとわける？
         filer.moveToOtherFiler(contents.collectMarkedPathes(), this::showConfirmOnOverwritingDialog);
-        updateCursor();
     }
 
     private void createSymbolicLink() {
         filer.createSymbolicLinks(contents.collectMarkedPathes());
-    }
-
-    private void updateCursor() {
-        // TODO
-        ContentRow currentContent = contents.getCurrentContent();
-        currentContent.updateSelected(true);
-        ensureVisible(scrollPane, currentContent);
-        filer.onCursorChangedTo(currentContent.getPath());
     }
 
     private void openCreateDirectoryWindow() {
@@ -388,6 +349,7 @@ public class FilerViewController implements Initializable {
         });
         this.filer = filer;
         this.contents.setFiler(filer);
+        this.contents.setScrollPane(scrollPane);
         FileSystem fileSystem = ModelLocator.INSTANCE.getFileSystem();
         fileSystem.addDirectoryDeleted(dir -> {
             contents.onDirectoryDeleted(dir);
@@ -409,7 +371,6 @@ public class FilerViewController implements Initializable {
         contents.updateIndex(focusIndex);
         // TODO バインド
         currentPathLabel.setText(toDir.toString());
-        updateCursor();
         currentPathInfoBox.update(toDir);
     }
 
@@ -418,7 +379,6 @@ public class FilerViewController implements Initializable {
         Platform.runLater(() -> {
             flowPane.requestFocus();
             Nodes.addStyleClassTo(rootPane, CLASS_NAME_CURRENT_FILER);
-            updateCursor();
         });
     }
 
@@ -436,15 +396,11 @@ public class FilerViewController implements Initializable {
     }
 
     private void searchNext(boolean keepCurrent) {
-        contents.searchNext(searchText, keepCurrent, () -> {
-            updateCursor();
-        });
+        contents.searchNext(searchText, keepCurrent);
     }
 
     private void searchPrevious() {
-        contents.searchPrevious(searchText, () -> {
-            updateCursor();
-        });
+        contents.searchPrevious(searchText);
     }
 
     private void openExternalEditor() {
@@ -486,9 +442,6 @@ public class FilerViewController implements Initializable {
         Nodes.removeStyleClassFrom(flowPane, CLASS_NAME_PREVIEW_FILER);
         focus();
     }
-
-    // TODO 実装をどこかに移動
-    private final Random random = new Random();
 
     private void updateBackgroundImage() {
         ModelLocator locator = ModelLocator.INSTANCE;

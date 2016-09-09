@@ -10,10 +10,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.stream.Collectors;
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.geometry.Bounds;
 import javafx.scene.Node;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import lombok.Setter;
@@ -26,16 +29,41 @@ import sk44.jfxw.model.message.Message;
  */
 public class FilerContents {
 
+    private static final double ROW_HEIGHT = 7.5;
+
+    private static void ensureVisible(ScrollPane scrollPane, ContentRow row) {
+
+        // http://stackoverflow.com/questions/15840513/javafx-scrollpane-programmatically-moving-the-viewport-centering-content
+        Platform.runLater(() -> {
+            // 全体の高さ
+            double contentHeight = scrollPane.getContent().getBoundsInLocal().getHeight();
+            // row の位置
+            double rowY = (row.getBoundsInParent().getMaxY() + row.getBoundsInParent().getMinY()) / 2.0;
+            // 表示範囲の高さ
+            double visibleHeight = scrollPane.getViewportBounds().getHeight();
+            Bounds b = scrollPane.getViewportBounds();
+            if (rowY + b.getMinY() < 0) {
+                // 上へスクロールが必要
+                scrollPane.setVvalue(scrollPane.getVmax() * ((rowY - ROW_HEIGHT) / (contentHeight - visibleHeight)));
+            } else if (rowY + b.getMinY() > visibleHeight) {
+                // 下へスクロールが必要
+                scrollPane.setVvalue(scrollPane.getVmax() * ((rowY - visibleHeight + ROW_HEIGHT) / (contentHeight - visibleHeight)));
+            }
+        });
+    }
+
     private final ObservableList<ContentRow> contents = FXCollections.observableArrayList();
     private int index = 0;
     @Setter
     private Filer filer;
+    @Setter
+    private ScrollPane scrollPane;
 
     public void bindContentWith(ObservableList<Node> list) {
         Bindings.bindContent(list, contents);
     }
 
-    public int size() {
+    private int size() {
         return contents.size();
     }
 
@@ -51,7 +79,6 @@ public class FilerContents {
         if (isTop()) {
             return;
         }
-        clearCursor();
         updateIndex(this.index - 1);
     }
 
@@ -59,22 +86,33 @@ public class FilerContents {
         if (isBottom()) {
             return;
         }
-        clearCursor();
         updateIndex(this.index + 1);
     }
 
-    public void updateIndex(int index) {
-        if (index < 0) {
+    public void updateIndex(int newIndex) {
+        if (newIndex < 0) {
+            Message.warn("cannot update index to: " + newIndex);
             this.index = 0;
             return;
         }
-        int size = this.contents.size();
-        if (size <= index) {
+        int size = size();
+        if (size - 1 < this.index) {
+            // ディレクトリ移動時に出る
+            Message.info("skip clear: " + this.index + ", size: " + size);
+        } else {
+            getCurrentContent().updateSelected(false);
+        }
+
+        if (size <= newIndex) {
             this.index = size - 1;
         } else {
-            this.index = index;
+            this.index = newIndex;
         }
         this.filer.addToCache(getCurrentContentPath());
+        ContentRow currentContent = getCurrentContent();
+        currentContent.updateSelected(true);
+        ensureVisible(scrollPane, currentContent);
+        filer.onCursorChangedTo(currentContent.getPath());
     }
 
     public boolean isTop() {
@@ -95,6 +133,7 @@ public class FilerContents {
 
     public ContentRow getCurrentContent() {
         if (contents.size() <= index) {
+            Message.info("index " + index + " is out of bounds.");
             index = contents.size() - 1;
         }
         return contents.get(index);
@@ -102,13 +141,6 @@ public class FilerContents {
 
     public Path getCurrentContentPath() {
         return getCurrentContent().getPath();
-    }
-
-    public void clearCursor() {
-        if (size() - 1 < index) {
-            return;
-        }
-        getCurrentContent().updateSelected(false);
     }
 
     public void add(ContentRow content) {
@@ -172,7 +204,7 @@ public class FilerContents {
             .map(ext -> path);
     }
 
-    public void searchNext(String searchText, boolean keepCurrent, Runnable onFound) {
+    public void searchNext(String searchText, boolean keepCurrent) {
 
         if (isBottom()) {
             return;
@@ -184,16 +216,14 @@ public class FilerContents {
             ContentRow content = contents.get(i);
             if (content.isNameMatch(searchText)) {
                 Message.debug("found: " + content.getName());
-                clearCursor();
                 updateIndex(i);
-                onFound.run();
                 return;
             }
         }
         Message.debug("not found.");
     }
 
-    public void searchPrevious(String searchText, Runnable onFound) {
+    public void searchPrevious(String searchText) {
         if (isTop()) {
             return;
         }
@@ -203,9 +233,7 @@ public class FilerContents {
             ContentRow content = contents.get(i);
             if (content.isNameMatch(searchText)) {
                 Message.debug("found: " + content.getName());
-                clearCursor();
                 updateIndex(i);
-                onFound.run();
                 return;
             }
         }
