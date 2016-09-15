@@ -102,10 +102,6 @@ public class Filer {
         events.raiseLostFocused();
     }
 
-    private void onMarkedEntryProcessed(Path pathToProcess) {
-        events.raiseMarkedEntryProcessed(pathToProcess);
-    }
-
     public void onCursorChangedTo(Path path) {
         events.raiseCursorChanged(path);
     }
@@ -203,7 +199,7 @@ public class Filer {
             // TODO バックグラウンド実行を検討
             Path newPath = otherFiler.resolve(entry);
             if (PathHelper.copyPath(entry, newPath, confirmer)) {
-                onMarkedEntryProcessed(entry);
+                events.raiseMarkedEntryProcessed(entry);
                 // 移動後に反対側の窓でフォーカスさせる
                 otherFiler.addToCache(newPath);
             }
@@ -240,7 +236,7 @@ public class Filer {
             // TODO バックグラウンド実行を検討
             Path movedPath = otherFiler.resolve(entry);
             if (fileSystem.movePath(entry, movedPath, confirmer)) {
-                onMarkedEntryProcessed(entry);
+                events.raiseMarkedEntryProcessed(entry);
                 // 移動後に反対側の窓でフォーカスさせる（ reload に依存）
                 otherFiler.addToCache(movedPath);
             }

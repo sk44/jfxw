@@ -365,10 +365,7 @@ public class FilerViewController implements Initializable {
 
     private void directoryChanged(Path fromDir, Path toDir) {
 
-        int focusIndex = this.filer.lastFocusedPathIn(toDir)
-            .map(focused -> contents.indexOfPath(focused).orElse(0))
-            .orElse(0);
-        contents.updateIndex(focusIndex);
+        contents.onDirectoryChangedTo(toDir);
         // TODO バインド
         currentPathLabel.setText(toDir.toString());
         currentPathInfoBox.update(toDir);

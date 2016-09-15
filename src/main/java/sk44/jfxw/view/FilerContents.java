@@ -52,6 +52,8 @@ public class FilerContents {
         });
     }
 
+    // TODO ソートにはこのへん使えそう？
+    // http://docs.oracle.com/javase/jp/8/javafx/api/javafx/collections/transformation/SortedList.html
     private final ObservableList<ContentRow> contents = FXCollections.observableArrayList();
     private int index = 0;
     @Setter
@@ -89,27 +91,40 @@ public class FilerContents {
         updateIndex(this.index + 1);
     }
 
-    public void updateIndex(int newIndex) {
+    private void fixIndex() {
+        updateIndex(index);
+    }
+
+    public void onDirectoryChangedTo(Path toDir) {
+        int focusIndex = this.filer.lastFocusedPathIn(toDir)
+            .map(focused -> indexOfPath(focused).orElse(0))
+            .orElse(0);
+        updateIndex(focusIndex);
+    }
+
+    private void updateIndex(int newIndex) {
         if (newIndex < 0) {
             Message.warn("cannot update index to: " + newIndex);
             this.index = 0;
-            return;
-        }
-        int size = size();
-        if (size - 1 < this.index) {
-            // ディレクトリ移動時に出る
-            Message.info("skip clear: " + this.index + ", size: " + size);
         } else {
-            getCurrentContent().updateSelected(false);
-        }
+            int size = size();
+            if (size - 1 < this.index) {
+                // ディレクトリ移動時に出る
+                Message.info("skip clear: " + this.index + ", size: " + size);
+            } else {
+                Message.info("clear index: " + this.index);
+                getCurrentContent().updateSelected(false);
+            }
 
-        if (size <= newIndex) {
-            this.index = size - 1;
-        } else {
-            this.index = newIndex;
+            if (size <= newIndex) {
+                this.index = size - 1;
+            } else {
+                this.index = newIndex;
+            }
         }
-        this.filer.addToCache(getCurrentContentPath());
+        Message.info("index updated: " + this.index);
         ContentRow currentContent = getCurrentContent();
+        this.filer.addToCache(currentContent.getPath());
         currentContent.updateSelected(true);
         ensureVisible(scrollPane, currentContent);
         filer.onCursorChangedTo(currentContent.getPath());
@@ -174,6 +189,9 @@ public class FilerContents {
         }
         findRowByPath(path).ifPresent(row -> {
             contents.remove(row);
+            // FIXME 削除対象業以降にカーソルがあるとカーソル表示がだぶる
+            // index と selected で二重管理になってるのがうまくない
+            fixIndex();
         });
     }
 
