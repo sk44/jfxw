@@ -151,6 +151,9 @@ public class FilerViewController implements Initializable {
                     openSortOptionWindow();
                 }
                 break;
+            case U:
+                contents.extractArchive();
+                break;
             case W:
                 updateBackgroundImage();
                 break;

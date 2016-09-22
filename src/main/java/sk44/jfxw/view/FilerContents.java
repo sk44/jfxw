@@ -283,6 +283,10 @@ public class FilerContents {
 
     }
 
+    public void extractArchive() {
+        filer.extractArchiveToOtherFiler(getCurrentContentPath());
+    }
+
     public void yankCurrentContent() {
         String path = getCurrentContentPath().toString();
         final Clipboard clipboard = Clipboard.getSystemClipboard();

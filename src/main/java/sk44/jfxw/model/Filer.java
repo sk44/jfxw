@@ -226,6 +226,24 @@ public class Filer {
         }
     }
 
+    public void extractArchiveToOtherFiler(Path archiveFile) {
+        if (Files.isRegularFile(archiveFile) == false) {
+            Message.warn(archiveFile + " is not a regular file.");
+            return;
+        }
+        String fileName = archiveFile.getFileName().toString();
+        String extractDirName = fileName.substring(0, fileName.lastIndexOf("."));
+        Path extractDir = otherFiler.currentDir.resolve(extractDirName);
+        if (Files.exists(extractDir) && Files.isDirectory(extractDir)) {
+            Message.warn(extractDir + " is already exists.");
+            return;
+        }
+        if (fileSystem.extractArchive(archiveFile, extractDir)) {
+            Message.info("extract " + archiveFile + " to " + extractDir);
+            otherFiler.reload();
+        }
+    }
+
     public void moveToOtherFiler(List<Path> entries, OverwriteFileConfirmer confirmer) {
         if (isSameDirWithOther()) {
             Message.warn("cannot move to the same dir.");

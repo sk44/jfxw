@@ -5,9 +5,14 @@
  */
 package sk44.jfxw.model.fs;
 
+import java.io.IOException;
+import java.nio.file.FileSystems;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.function.Consumer;
 import lombok.NonNull;
 import sk44.jfxw.model.EventSource;
@@ -74,6 +79,25 @@ public class FileSystem {
         IOExceptions.unchecked(() -> Files.createDirectory(dir));
         railsePathCreated(dir);
         return true;
+    }
+
+    public boolean extractArchive(Path archiveFile, Path destDir) {
+        try (java.nio.file.FileSystem fs = FileSystems.newFileSystem(archiveFile, ClassLoader.getSystemClassLoader())) {
+            for (Path rootPath : fs.getRootDirectories()) {
+                Files.walkFileTree(rootPath, new SimpleFileVisitor<Path>() {
+                    @Override
+                    public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                        // TODO 展開処理
+                        Message.info(file.toString());
+                        return FileVisitResult.CONTINUE;
+                    }
+                });
+            }
+            return true;
+        } catch (IOException ex) {
+            Message.error(ex);
+            return false;
+        }
     }
 
     public boolean movePath(@NonNull Path source, @NonNull Path dest, OverwriteFileConfirmer confirmer) {
