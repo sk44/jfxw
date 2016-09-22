@@ -52,6 +52,7 @@ public class FilerViewController implements Initializable {
     private RenameWindow renameWindow;
     private ModalWindow<TextFieldWindowController, Void> createDirWindow;
     private ModalWindow<TextFieldWindowController, Void> searchWindow;
+    private ModalWindow<TextFieldWindowController, Void> inputNewTextFileNameWindow;
     private ModalWindow<ConfirmWindowController, Boolean> confirmOnDeletingWindow;
     private ModalWindow<ConfirmWindowController, Boolean> confirmOnOverwritingWindow;
     private ModalWindow<JumpWindowController, Void> jumpWindow;
@@ -73,7 +74,11 @@ public class FilerViewController implements Initializable {
                 deleteMarkedPathes();
                 break;
             case E:
-                openExternalEditor();
+                if (event.isShiftDown()) {
+                    openInputNewTextFileNameWindow();
+                } else {
+                    contents.openExternalEditor();
+                }
                 break;
             case G:
                 if (event.isShiftDown()) {
@@ -231,7 +236,7 @@ public class FilerViewController implements Initializable {
 
     private void openCreateDirectoryWindow() {
         if (createDirWindow == null) {
-            createDirWindow = new ModalWindow<>(Fxml.TEXT_FIELD_WINDOW, getModalWindowOwner(), (controller) -> {
+            createDirWindow = new ModalWindow<>(Fxml.TEXT_FIELD_WINDOW, getModalWindowOwner(), controller -> {
                 controller.updateContent("New directory", "");
                 controller.setUpdateAction(dirName -> {
                     filer.createDirectory(dirName);
@@ -239,6 +244,18 @@ public class FilerViewController implements Initializable {
             });
         }
         createDirWindow.showAndWait();
+    }
+
+    private void openInputNewTextFileNameWindow() {
+        if (inputNewTextFileNameWindow == null) {
+            inputNewTextFileNameWindow = new ModalWindow<>(Fxml.TEXT_FIELD_WINDOW, getModalWindowOwner(), controller -> {
+                controller.updateContent("New text", "");
+                controller.setUpdateAction(textFileName -> {
+                    contents.openExternalEditorFor(textFileName);
+                });
+            });
+        }
+        inputNewTextFileNameWindow.showAndWait();
     }
 
     private void openRenameWindow() {
@@ -398,15 +415,6 @@ public class FilerViewController implements Initializable {
 
     private void searchPrevious() {
         contents.searchPrevious(searchText);
-    }
-
-    private void openExternalEditor() {
-        Path onCursor = contents.getCurrentContentPath();
-        ModelLocator.INSTANCE
-            .getConfigurationStore()
-            .getConfiguration()
-            .getEditorProcessFor(onCursor)
-            .execute();
     }
 
     private void openByAssociatedApplication() {

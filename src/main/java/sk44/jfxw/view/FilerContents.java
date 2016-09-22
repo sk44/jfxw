@@ -5,6 +5,7 @@
  */
 package sk44.jfxw.view;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
@@ -21,6 +22,7 @@ import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import lombok.Setter;
 import sk44.jfxw.model.Filer;
+import sk44.jfxw.model.ModelLocator;
 import sk44.jfxw.model.message.Message;
 
 /**
@@ -110,9 +112,9 @@ public class FilerContents {
             int size = size();
             if (size - 1 < this.index) {
                 // ディレクトリ移動時に出る
-                Message.info("skip clear: " + this.index + ", size: " + size);
+//                Message.info("skip clear: " + this.index + ", size: " + size);
             } else {
-                Message.info("clear index: " + this.index);
+//                Message.info("clear index: " + this.index);
                 getCurrentContent().updateSelected(false);
             }
 
@@ -122,7 +124,7 @@ public class FilerContents {
                 this.index = newIndex;
             }
         }
-        Message.info("index updated: " + this.index);
+//        Message.info("index updated: " + this.index);
         ContentRow currentContent = getCurrentContent();
         this.filer.addToCache(currentContent.getPath());
         currentContent.updateSelected(true);
@@ -156,6 +158,28 @@ public class FilerContents {
 
     public Path getCurrentContentPath() {
         return getCurrentContent().getPath();
+    }
+
+    public void openExternalEditor() {
+        Path onCursor = getCurrentContentPath();
+        ModelLocator.INSTANCE
+            .getConfigurationStore()
+            .getConfiguration()
+            .getEditorProcessFor(onCursor)
+            .execute();
+    }
+
+    public void openExternalEditorFor(String textFileName) {
+        Path newFile = filer.getCurrentDir().resolve(textFileName);
+        if (Files.exists(newFile) && Files.isRegularFile(newFile)) {
+            Message.warn(newFile + " is already exists.");
+            return;
+        }
+        ModelLocator.INSTANCE
+            .getConfigurationStore()
+            .getConfiguration()
+            .getEditorProcessFor(newFile)
+            .execute();
     }
 
     public void add(ContentRow content) {

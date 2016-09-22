@@ -44,6 +44,8 @@ public class ExternalProcess {
         }
         Message.info("exec: " + commands);
         try {
+            // TODO 終了を非同期で取れるようにしたい
+            // waitFor してもすぐ 0 が返る
             new ProcessBuilder(commands).start();
         } catch (IOException ex) {
             throw new UncheckedIOException(ex);

@@ -100,7 +100,7 @@ public class ContentRow extends FlowPane {
         this.asParent = asParent;
 
         markLabel = new Label();
-        markLabel.prefWidthProperty().set(15);
+        markLabel.prefWidthProperty().set(WIDTH_MARK);
         markLabel.getStyleClass().add(MARK_CONTENT_CLASS_NAME);
         markLabel.textProperty().bindBidirectional(markedProperty, new BooleanStringConverter() {
             @Override
@@ -134,21 +134,29 @@ public class ContentRow extends FlowPane {
             name += DIR_NAME_SUFFIX;
         }
         nameLabel = new Label(name);
-        nameLabel.prefWidthProperty().bind(widthProperty.multiply(0.45));
+        nameLabel.prefWidthProperty().bind(widthProperty.multiply(0.4));
+        // TODO バインドだとうまく動かない
+        /*
+        widthProperty.addListener((ObservableValue<? extends Number> observable, Number oldValue, Number newValue) -> {
+            Message.info("old: " + oldValue + ", new: " + newValue);
+//            double w = (double) newValue - WIDTH_MARK - WIDTH_SIZE - WIDTH_LAST_MODIFIED - ICON_SIZE;
+//            nameLabel.prefWidthProperty().set(w);
+        });
+        double a = WIDTH_MARK + WIDTH_SIZE + WIDTH_LAST_MODIFIED + ICON_SIZE * 1;
+//        nameLabel.prefWidthProperty().bind(widthProperty.add(a));
+         */
         nameLabel.setPadding(new Insets(0, 5, 0, 5));
 
         sizeLabel = new Label(isDirectory() ? DIR_SIZE_VALUE : formatFileSize(path));
         sizeLabel.getStyleClass().add("sizeContent");
-        // TODO 幅を計算する
-        sizeLabel.prefWidthProperty().bind(widthProperty.multiply(0.2));
+        sizeLabel.prefWidthProperty().set(WIDTH_SIZE);
         sizeLabel.setPadding(new Insets(0, 5, 0, 5));
 
         lastModified = getLastModified(path);
         lastModifiedLabel = new Label(lastModified == null
             ? ""
             : lastModified.format(DateTimeFormatter.ofPattern(LAST_MODIFIED_DATE_FORMAT)));
-//        lastModifiedLabel.prefWidthProperty().bind(widthProperty.multiply(0.35));
-        lastModifiedLabel.maxWidthProperty().set(150);
+        lastModifiedLabel.prefWidthProperty().set(WIDTH_LAST_MODIFIED);
 
         getChildren().add(markLabel);
         getChildren().add(icon);
@@ -165,6 +173,9 @@ public class ContentRow extends FlowPane {
             getStyleClass().add(ODD_ROW_CLASS_NAME);
         }
     }
+    private static final int WIDTH_SIZE = 100;
+    private static final int WIDTH_LAST_MODIFIED = 150;
+    private static final int WIDTH_MARK = 15;
 
     private final Path path;
     private final boolean asParent;
