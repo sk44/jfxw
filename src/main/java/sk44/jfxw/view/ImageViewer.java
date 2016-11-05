@@ -188,11 +188,13 @@ public class ImageViewer {
 //            previewImageView.fitHeightProperty().bind(basePane.heightProperty());
             previewImageView.setImage(image);
             if (scaleable) {
-                if (basePane.getWidth() < image.getWidth()
-                    || basePane.getHeight() < image.getHeight()) {
+                if (binding
+                    && (basePane.getWidth() < image.getWidth() || basePane.getHeight() < image.getHeight())) {
                     bindImageSize();
                 } else {
                     unbindImageSize();
+                    // ページ移動したときスクロール位置を一番上に
+                    scrollPane.setVvalue(0.0);
                 }
             }
             this.imagePath = imagePath;
