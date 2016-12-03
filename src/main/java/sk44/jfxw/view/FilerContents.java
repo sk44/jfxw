@@ -9,7 +9,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
-import java.util.OptionalInt;
 import java.util.stream.Collectors;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
@@ -57,7 +56,7 @@ public class FilerContents {
     // TODO ソートにはこのへん使えそう？
     // http://docs.oracle.com/javase/jp/8/javafx/api/javafx/collections/transformation/SortedList.html
     private final ObservableList<ContentRow> contents = FXCollections.observableArrayList();
-    private int index = 0;
+    private ContentRow selectedRow;
     @Setter
     private Filer filer;
     @Setter
@@ -67,77 +66,59 @@ public class FilerContents {
         Bindings.bindContent(list, contents);
     }
 
-    private int size() {
-        return contents.size();
-    }
-
     public void updateIndexToBottom() {
-        updateIndex(contents.size() - 1);
+        updateSelected(contents.get(contents.size() - 1));
     }
 
     public void updateIndexToTop() {
-        updateIndex(0);
+        updateSelected(contents.get(0));
+    }
+
+    private int selectedIndex() {
+        return contents.indexOf(selectedRow);
     }
 
     public void updateIndexToUp() {
         if (isTop()) {
             return;
         }
-        updateIndex(this.index - 1);
+        updateSelected(contents.get(selectedIndex() - 1));
     }
 
     public void updateIndexToDown() {
         if (isBottom()) {
             return;
         }
-        updateIndex(this.index + 1);
+        updateSelected(contents.get(selectedIndex() + 1));
     }
 
-    private void fixIndex() {
-        updateIndex(index);
-    }
-
+//    private void fixIndex() {
+//        updateIndex(index);
+//    }
     public void onDirectoryChangedTo(Path toDir) {
-        int focusIndex = this.filer.lastFocusedPathIn(toDir)
-            .map(focused -> indexOfPath(focused).orElse(0))
-            .orElse(0);
-        updateIndex(focusIndex);
+        ContentRow newSelectedRow = this.filer.lastFocusedPathIn(toDir)
+            .flatMap(path -> findRowByPath(path))
+            .orElse(contents.get(0));
+        updateSelected(newSelectedRow);
     }
 
-    private void updateIndex(int newIndex) {
-        if (newIndex < 0) {
-            Message.warn("cannot update index to: " + newIndex);
-            this.index = 0;
-        } else {
-            int size = size();
-            if (size - 1 < this.index) {
-                // ディレクトリ移動時に出る
-//                Message.info("skip clear: " + this.index + ", size: " + size);
-            } else {
-//                Message.info("clear index: " + this.index);
-                getCurrentContent().updateSelected(false);
-            }
-
-            if (size <= newIndex) {
-                this.index = size - 1;
-            } else {
-                this.index = newIndex;
-            }
+    private void updateSelected(ContentRow selected) {
+        if (selectedRow != null) {
+            selectedRow.updateSelected(false);
         }
-//        Message.info("index updated: " + this.index);
-        ContentRow currentContent = getCurrentContent();
-        this.filer.addToCache(currentContent.getPath());
-        currentContent.updateSelected(true);
-        ensureVisible(scrollPane, currentContent);
-        filer.onCursorChangedTo(currentContent.getPath());
+        selectedRow = selected;
+        selectedRow.updateSelected(true);
+        this.filer.addToCache(selectedRow.getPath());
+        ensureVisible(scrollPane, selectedRow);
+        filer.onCursorChangedTo(selectedRow.getPath());
     }
 
     public boolean isTop() {
-        return index == 0;
+        return selectedIndex() == 0;
     }
 
     public boolean isBottom() {
-        return index + 1 == size();
+        return selectedIndex() + 1 == contents.size();
     }
 
     public List<Path> collectMarkedPathes() {
@@ -149,11 +130,7 @@ public class FilerContents {
     }
 
     public ContentRow getCurrentContent() {
-        if (contents.size() <= index) {
-            Message.info("index " + index + " is out of bounds.");
-            index = contents.size() - 1;
-        }
-        return contents.get(index);
+        return selectedRow;
     }
 
     public Path getCurrentContentPath() {
@@ -193,11 +170,6 @@ public class FilerContents {
         });
     }
 
-    private Optional<ContentRow> findRowByPath(Path path) {
-        // TODO map とかでもっておいたほうが速そう
-        return contents.stream().filter(e -> e.getPath().equals(path)).findAny();
-    }
-
     public void onDirectoryDeleted(Path deletedDir) {
         // 親ディレクトリが消えた場合
         if (filer.getCurrentDir().startsWith(deletedDir)) {
@@ -215,7 +187,7 @@ public class FilerContents {
             contents.remove(row);
             // FIXME 削除対象業以降にカーソルがあるとカーソル表示がだぶる
             // index と selected で二重管理になってるのがうまくない
-            fixIndex();
+//            fixIndex();
         });
     }
 
@@ -226,14 +198,9 @@ public class FilerContents {
         contents.clear();
     }
 
-    public OptionalInt indexOfPath(Path path) {
-        for (int i = 0; i < contents.size(); i++) {
-            ContentRow content = contents.get(i);
-            if (content.getPath().equals(path)) {
-                return OptionalInt.of(i);
-            }
-        }
-        return OptionalInt.empty();
+    private Optional<ContentRow> findRowByPath(Path path) {
+        // TODO map とかでもっておいたほうが速そう
+        return contents.stream().filter(e -> e.getPath().equals(path)).findAny();
     }
 
     public Optional<Path> currentImage() {
@@ -254,11 +221,11 @@ public class FilerContents {
         Message.debug("search text: " + searchText);
 
         final int addIndex = keepCurrent ? 0 : 1;
-        for (int i = index + addIndex; i < contents.size(); i++) {
+        for (int i = selectedIndex() + addIndex; i < contents.size(); i++) {
             ContentRow content = contents.get(i);
             if (content.isNameMatch(searchText)) {
                 Message.debug("found: " + content.getName());
-                updateIndex(i);
+                updateSelected(content);
                 return;
             }
         }
@@ -271,11 +238,11 @@ public class FilerContents {
         }
         Message.debug("search text: " + searchText);
 
-        for (int i = index - 1; i >= 0; i--) {
+        for (int i = selectedIndex() - 1; i >= 0; i--) {
             ContentRow content = contents.get(i);
             if (content.isNameMatch(searchText)) {
                 Message.debug("found: " + content.getName());
-                updateIndex(i);
+                updateSelected(content);
                 return;
             }
         }

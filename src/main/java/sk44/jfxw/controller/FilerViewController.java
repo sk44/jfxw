@@ -405,12 +405,11 @@ public class FilerViewController implements Initializable {
     }
 
     private void postEntryLoaded(Path entry, boolean parent, int index) {
-        final boolean odd = index % 2 != 0;
         if (parent) {
-            contents.add(ContentRow.forParent(entry, scrollPane.widthProperty(), odd));
+            contents.add(ContentRow.forParent(entry, scrollPane.widthProperty()));
             return;
         }
-        contents.add(ContentRow.create(entry, scrollPane.widthProperty(), odd));
+        contents.add(ContentRow.create(entry, scrollPane.widthProperty()));
     }
 
     private void searchNext(boolean keepCurrent) {

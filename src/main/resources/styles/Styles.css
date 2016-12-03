@@ -25,10 +25,6 @@
     -fx-background-color: rgba(0, 0, 0, 0.7);
 }
 
-.oddRow * {
-    /*-fx-background-color: #ebebeb;*/
-}
-
 .dirRow * {
     /*-fx-text-fill: #66ccff;*/
 }
