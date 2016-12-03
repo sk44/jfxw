@@ -259,7 +259,7 @@ public class Filer {
                 otherFiler.addToCache(movedPath);
             }
         });
-//        reload();
+        reload();
         otherFiler.reload();
     }
 
@@ -270,7 +270,7 @@ public class Filer {
             Message.info("deleted: " + entry.toString());
 //            onMarkedEntryProcessed(entry);
         }
-//        reload();
+        reload();
     }
 
     private boolean isSameDirWithOther() {

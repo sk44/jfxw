@@ -182,6 +182,7 @@ public class FilerViewController implements Initializable {
             case ENTER:
                 previewImage();
                 break;
+            case COLON:
             case QUOTE:
                 // COLON のつもりだったが、 MBP では QUOTE になる模様
                 openJumpWindow();
