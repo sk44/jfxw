@@ -92,9 +92,6 @@ public class FilerContents {
         updateSelected(contents.get(selectedIndex() + 1));
     }
 
-//    private void fixIndex() {
-//        updateIndex(index);
-//    }
     public void onDirectoryChangedTo(Path toDir) {
         ContentRow newSelectedRow = this.filer.lastFocusedPathIn(toDir)
             .flatMap(path -> findRowByPath(path))
@@ -203,14 +200,27 @@ public class FilerContents {
         return contents.stream().filter(e -> e.getPath().equals(path)).findAny();
     }
 
+    public void preview() {
+        Path path = getCurrentContentPath();
+        if (isImage(path)) {
+            filer.previewImage(path);
+            return;
+        }
+        filer.previewText(path);
+    }
+
     public Optional<Path> currentImage() {
         Path path = getCurrentContentPath();
+        return isImage(path) ? Optional.of(path) : Optional.empty();
+    }
+
+    private boolean isImage(Path path) {
         return Filer.extensionOf(path)
             .filter(ext -> ext.equalsIgnoreCase("jpg")
-                || ext.equalsIgnoreCase("jpeg")
-                || ext.equalsIgnoreCase("png")
-                || ext.equalsIgnoreCase("gif"))
-            .map(ext -> path);
+            || ext.equalsIgnoreCase("jpeg")
+            || ext.equalsIgnoreCase("png")
+            || ext.equalsIgnoreCase("gif"))
+            .isPresent();
     }
 
     public void searchNext(String searchText, boolean keepCurrent) {

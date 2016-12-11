@@ -94,17 +94,17 @@ public class FilerViewController implements Initializable {
                 if (event.isShiftDown()) {
                     openJumpWindow();
                 } else {
-                    next();
+                    contents.updateIndexToDown();
                 }
                 break;
             case DOWN:
                 // down
-                next();
+                contents.updateIndexToDown();
                 break;
             case K:
             case UP:
                 // up
-                previous();
+                contents.updateIndexToUp();
                 break;
             case L:
                 ContentRow currentContent = contents.getCurrentContent();
@@ -171,7 +171,7 @@ public class FilerViewController implements Initializable {
                 // TODO 全体的にやるべき？
                 event.consume();
                 contents.getCurrentContent().toggleMark();
-                next();
+                contents.updateIndexToDown();
                 break;
             case SLASH:
                 openSearchTextField();
@@ -180,7 +180,7 @@ public class FilerViewController implements Initializable {
                 filer.toggleFocus();
                 break;
             case ENTER:
-                previewImage();
+                contents.preview();
                 break;
             case COLON:
             case QUOTE:
@@ -190,14 +190,6 @@ public class FilerViewController implements Initializable {
             default:
                 break;
         }
-    }
-
-    private void next() {
-        contents.updateIndexToDown();
-    }
-
-    private void previous() {
-        contents.updateIndexToUp();
     }
 
     private void copyMarkedPathesToOtherFiler() {
@@ -429,23 +421,21 @@ public class FilerViewController implements Initializable {
             .execute();
     }
 
-    private void previewImage() {
-        contents.currentImage().ifPresent(image -> {
-            filer.previewImage(image);
-        });
-    }
-
     public Optional<Path> nextImage() {
-        next();
+        contents.updateIndexToDown();
         return contents.currentImage();
     }
 
     public Optional<Path> previousImage() {
-        previous();
+        contents.updateIndexToUp();
         return contents.currentImage();
     }
 
-    public void endPreviewImage() {
+    public void onPreviewTextEnd() {
+        focus();
+    }
+
+    public void onPreviewImageEnd() {
         // TODO 対称性がない
         Nodes.removeStyleClassFrom(flowPane, CLASS_NAME_PREVIEW_FILER);
         focus();

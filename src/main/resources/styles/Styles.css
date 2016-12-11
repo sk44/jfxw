@@ -25,6 +25,11 @@
     -fx-background-color: rgba(0, 0, 0, 0.7);
 }
 
+.textPreviewBackground {
+    -fx-background-color: rgba(0, 0, 0, 0.8);
+    color: #ffffff;
+}
+
 .dirRow * {
     /*-fx-text-fill: #66ccff;*/
 }

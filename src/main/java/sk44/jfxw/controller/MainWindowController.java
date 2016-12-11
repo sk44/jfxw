@@ -19,6 +19,7 @@ import sk44.jfxw.model.ModelLocator;
 import sk44.jfxw.model.configuration.Configuration;
 import sk44.jfxw.model.message.Message;
 import sk44.jfxw.view.ImageViewer;
+import sk44.jfxw.view.TextViewer;
 
 public class MainWindowController implements Initializable {
 
@@ -37,6 +38,7 @@ public class MainWindowController implements Initializable {
 
     private final ImageViewer imageViewerInWindow = new ImageViewer(true);
     private final ImageViewer imageViewerInFiler = new ImageViewer(false);
+    private final TextViewer textViewer = new TextViewer();
 
     private void initBackgroundImageView() {
         backgroundImageView.setSmooth(true);
@@ -83,6 +85,9 @@ public class MainWindowController implements Initializable {
             // 反対側の filer に画像を表示する
             imageViewerInFiler.open(imagePath, leftFilerViewController, rightFilerViewController.getRootPane());
         });
+        leftFilerEvents.addListenerToTextShowing(textPath -> {
+            textViewer.open(textPath, rootPane, leftFilerViewController);
+        });
         leftFilerEvents.addListenerToCursorChanged(this::updateStatus);
 
         // 右ファイル窓
@@ -90,6 +95,9 @@ public class MainWindowController implements Initializable {
         FilerEvents rightFilerEvents = rightFiler.getEvents();
         rightFilerEvents.addListenerToImageShowing(imagePath -> {
             imageViewerInWindow.open(imagePath, rightFilerViewController, rootPane);
+        });
+        rightFilerEvents.addListenerToTextShowing(textPath -> {
+            textViewer.open(textPath, rootPane, rightFilerViewController);
         });
         rightFilerEvents.addListenerToCursorChanged(this::updateStatus);
 

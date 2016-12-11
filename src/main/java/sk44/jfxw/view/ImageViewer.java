@@ -58,7 +58,7 @@ public class ImageViewer {
     private void close(FilerViewController launcherController) {
         previewImageView.setImage(null);
         basePane.getChildren().remove(previewImageContainer);
-        launcherController.endPreviewImage();
+        launcherController.onPreviewImageEnd();
     }
 
     private void initImagePreview(FilerViewController launcherController) {

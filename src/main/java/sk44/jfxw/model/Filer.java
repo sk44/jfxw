@@ -110,6 +110,10 @@ public class Filer {
         events.raiseImageShowing(imagePath);
     }
 
+    public void previewText(Path textFilePath) {
+        events.raiseTextShowing(textFilePath);
+    }
+
     public void reload() {
         changeDirectoryTo(currentDir);
     }

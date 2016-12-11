@@ -38,9 +38,9 @@ public class FilerEvents {
     }
 
     @FunctionalInterface
-    public interface PreviewImageListener {
+    public interface PreviewListener {
 
-        void preview(Path imagePath);
+        void preview(Path path);
     }
 
     @FunctionalInterface
@@ -54,9 +54,12 @@ public class FilerEvents {
     private final EventSource<PostChangeDirectoryListener> directoryChanged = new EventSource<>();
     private final EventSource<PathEntryLoadedListener> filerEntryLoaded = new EventSource<>();
     private final EventSource<CursorChangedListener> cursorChanged = new EventSource<>();
-    private final EventSource<PreviewImageListener> imageShowing = new EventSource<>();
+    private final EventSource<PreviewListener> imageShowing = new EventSource<>();
+    private final EventSource<PreviewListener> textShowing = new EventSource<>();
     private final EventSource<PostProcessListener> markedEntryProcessed = new EventSource<>();
 
+    // TODOいちいち add/raise を定義するのが冗長
+    // TODO remove の仕組みが必要かなー
     public void addListenerToFocused(Runnable listener) {
         focused.addListener(listener);
     }
@@ -81,12 +84,20 @@ public class FilerEvents {
         cursorChanged.raiseEvent(listener -> listener.changedTo(newPath));
     }
 
-    public void addListenerToImageShowing(PreviewImageListener listener) {
+    public void addListenerToImageShowing(PreviewListener listener) {
         imageShowing.addListener(listener);
     }
 
     void raiseImageShowing(Path imagePath) {
         imageShowing.raiseEvent(listener -> listener.preview(imagePath));
+    }
+
+    public void addListenerToTextShowing(PreviewListener listener) {
+        textShowing.addListener(listener);
+    }
+
+    void raiseTextShowing(Path textPath) {
+        textShowing.raiseEvent(listener -> listener.preview(textPath));
     }
 
     public void addListenerToMarkedEntryProcessed(PostProcessListener listener) {
@@ -97,7 +108,6 @@ public class FilerEvents {
         markedEntryProcessed.raiseEvent(listener -> listener.postProcess(pathToProcess));
     }
 
-    // TODO remove の仕組みが必要かなー
     public void addListenerToDirectoryWillChange(PreChangeDirectoryListener listener) {
         this.directoryWillChange.addListener(listener);
     }
