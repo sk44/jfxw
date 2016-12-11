@@ -6,6 +6,7 @@ import static javafx.application.Application.launch;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import sk44.jfxw.model.BackgroundImage;
 import sk44.jfxw.model.Filer;
@@ -39,6 +40,7 @@ public class MainApp extends Application {
         // http://www.torutk.com/projects/swe/wiki/JavaFXとアナログ時計
 //        stage.initStyle(StageStyle.TRANSPARENT);
         stage.setTitle("JFXW");
+        stage.getIcons().add(new Image(getClass().getResourceAsStream("/images/icon.png")));
 
         stage.setScene(scene);
         stage.show();

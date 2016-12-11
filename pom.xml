@@ -30,7 +30,7 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.16.6</version>
+            <version>1.16.12</version>
             <scope>provided</scope>
         </dependency>
 
@@ -56,12 +56,12 @@
     </dependencies>
 
     <build>
-        <finalName>jfxw</finalName>
+        <finalName>JFXW</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.3</version>
+                <version>3.6.0</version>
                 <configuration>
                     <source>1.8</source>
                     <target>1.8</target>
@@ -72,26 +72,15 @@
                     -->
                 </configuration>
             </plugin>
-            <!--
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.16</version>
-                <configuration>
-                    <additionalClasspathElements>
-                        <additionalClasspathElement>${java.home}/lib/jfxrt.jar</additionalClasspathElement>
-                    </additionalClasspathElements>
-                </configuration>
-            </plugin>
-            -->
             <!-- http://javafx-maven-plugin.github.io/ -->
             <plugin>
                 <groupId>com.zenjava</groupId>
                 <artifactId>javafx-maven-plugin</artifactId>
-                <version>8.1.4</version>
+                <version>8.7.0</version>
                 <configuration>
                     <mainClass>${mainClass}</mainClass>
                     <identifier>${identifier}</identifier>
+                    <verbose>true</verbose>
                 </configuration>
             </plugin>
         </plugins>
