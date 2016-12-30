@@ -18,6 +18,7 @@ import sk44.jfxw.model.message.MessageLevel;
 import sk44.jfxw.model.process.ExternalProcess;
 
 /**
+ * Application config.
  *
  * @author sk
  */
@@ -26,10 +27,19 @@ import sk44.jfxw.model.process.ExternalProcess;
 @ToString
 public class Configuration {
 
+    private static final double DEFAULT_WINDOW_X = 100.0;
+    private static final double DEFAULT_WINDOW_Y = 100.0;
+    private static final double DEFAULT_WINDOW_WIDTH = 1024;
+    private static final double DEFAULT_WINDOW_HEIGHT = 768;
+
     static Configuration defaultValue() {
 
         Configuration configuration = new Configuration();
         configuration.logLevel = MessageLevel.defaultLevel();
+        configuration.windowX = DEFAULT_WINDOW_X;
+        configuration.windowY = DEFAULT_WINDOW_Y;
+        configuration.windowWidth = DEFAULT_WINDOW_WIDTH;
+        configuration.windowHeight = DEFAULT_WINDOW_HEIGHT;
 
         return configuration;
     }
@@ -75,6 +85,22 @@ public class Configuration {
 
     @Setter
     private FilerConfig rightFilerConfig;
+
+    @Getter
+    @Setter
+    private double windowX;
+
+    @Getter
+    @Setter
+    private double windowY;
+
+    @Getter
+    @Setter
+    private double windowWidth;
+
+    @Getter
+    @Setter
+    private double windowHeight;
 
     public Optional<String> mainFont() {
         if (mainFont == null || mainFont.isEmpty()) {

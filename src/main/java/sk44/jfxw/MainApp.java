@@ -30,8 +30,6 @@ public class MainApp extends Application {
         EntityManagerFactoryProvider.init();
         initializeModelLocator();
 
-        primaryStage = stage;
-
         Parent root = FXMLLoader.load(getClass().getResource(Fxml.MAIN_WINDOW.getPath()));
 
         Scene scene = new Scene(root);
@@ -41,6 +39,9 @@ public class MainApp extends Application {
 //        stage.initStyle(StageStyle.TRANSPARENT);
         stage.setTitle("JFXW");
         stage.getIcons().add(new Image(getClass().getResourceAsStream("/images/icon.png")));
+        updateWindow(stage);
+
+        primaryStage = stage;
 
         stage.setScene(scene);
         stage.show();
@@ -74,6 +75,16 @@ public class MainApp extends Application {
         locator.setFileSystem(fileSystem);
     }
 
+    private void updateWindow(Stage stage) {
+        ConfigurationStore configurationStore = ModelLocator.INSTANCE.getConfigurationStore();
+        Configuration configuration = configurationStore.getConfiguration();
+
+        stage.setWidth(configuration.getWindowWidth());
+        stage.setHeight(configuration.getWindowHeight());
+        stage.setX(configuration.getWindowX());
+        stage.setY(configuration.getWindowY());
+    }
+
     @Override
     public void stop() throws Exception {
         saveConfiguration();
@@ -89,6 +100,10 @@ public class MainApp extends Application {
 
         configuration.updateLeftFilerConfig(leftFiler);
         configuration.updateRightFilerConfig(rightFiler);
+        configuration.setWindowX(primaryStage.getX());
+        configuration.setWindowY(primaryStage.getY());
+        configuration.setWindowWidth(primaryStage.getWidth());
+        configuration.setWindowHeight(primaryStage.getHeight());
 
         configurationStore.save();
     }
