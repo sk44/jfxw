@@ -90,6 +90,9 @@ public class FilerViewController implements Initializable {
             case H:
                 this.filer.changeDirectoryToParentDir();
                 break;
+            case I:
+                contents.getCurrentContent().printSize();
+                break;
             case J:
                 if (event.isShiftDown()) {
                     openJumpWindow();

@@ -20,6 +20,7 @@ import javafx.scene.layout.FlowPane;
 import javafx.scene.paint.Color;
 import javafx.util.converter.BooleanStringConverter;
 import lombok.Getter;
+import sk44.jfxw.model.fs.CalculateDirectorySizeVisitor;
 import sk44.jfxw.model.message.Message;
 
 /**
@@ -203,6 +204,19 @@ public class ContentRow extends FlowPane {
 
     public String getName() {
         return this.nameLabel.getText();
+    }
+
+    public void printSize() {
+        final Path target = isDirectory() ? path : path.getParent();
+        Message.info("calculating size: " + target);
+        CalculateDirectorySizeVisitor visitor = new CalculateDirectorySizeVisitor(target);
+        try {
+            Files.walkFileTree(target, visitor);
+            long totalSize = visitor.getTotalSize();
+            Message.info("total size: " + formatFileSize(totalSize));
+        } catch (IOException ex) {
+            Message.error(ex);
+        }
     }
 
     public boolean isNameMatch(String text) {
