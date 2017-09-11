@@ -8,31 +8,48 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane id="AnchorPane" fx:id="rootPane" prefHeight="158.0" prefWidth="240.0" styleClass="windowContainer" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sk44.jfxw.controller.SortWindowController">
+<AnchorPane id="AnchorPane" prefHeight="200.0" prefWidth="260.0" styleClass="windowContainer" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sk44.jfxw.controller.modal.SortWindowController">
     <stylesheets>
         <URL value="@/styles/Styles.css" />
     </stylesheets>
     <children>
-        <AnchorPane styleClass="windowContent" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
+        <AnchorPane fx:id="rootPane" styleClass="windowContent" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
             <children>
-                <Label fx:id="fileNameLabel" text="File Name(N)" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="10.0">
-                    <padding>
-                        <Insets left="20.0" />
-                    </padding>
+                <Label fx:id="titleLabel" alignment="CENTER" contentDisplay="CENTER" styleClass="windowLabel" text="SORT OPTIONS" textAlignment="CENTER" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="5.0">
                 </Label>
-                <Label fx:id="fileSizeLabel" text="File Size(S)" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="30.0">
-                    <padding>
-                        <Insets left="20.0" />
-                    </padding>
-                </Label>
-                <Label fx:id="lastModifiedLabel" text="Last Modified(M)" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="50.0">
-                    <padding>
-                        <Insets left="20.0" />
-                    </padding>
-                </Label>
-                <CheckBox fx:id="sortDirectoriesCheckBox" layoutX="20.0" layoutY="102.0" mnemonicParsing="false" text="Sort directories" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" />
-                <Label fx:id="ascLabel" layoutX="10.0" layoutY="77.0" prefHeight="16.0" prefWidth="85.0" styleClass="orderType" text="Asc" textAlignment="CENTER" AnchorPane.leftAnchor="20.0" />
-                <Label fx:id="descLabel" layoutX="93.0" layoutY="77.0" prefHeight="16.0" prefWidth="85.0" styleClass="orderType" text="Desc" textAlignment="CENTER" AnchorPane.rightAnchor="20.0" />
+            <VBox prefHeight="200.0" prefWidth="100.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" AnchorPane.topAnchor="25.0">
+               <children>
+                      <Label fx:id="fileNameLabel" prefWidth="200.0" text="File Name(N)">
+                     <VBox.margin>
+                        <Insets bottom="5.0" top="5.0" />
+                     </VBox.margin>
+                      </Label>
+                      <Label fx:id="fileSizeLabel" prefWidth="200.0" text="File Size(S)">
+                     <VBox.margin>
+                        <Insets bottom="5.0" top="5.0" />
+                     </VBox.margin>
+                      </Label>
+                      <Label fx:id="lastModifiedLabel" prefWidth="200.0" text="Last Modified(M)">
+                     <VBox.margin>
+                        <Insets bottom="5.0" top="5.0" />
+                     </VBox.margin>
+                      </Label>
+                  <HBox>
+                     <children>
+                            <Label fx:id="ascLabel" prefHeight="16.0" prefWidth="100.0" styleClass="orderType" text="Asc(A)" textAlignment="CENTER" />
+                            <Label fx:id="descLabel" prefHeight="16.0" prefWidth="100.0" styleClass="orderType" text="Desc(D)" textAlignment="CENTER" />
+                     </children>
+                     <VBox.margin>
+                        <Insets bottom="10.0" top="10.0" />
+                     </VBox.margin>
+                  </HBox>
+                  <Label fx:id="sortDirLabel" prefWidth="200.0" text="Sort Directories(R)">
+                     <VBox.margin>
+                        <Insets bottom="5.0" top="5.0" />
+                     </VBox.margin>
+                  </Label>
+               </children>
+            </VBox>
             </children>
         </AnchorPane>
     </children>

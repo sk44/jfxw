@@ -8,19 +8,19 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane id="AnchorPane" fx:id="rootPane" prefHeight="150.0" prefWidth="400.0" styleClass="windowContainer" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sk44.jfxw.controller.ConfirmWindowController">
+<AnchorPane id="AnchorPane" fx:id="rootPane" prefHeight="150.0" prefWidth="400.0" styleClass="windowContainer" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sk44.jfxw.controller.modal.ConfirmWindowController">
     <stylesheets>
         <URL value="@/styles/Styles.css" />
     </stylesheets>
     <children>
         <AnchorPane styleClass="windowContent" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
             <children>
-                <Label alignment="CENTER" contentDisplay="CENTER" layoutX="35.0" layoutY="40.0" styleClass="windowLabel" text="Confirm" textAlignment="CENTER" AnchorPane.leftAnchor="30.0" AnchorPane.rightAnchor="30.0" AnchorPane.topAnchor="10.0">
+                <Label alignment="CENTER" contentDisplay="CENTER" layoutX="35.0" layoutY="40.0" styleClass="windowLabel" text="CONFIRM" textAlignment="CENTER" AnchorPane.leftAnchor="30.0" AnchorPane.rightAnchor="30.0" AnchorPane.topAnchor="10.0">
                 </Label>
                 <Label fx:id="messageLabel" alignment="CENTER" contentDisplay="CENTER" layoutX="35.0" layoutY="40.0" styleClass="windowLabel" textAlignment="CENTER" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="40.0">
                 </Label>
-            <Button defaultButton="true" layoutX="190.0" layoutY="90.0" mnemonicParsing="false" onAction="#handleOKAction" prefHeight="26.0" prefWidth="80.0" text="OK" />
-            <Button cancelButton="true" layoutX="288.0" layoutY="90.0" mnemonicParsing="false" onAction="#handleCancelAction" prefHeight="26.0" prefWidth="80.0" text="Cancel" />
+                <Button defaultButton="true" layoutX="190.0" layoutY="90.0" mnemonicParsing="false" onAction="#handleOKAction" prefHeight="26.0" prefWidth="80.0" text="OK" />
+                <Button cancelButton="true" layoutX="288.0" layoutY="90.0" mnemonicParsing="false" onAction="#handleCancelAction" prefHeight="26.0" prefWidth="80.0" text="Cancel" />
             </children>
         </AnchorPane>
     </children>

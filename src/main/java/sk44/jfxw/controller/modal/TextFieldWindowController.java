@@ -3,7 +3,7 @@
  *
  *
  */
-package sk44.jfxw.controller;
+package sk44.jfxw.controller.modal;
 
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -68,8 +68,8 @@ public class TextFieldWindowController extends ModalWindowController<Void> imple
         update();
     }
 
-    public void updateTitle(String title) {
-        titleLabel.setText(title);
+    public void updateTitle(TextFieldWindowTitle title) {
+        titleLabel.setText(title.getTitle());
 
     }
 
@@ -77,7 +77,7 @@ public class TextFieldWindowController extends ModalWindowController<Void> imple
         textField.setText(text);
     }
 
-    public void updateContent(String title, String initialValue) {
+    public void updateContent(TextFieldWindowTitle title, String initialValue) {
         updateTitle(title);
         updateText(initialValue);
     }
@@ -102,7 +102,7 @@ public class TextFieldWindowController extends ModalWindowController<Void> imple
     }
 
     @Override
-    protected void close() {
+    public void close() {
         updateText("");
         super.close();
     }

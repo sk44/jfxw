@@ -7,7 +7,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane id="AnchorPane" fx:id="rootPane" prefHeight="100.0" prefWidth="400.0" styleClass="windowContainer" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sk44.jfxw.controller.JumpWindowController">
+<AnchorPane id="AnchorPane" fx:id="rootPane" prefHeight="100.0" prefWidth="400.0" styleClass="windowContainer" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sk44.jfxw.controller.modal.JumpWindowController">
     <stylesheets>
         <URL value="@/styles/Styles.css" />
     </stylesheets>

@@ -11,7 +11,8 @@ import java.nio.file.Path;
 import java.util.Optional;
 import java.util.function.Supplier;
 import javafx.stage.Window;
-import sk44.jfxw.controller.TextFieldWindowController;
+import sk44.jfxw.controller.modal.TextFieldWindowController;
+import sk44.jfxw.controller.modal.TextFieldWindowTitle;
 import sk44.jfxw.model.message.Message;
 
 /**
@@ -25,7 +26,7 @@ public class RenameWindow extends ModalWindow<TextFieldWindowController, Void> {
 
     public RenameWindow(Window owner, Supplier<Optional<Path>> renameTargetSupplier, Runnable finishAction) {
         super(Fxml.TEXT_FIELD_WINDOW, owner, (controller) -> {
-            controller.updateTitle("Rename");
+            controller.updateTitle(TextFieldWindowTitle.RENAME);
         });
         this.renameTargetSupplier = renameTargetSupplier;
         this.finishAction = finishAction;

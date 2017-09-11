@@ -3,7 +3,7 @@
  *
  *
  */
-package sk44.jfxw.controller;
+package sk44.jfxw.controller.modal;
 
 import java.net.URL;
 import java.util.ResourceBundle;

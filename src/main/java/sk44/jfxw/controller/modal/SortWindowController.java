@@ -3,13 +3,13 @@
  *
  *
  */
-package sk44.jfxw.controller;
+package sk44.jfxw.controller.modal;
 
 import java.net.URL;
 import java.util.ResourceBundle;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Pane;
@@ -25,8 +25,7 @@ import sk44.jfxw.view.Nodes;
  */
 public class SortWindowController extends ModalWindowController<Void> implements Initializable {
 
-    private static final String CURRENT_SORT_TYPE_CLASS_NAME = "currentSortType";
-    private static final String CURRENT_ORDER_TYPE_CLASS_NAME = "currentOrderType";
+    private static final String CURRENT_SORT_OPTION_CLASS_NAME = "currentSortOption";
 
     @Override
     public Void getResult() {
@@ -53,7 +52,8 @@ public class SortWindowController extends ModalWindowController<Void> implements
     @FXML
     private Label descLabel;
     @FXML
-    private CheckBox sortDirectoriesCheckBox;
+    private Label sortDirLabel;
+    private boolean sortDir;
 
     private PathSortType currentSortType;
     private PathSortOrder sortOrder;
@@ -62,8 +62,10 @@ public class SortWindowController extends ModalWindowController<Void> implements
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        // TODO
-//        this.rootPane.requestFocus();
+        // runLater しないとフォーカスが効かない
+        Platform.runLater(() -> {
+            this.rootPane.requestFocus();
+        });
         this.rootPane.addEventFilter(KeyEvent.KEY_PRESSED, this::handleCommandKeyPressed);
     }
 
@@ -90,11 +92,15 @@ public class SortWindowController extends ModalWindowController<Void> implements
                 // asc
                 updateCurrentSortType(this.currentSortType, PathSortOrder.ASC);
                 break;
+            case R:
+                // toggle
+                this.updateSortDir(this.sortDir == false);
+                break;
             case ESCAPE:
                 close();
                 break;
             case ENTER:
-                updateAction.update(this.currentSortType, this.sortOrder, this.sortDirectoriesCheckBox.isSelected());
+                updateAction.update(this.currentSortType, this.sortOrder, this.sortDir);
                 close();
                 break;
             default:
@@ -103,23 +109,32 @@ public class SortWindowController extends ModalWindowController<Void> implements
     }
 
     public void updateSortOptions(PathSortType sortType, PathSortOrder sortOrder, boolean sortDirectories) {
-        this.sortDirectoriesCheckBox.setSelected(sortDirectories);
+        this.updateSortDir(sortDirectories);
         this.updateCurrentSortType(sortType, sortOrder);
+    }
+
+    private void updateSortDir(boolean sortDirectories) {
+        if (sortDirectories) {
+            Nodes.addStyleClassTo(this.sortDirLabel, CURRENT_SORT_OPTION_CLASS_NAME);
+        } else {
+            this.sortDirLabel.getStyleClass().remove(CURRENT_SORT_OPTION_CLASS_NAME);
+        }
+        this.sortDir = sortDirectories;
     }
 
     private void updateCurrentSortType(PathSortType currentSortType, PathSortOrder sortOrder) {
         if (this.currentSortType != null) {
-            labelOfSortType(this.currentSortType).getStyleClass().remove(CURRENT_SORT_TYPE_CLASS_NAME);
+            labelOfSortType(this.currentSortType).getStyleClass().remove(CURRENT_SORT_OPTION_CLASS_NAME);
         }
-        labelOfSortType(currentSortType).getStyleClass().add(CURRENT_SORT_TYPE_CLASS_NAME);
+        labelOfSortType(currentSortType).getStyleClass().add(CURRENT_SORT_OPTION_CLASS_NAME);
         this.currentSortType = currentSortType;
         this.sortOrder = sortOrder;
         if (this.sortOrder == PathSortOrder.ASC) {
-            Nodes.addStyleClassTo(this.ascLabel, CURRENT_ORDER_TYPE_CLASS_NAME);
-            this.descLabel.getStyleClass().remove(CURRENT_ORDER_TYPE_CLASS_NAME);
+            Nodes.addStyleClassTo(this.ascLabel, CURRENT_SORT_OPTION_CLASS_NAME);
+            this.descLabel.getStyleClass().remove(CURRENT_SORT_OPTION_CLASS_NAME);
         } else {
-            this.ascLabel.getStyleClass().remove(CURRENT_ORDER_TYPE_CLASS_NAME);
-            Nodes.addStyleClassTo(this.descLabel, CURRENT_ORDER_TYPE_CLASS_NAME);
+            this.ascLabel.getStyleClass().remove(CURRENT_SORT_OPTION_CLASS_NAME);
+            Nodes.addStyleClassTo(this.descLabel, CURRENT_SORT_OPTION_CLASS_NAME);
         }
     }
 

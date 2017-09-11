@@ -14,6 +14,11 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.FlowPane;
 import javafx.stage.Window;
 import lombok.Getter;
+import sk44.jfxw.controller.modal.ConfirmWindowController;
+import sk44.jfxw.controller.modal.JumpWindowController;
+import sk44.jfxw.controller.modal.SortWindowController;
+import sk44.jfxw.controller.modal.TextFieldWindowController;
+import sk44.jfxw.controller.modal.TextFieldWindowTitle;
 import sk44.jfxw.model.Filer;
 import sk44.jfxw.model.FilerEvents;
 import sk44.jfxw.model.ModelLocator;
@@ -236,7 +241,7 @@ public class FilerViewController implements Initializable {
     private void openCreateDirectoryWindow() {
         if (createDirWindow == null) {
             createDirWindow = new ModalWindow<>(Fxml.TEXT_FIELD_WINDOW, getModalWindowOwner(), controller -> {
-                controller.updateContent("New directory", "");
+                controller.updateContent(TextFieldWindowTitle.NEW_DIR, "");
                 controller.setUpdateAction(dirName -> {
                     filer.createDirectory(dirName);
                 });
@@ -248,7 +253,7 @@ public class FilerViewController implements Initializable {
     private void openInputNewTextFileNameWindow() {
         if (inputNewTextFileNameWindow == null) {
             inputNewTextFileNameWindow = new ModalWindow<>(Fxml.TEXT_FIELD_WINDOW, getModalWindowOwner(), controller -> {
-                controller.updateContent("New text", "");
+                controller.updateContent(TextFieldWindowTitle.NEW_TEXT, "");
                 controller.setUpdateAction(textFileName -> {
                     contents.openExternalEditorFor(textFileName);
                 });
@@ -297,7 +302,7 @@ public class FilerViewController implements Initializable {
     private void openSearchTextField() {
         if (searchWindow == null) {
             searchWindow = new ModalWindow<>(Fxml.TEXT_FIELD_WINDOW, getModalWindowOwner(), controller -> {
-                controller.updateContent("Search", searchText);
+                controller.updateContent(TextFieldWindowTitle.SEARCH, searchText);
                 controller.addKeyReleasedEventHandler((query, e) -> {
                     switch (e.getCode()) {
                         case ESCAPE:

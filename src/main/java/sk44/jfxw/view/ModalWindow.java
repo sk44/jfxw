@@ -6,6 +6,7 @@
 package sk44.jfxw.view;
 
 import java.io.IOException;
+import java.util.Objects;
 import java.util.function.Consumer;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -17,7 +18,7 @@ import javafx.stage.StageStyle;
 import javafx.stage.Window;
 import lombok.AccessLevel;
 import lombok.Getter;
-import sk44.jfxw.controller.ModalWindowController;
+import sk44.jfxw.controller.modal.ModalWindowController;
 import sk44.jfxw.model.message.Message;
 
 /**
@@ -47,6 +48,8 @@ public class ModalWindow<C extends ModalWindowController<R>, R> {
             Parent root = loader.load();
 
             controller = loader.getController();
+            Objects.requireNonNull(controller);
+
             controller.setCloseAction(this::close);
             controllerConfigurer.accept(controller);
 
