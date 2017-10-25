@@ -66,7 +66,9 @@ public class MainWindowController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle rb) {
 
-        Message.addObserver(this::appendMessage);
+        Message.addWriter(this::appendMessage);
+        Message.addClearHandler(this::clearMessage);
+
         ModelLocator locator = ModelLocator.INSTANCE;
         locator.getBackgroundImage().addBackgroundImageUpdatingListener(this::updateBackgroundImage);
 
@@ -115,13 +117,18 @@ public class MainWindowController implements Initializable {
         rightFiler.changeDirectoryToInitPath();
 
         leftFiler.focus();
-        messageArea.appendText("Ready.");
+//        messageArea.appendText("Ready.");
+        Message.ready();
     }
 
     private void appendMessage(String message) {
         Platform.runLater(() -> {
             messageArea.appendText("\n" + message);
         });
+    }
+
+    private void clearMessage() {
+        messageArea.clear();
     }
 
     private void updateStatus(Path path) {

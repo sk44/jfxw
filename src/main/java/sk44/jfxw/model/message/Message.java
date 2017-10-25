@@ -17,26 +17,35 @@ import java.util.List;
  */
 public class Message {
 
-    private enum Subject {
+    private enum Handlers {
 
         INSTANCE;
 
-        private final List<MessageObserver> observers = new ArrayList<>();
+        private final List<MessageWriter> writers = new ArrayList<>();
+        private final List<Runnable> clearHandlers = new ArrayList<>();
 
-        public void notifyObservers(String message) {
-            if (message == null || message.length() <= 0) {
+        public void write(String message) {
+            if (message == null || message.isEmpty()) {
                 return;
             }
-            observers.stream().forEach(observer -> observer.update(message));
+            writers.forEach(writer -> writer.write(message));
         }
 
-        public void addObserver(MessageObserver observer) {
-            observers.add(observer);
+        public void clear() {
+            if (clearHandlers == null || clearHandlers.isEmpty()) {
+                return;
+            }
+            clearHandlers.forEach(handler -> handler.run());
         }
 
-        public void clearObservers() {
-            observers.clear();
+        public void addWriter(MessageWriter writer) {
+            writers.add(writer);
         }
+
+        public void addClearHandler(Runnable clearer) {
+            clearHandlers.add(clearer);
+        }
+
     }
 
     private static MessageLevel minLevel = MessageLevel.INFO;
@@ -45,48 +54,57 @@ public class Message {
         minLevel = level;
     }
 
-    private static void output(String message, MessageLevel level) {
-        Subject.INSTANCE.notifyObservers(level.formatMessage(message, minLevel));
+    private static void write(String message, MessageLevel level) {
+        Handlers.INSTANCE.write(level.formatMessage(message, minLevel));
+    }
+
+    public static void clear() {
+        Handlers.INSTANCE.clear();
+        ready();
+    }
+
+    public static void ready() {
+        info("Ready.");
     }
 
     public static void trace(String message) {
-        output(message, MessageLevel.TRACE);
+        write(message, MessageLevel.TRACE);
     }
 
     public static void debug(String message) {
-        output(message, MessageLevel.DEBUG);
+        write(message, MessageLevel.DEBUG);
     }
 
     public static void info(String message) {
-        output(message, MessageLevel.INFO);
+        write(message, MessageLevel.INFO);
     }
 
     public static void warn(String message) {
-        output(message, MessageLevel.WARN);
+        write(message, MessageLevel.WARN);
     }
 
     public static void error(String message) {
-        output(message, MessageLevel.ERROR);
+        write(message, MessageLevel.ERROR);
     }
 
     public static void error(Throwable t) {
-        output(t.getLocalizedMessage(), MessageLevel.ERROR);
+        write(t.getLocalizedMessage(), MessageLevel.ERROR);
         try {
-            output(convertStackTraceToString(t), MessageLevel.ERROR);
+            write(convertStackTraceToString(t), MessageLevel.ERROR);
         } catch (IOException ex) {
             // TODO うーむ
-            output(t.toString(), MessageLevel.ERROR);
-            output("An error occured during getting stacktrace from exception.", MessageLevel.ERROR);
-            output(ex.getLocalizedMessage(), MessageLevel.ERROR);
+            write(t.toString(), MessageLevel.ERROR);
+            write("An error occured during getting stacktrace from exception.", MessageLevel.ERROR);
+            write(ex.getLocalizedMessage(), MessageLevel.ERROR);
         }
     }
 
-    public static void addObserver(MessageObserver observer) {
-        Subject.INSTANCE.addObserver(observer);
+    public static void addWriter(MessageWriter writer) {
+        Handlers.INSTANCE.addWriter(writer);
     }
 
-    public static void clearAllObservers() {
-        Subject.INSTANCE.clearObservers();
+    public static void addClearHandler(Runnable clearHandler) {
+        Handlers.INSTANCE.addClearHandler(clearHandler);
     }
 
     private static String convertStackTraceToString(Throwable t) throws IOException {

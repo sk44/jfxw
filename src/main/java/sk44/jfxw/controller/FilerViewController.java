@@ -23,6 +23,7 @@ import sk44.jfxw.model.Filer;
 import sk44.jfxw.model.FilerEvents;
 import sk44.jfxw.model.ModelLocator;
 import sk44.jfxw.model.fs.FileSystem;
+import sk44.jfxw.model.message.Message;
 import sk44.jfxw.view.ContentRow;
 import sk44.jfxw.view.CurrentPathInfoBox;
 import sk44.jfxw.view.FilerContents;
@@ -73,7 +74,11 @@ public class FilerViewController implements Initializable {
 //        Message.info(event.getCode().toString());
         switch (event.getCode()) {
             case C:
-                copyMarkedPathesToOtherFiler();
+                if (event.isShiftDown()) {
+                    Message.clear();
+                } else {
+                    copyMarkedPathesToOtherFiler();
+                }
                 break;
             case D:
                 deleteMarkedPathes();

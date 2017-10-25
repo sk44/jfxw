@@ -7,8 +7,8 @@ package sk44.jfxw.model.message;
  * @author sk
  */
 @FunctionalInterface
-public interface MessageObserver {
+public interface MessageWriter {
 
-    void update(String message);
+    void write(String message);
 
 }
